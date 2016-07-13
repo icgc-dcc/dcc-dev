@@ -26,7 +26,7 @@ workspace: /tmp/dcc-dev
 
 # Metadata
 metadata:
-  dir: ${workspace}
+  dir: ${workspace}/metadata
 
 # Slack
 slack:
@@ -36,6 +36,7 @@ slack:
 # GitHub
 github:
   user: dcc-jenkins
+  cache: ${workspace}/github
   token:
   
 # Artifacts

@@ -23,6 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 public class GithubConfig {
 
+  @Value("${github.cache}")
+  File cache;
+  
   @Bean
   @SneakyThrows
   public GHRepository repo(GitHub github) {
@@ -47,7 +50,7 @@ public class GithubConfig {
 
   @Bean
   public OkHttpConnector connector() throws IOException {
-    val cache = new Cache(new File("/tmp/dcc-dev/responses"), 10 * 1024 * 1024); // 10MB cache
+    val cache = new Cache(cache, 10 * 1024 * 1024); // 10MB cache
     
     return new OkHttpConnector(new OkUrlFactory(new OkHttpClient().setCache(cache)));
   }
