@@ -37,4 +37,124 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
     </repository>
   </repositories>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <version>${spring-boot.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-integration</artifactId>
+      <version>${spring-boot.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-websocket</artifactId>
+      <version>${spring-boot.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-java-dsl</artifactId>
+      <version>${spring-integration-java-dsl.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.4</version>
+    </dependency>    
+    
+    <!-- Github -->
+    <dependency>
+      <groupId>org.kohsuke</groupId>
+      <artifactId>github-api</artifactId>
+      <version>1.76</version>
+    </dependency>
+    <dependency>
+      <groupId>com.squareup.okhttp</groupId>
+      <artifactId>okhttp-urlconnection</artifactId>
+      <version>2.0.0</version>
+      <optional>true</optional>
+    </dependency>
+    
+    <!-- MapDB-->
+    <dependency>
+      <groupId>org.mapdb</groupId>
+      <artifactId>mapdb</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+
+    <!-- Artifactory -->
+    <dependency>
+      <groupId>org.jfrog.artifactory.client</groupId>
+      <artifactId>artifactory-java-client-services</artifactId>
+      <version>0.16</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>jackson-annotations</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    
+    <!-- Slack -->
+    <dependency>
+      <groupId>in.ashwanthkumar</groupId>
+      <artifactId>slack-java-webhook</artifactId>
+      <version>0.0.6</version>
+    </dependency>
+    
+    <!-- Utilities -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>sg.enixsoft</groupId>
+        <artifactId>capsule-maven-plugin</artifactId>
+        <version>${capsule-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>build</goal>
+            </goals>
+            <configuration>
+              <appClass>org.icgc.dcc.dev.ServerMain</appClass>
+              <type>thin</type>
+              <chmod>true</chmod>
+              <manifest>
+                <entry>
+                  <key>Min-Java-Version</key>
+                  <value>1.8.0</value>
+                </entry>
+              </manifest>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <properties>
+    <!-- Spring -->
+    <spring.version>4.2.7.RELEASE</spring.version>
+    <spring-boot.version>1.3.6.RELEASE</spring-boot.version>
+    <spring-integration.version>4.3.0.RELEASE</spring-integration.version>
+    <spring-integration-java-dsl.version>1.1.3.RELEASE</spring-integration-java-dsl.version>
+
+    <!--  Plugins  -->
+    <spring-maven-plugin.version>1.3.0.RELEASE</spring-maven-plugin.version>
+    <capsule-maven-plugin.version>1.3.0</capsule-maven-plugin.version>
+  </properties>
+
 </project>
