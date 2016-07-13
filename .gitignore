@@ -1,3 +1,6 @@
+# Production
+application-production.yml
+
 # Eclipse IDE
 .project
 .classpath
@@ -72,3 +75,4 @@ logs/
 .vagrant/
 /dcc-portal-ui/src/main/js/app/.brackets.json
 dcc-portal-ui/src/main/js/app/bower_components
+

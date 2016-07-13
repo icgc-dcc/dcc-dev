@@ -15,7 +15,6 @@ public class ArtifactController {
   @Autowired
   ArtifactService artifacts;
   
-  
   @RequestMapping("/builds")
   public List<RepoPath> builds() {
     return artifacts.list();
