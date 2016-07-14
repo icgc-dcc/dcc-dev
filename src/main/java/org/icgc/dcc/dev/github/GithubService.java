@@ -4,6 +4,7 @@ import static org.kohsuke.github.GHIssueState.OPEN;
 
 import java.util.List;
 
+import org.kohsuke.github.GHCommitStatus;
 import org.kohsuke.github.GHRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,11 @@ public class GithubService {
     }
     
     return prs.build();
+  }
+  
+  @SneakyThrows
+  public GHCommitStatus getStatus(String sha1) {
+    return repo.getLastCommitStatus(sha1);
   }
   
 }

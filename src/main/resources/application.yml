@@ -42,4 +42,13 @@ github:
 # Artifacts
 artifact:
   url: https://artifacts.oicr.on.ca/artifactory
-  repo: dcc-snapshot
+  repo: dcc-pr-snapshot
+  name: dcc-portal-api
+
+# Jenkins
+jenkins:
+  url: https://dcc-jenkins.oicr.on.ca
+  jobName: dcc-portal-pr
+  user:
+  password:
+  cron: 0/10 * * * * ?
