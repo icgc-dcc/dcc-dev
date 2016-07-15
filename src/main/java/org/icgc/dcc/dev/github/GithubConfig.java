@@ -28,9 +28,9 @@ public class GithubConfig {
   
   @Bean
   @SneakyThrows
-  public GHRepository repo(GitHub github) {
+  public GHRepository repo(GitHub github, @Value("${github.repoName}") String repoName) {
     log.info("Getting repository...");
-    val repo = github.getRepository("icgc-dcc/dcc-portal");
+    val repo = github.getRepository(repoName);
     log.info("Finished getting repository: {}", repo);
     
     return repo;

@@ -22,11 +22,14 @@
 # Profile - common
 ###############################################################################
 
-workspace: /tmp/dcc-dev
-
-# Metadata
-metadata:
-  dir: ${workspace}/metadata
+# Workspace
+workspace:
+  dir: /tmp/dcc-dev
+  
+# Template
+template:
+  dir: ${workspace.dir}/template
+  url: https://artifacts.oicr.on.ca/artifactory/dcc-release/org/icgc/dcc/dcc-portal-api/[RELEASE]/dcc-portal-api-[RELEASE]-dist.tar.gz
 
 # Slack
 slack:
@@ -35,15 +38,17 @@ slack:
   
 # GitHub
 github:
+  repoName: icgc-dcc/dcc-portal
   user: dcc-jenkins
-  cache: ${workspace}/github
+  cache: ${workspace.dir}/github
   token:
   
 # Artifacts
 artifact:
   url: https://artifacts.oicr.on.ca/artifactory
-  repo: dcc-pr-snapshot
-  name: dcc-portal-api
+  repoName: dcc-pr-snapshot
+  groupId: org.icgc.dcc
+  artifactId: dcc-portal-api
 
 # Jenkins
 jenkins:

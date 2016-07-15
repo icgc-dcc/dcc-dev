@@ -24,7 +24,7 @@ public class LogService {
   Map<File, Tailer> tailers = Maps.newConcurrentMap();
   
   @Autowired
-  SimpMessagingTemplate messagingTemplate;
+  SimpMessagingTemplate messages;
 
   @Synchronized
   public void tail(File log) {
@@ -56,7 +56,7 @@ public class LogService {
    @Override
     public void handle(String line) {
      log.info(line);
-     messagingTemplate.convertAndSend("/topic/log", line);
+     messages.convertAndSend("/topic/log", line);
     } 
    
   }

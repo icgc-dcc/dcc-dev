@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ArtifactConfig {
+public class ArtifactoryConfig {
 
   @Bean
   public Artifactory artifactory(@Value("${artifact.url}") String url) {

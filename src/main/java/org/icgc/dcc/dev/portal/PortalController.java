@@ -1,78 +1,82 @@
 package org.icgc.dcc.dev.portal;
 
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+
 import java.util.List;
 
-import org.icgc.dcc.dev.artifact.ArtifactService;
-import org.icgc.dcc.dev.deploy.DeployService;
-import org.icgc.dcc.dev.github.GithubService;
-import org.icgc.dcc.dev.jenkins.JenkinsBuild;
-import org.icgc.dcc.dev.jenkins.JenkinsService;
-import org.icgc.dcc.dev.metadata.Metadata;
-import org.icgc.dcc.dev.metadata.MetadataService;
-import org.jfrog.artifactory.client.model.Item;
-import org.jfrog.artifactory.client.model.RepoPath;
-import org.kohsuke.github.GHCommitStatus;
+import org.icgc.dcc.dev.portal.Portal.Candidate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.google.common.collect.ImmutableList;
 
 @Component
 @RestController
 public class PortalController {
 
   @Autowired
-  MetadataService metadata;
-  @Autowired
-  DeployService deploy;
-  @Autowired
-  GithubService github;
-  @Autowired
-  ArtifactService artifacts;
-  @Autowired
-  JenkinsService jenkins;
+  PortalService portals;
 
-  @RequestMapping("/portals")
-  public List<Metadata> portals() {
-    return ImmutableList.of();
+  @RequestMapping(value = "/candidates", method = GET)
+  public List<Candidate> getCandidates() {
+    return portals.getCandidates();
   }
 
-  @RequestMapping("/deploy")
-  public String deploy() {
-    return deploy.echo();
+  @RequestMapping(value = "/portals", method = GET)
+  public List<Portal> list() {
+    return portals.list();
   }
 
-  @RequestMapping("/artifacts")
-  public List<RepoPath> artifacts() {
-    return artifacts.list();
-  }
-  
-  @RequestMapping("/artifacts/{buildNumber}")
-  public List<RepoPath> artifacts(@PathVariable String buildNumber) {
-    return artifacts.getBuild(buildNumber);
-  }
-  
-  @RequestMapping("/folder")
-  public List<Item> folder() {
-    return artifacts.folder();
+  @RequestMapping(value = "/portals", method = POST)
+  public Portal create(
+      @RequestParam(value = "pr", required = true) String pr,
+      
+      @RequestParam(value = "name", required = false) String name,
+      @RequestParam(value = "title", required = false) String title,
+      @RequestParam(value = "description", required = false) String description,
+      @RequestParam(value = "ticket", required = false) String ticket) {
+    return portals.create(pr, name, title, description, ticket);
   }
 
-  @RequestMapping("/prs")
-  public List<String> prs() {
-    return github.getPrs();
+  @RequestMapping(value = "/portals/{id}", method = PUT)
+  public Portal update(
+      @PathVariable("id") String id,
+      
+      @RequestParam(value = "name", required = false) String name,
+      @RequestParam(value = "title", required = false) String title,
+      @RequestParam(value = "description", required = false) String description,
+      @RequestParam(value = "ticket", required = false) String ticket) {
+    return portals.update(id,name, title, description, ticket);
   }
-  
-  @RequestMapping("/status/{sha1}")
-  public GHCommitStatus status(@PathVariable String sha1) {
-    return github.getStatus(sha1);
+
+  @RequestMapping(value = "/portals/{id}", method = GET)
+  public Portal get(@PathVariable("id") String id) {
+    return portals.get(id);
   }
-  
-  @RequestMapping("/builds")
-  public List<JenkinsBuild> builds() {
-    return jenkins.getBuilds();
+
+  @RequestMapping(value = "/portals/{id}", method = DELETE)
+  public void remove(@PathVariable("id") String id) {
+    portals.remove(id);
+  }
+
+  @RequestMapping(value = "/portals/{id}/start", method = POST)
+  public void start(@PathVariable("id") String id) {
+    portals.start(id);
+  }
+
+  @RequestMapping(value = "/portals/{id}/stop", method = POST)
+  public void stop(@PathVariable("id") String id) {
+    portals.stop(id);
+  }
+
+  @RequestMapping(value = "/portals/{id}/restart", method = POST)
+  public void restart(@PathVariable("id") String id) {
+    portals.restart(id);
   }
 
 }
