@@ -37,14 +37,14 @@ public class ArtifactoryService {
   @SneakyThrows
   public String getArtifact(String buildNumber) {
      val paths = prepareSearch().itemsByProperty().property(BUILD_NUMBER_PROPERTY_NAME, buildNumber).doSearch();
-     val path = paths.stream().filter(p -> p.getItemPath().contains(artifactId)).findFirst().map(RepoPath::getItemPath).orElse(null);
+     val path = paths.stream().filter(p -> p.getItemPath().contains(artifactId) && p.getItemPath().endsWith(".jar")).findFirst().map(RepoPath::getItemPath).orElse(null);
      
     return artifactory.getUri() + "/" + artifactory.getContextName() + "/" + repoName + "/" + path;
   }
   
   @SneakyThrows
   public List<Item> getArtifactFolder() {
-    val path = groupId.replaceAll("\\.", "/") + "/" + artifactId;
+    val path = resolveGroupPath(groupId) + "/" + artifactId;
     Folder folder = artifactory.repository(repoName).folder(path).info();
     
     return folder.getChildren();
@@ -52,6 +52,10 @@ public class ArtifactoryService {
 
   private Searches prepareSearch() {
     return artifactory.searches().repositories(repoName).artifactsByName(artifactId);
+  }
+
+  private static String resolveGroupPath(String groupId) {
+    return groupId.replaceAll("\\.", "/");
   }
   
 }

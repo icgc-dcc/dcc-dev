@@ -20,16 +20,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class PortalController {
 
   @Autowired
-  PortalService portals;
+  PortalService service;
 
   @RequestMapping(value = "/candidates", method = GET)
   public List<Candidate> getCandidates() {
-    return portals.getCandidates();
+    return service.getCandidates();
   }
 
   @RequestMapping(value = "/portals", method = GET)
   public List<Portal> list() {
-    return portals.list();
+    return service.list();
   }
 
   @RequestMapping(value = "/portals", method = POST)
@@ -40,7 +40,7 @@ public class PortalController {
       @RequestParam(value = "title", required = false) String title,
       @RequestParam(value = "description", required = false) String description,
       @RequestParam(value = "ticket", required = false) String ticket) {
-    return portals.create(pr, name, title, description, ticket);
+    return service.create(pr, name, title, description, ticket);
   }
 
   @RequestMapping(value = "/portals/{id}", method = PUT)
@@ -51,32 +51,37 @@ public class PortalController {
       @RequestParam(value = "title", required = false) String title,
       @RequestParam(value = "description", required = false) String description,
       @RequestParam(value = "ticket", required = false) String ticket) {
-    return portals.update(id,name, title, description, ticket);
+    return service.update(id,name, title, description, ticket);
   }
 
   @RequestMapping(value = "/portals/{id}", method = GET)
   public Portal get(@PathVariable("id") String id) {
-    return portals.get(id);
+    return service.get(id);
+  }
+
+  @RequestMapping(value = "/portals/{id}/status", method = GET)
+  public String status(@PathVariable("id") String id) {
+    return service.status(id);
   }
 
   @RequestMapping(value = "/portals/{id}", method = DELETE)
   public void remove(@PathVariable("id") String id) {
-    portals.remove(id);
+    service.remove(id);
   }
 
   @RequestMapping(value = "/portals/{id}/start", method = POST)
   public void start(@PathVariable("id") String id) {
-    portals.start(id);
+    service.start(id);
   }
 
   @RequestMapping(value = "/portals/{id}/stop", method = POST)
   public void stop(@PathVariable("id") String id) {
-    portals.stop(id);
+    service.stop(id);
   }
 
   @RequestMapping(value = "/portals/{id}/restart", method = POST)
   public void restart(@PathVariable("id") String id) {
-    portals.restart(id);
+    service.restart(id);
   }
 
 }

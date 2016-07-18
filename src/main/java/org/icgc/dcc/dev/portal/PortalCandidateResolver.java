@@ -35,6 +35,10 @@ public class PortalCandidateResolver {
   
   public Portal.Candidate resolve(GithubPr pr) {
     val buildNumber = github.getBuildNumber(pr.getHead());
+    if (buildNumber == null) {
+      return null;
+    }
+    
     val build = jenkins.getBuild(buildNumber);
     val artifact = artifactory.getArtifact(buildNumber);
 

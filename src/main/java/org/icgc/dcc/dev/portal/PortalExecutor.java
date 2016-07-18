@@ -14,23 +14,27 @@ public class PortalExecutor {
   PortalFileSystem fileSystem;
 
   public String start(String id) {
-    return execute(id, "start");
+    return executeScript(id, "start");
   }
 
   public String stop(String id) {
-    return execute(id, "stop");
+    return executeScript(id, "stop");
   }
 
   public String restart(String id) {
-    return execute(id, "restart");
+    return executeScript(id, "restart");
+  }
+  
+  public String status(String id) {
+    return executeScript(id, "status");
   }
 
   @SneakyThrows
-  private String execute(String id, String command) {
-    val executable = fileSystem.getExecutableFile(id);
+  private String executeScript(String id, String command) {
+    val scriptFile = fileSystem.getScriptFile(id);
 
     return new ProcessExecutor()
-        .command(executable.getAbsolutePath(), command)
+        .command(scriptFile.getAbsolutePath(), command)
         .readOutput(true)
         .execute()
         .outputUTF8();

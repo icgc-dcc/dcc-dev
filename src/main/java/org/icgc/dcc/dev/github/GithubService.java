@@ -4,6 +4,7 @@ import static org.kohsuke.github.GHIssueState.OPEN;
 
 import java.util.List;
 
+import org.kohsuke.github.GHCommitState;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +40,12 @@ public class GithubService {
   @SneakyThrows
   public String getBuildNumber(String sha1) {
     val status = repo.getLastCommitStatus(sha1);
-    val jobUrl = status.getTargetUrl();
+    val state = status.getState();
+    if (state != GHCommitState.SUCCESS) {
+      return null;
+    }
     
+    val jobUrl = status.getTargetUrl();
     return jobUrl.split("/")[5];
   }
 

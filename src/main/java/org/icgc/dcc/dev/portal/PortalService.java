@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 
 import lombok.Synchronized;
 import lombok.val;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class PortalService {
 
@@ -44,20 +46,28 @@ public class PortalService {
 
   @Synchronized
   public Portal create(String prNumber, String name, String title, String description, String ticket) {
+    log.info("Creating portal {}...", name);
+    val candidate = candidates.resolve(prNumber);
+    if (candidate == null) {
+      return null;
+    }
+
     // Collect metadata
     val portal = new Portal()
         .setName(name)
         .setTitle(title)
         .setDescription(description)
         .setTicket(ticket)
-        .setTarget(candidates.resolve(prNumber));
+        .setTarget(candidate);
 
     // Create directory with aritfact
     deployer.deploy(portal);
 
     // Save the metadata
     repository.save(portal);
-    executor.start(portal.getId());
+    val output = executor.start(portal.getId());
+    log.info("Output: {}", output);
+    
     logs.tail(fileSystem.getLogFile(portal.getId()));
 
     return portal;
@@ -65,6 +75,7 @@ public class PortalService {
 
   @Synchronized
   public Portal update(String id, String name, String title, String description, String ticket) {
+    log.info("Updating portal {}...", id);
     val portal = repository.get(id);
 
     repository.save(portal
@@ -80,20 +91,29 @@ public class PortalService {
 
   @Synchronized
   public void remove(String id) {
+    log.info("Removing portal {}...", id);
     stop(id);
     deployer.undeploy(id);
   }
 
   public void start(String id) {
+    log.info("Starting portal {}...", id);
     executor.start(id);
   }
 
   public void stop(String id) {
+    log.info("Stopping portal {}...", id);
     executor.stop(id);
   }
 
   public void restart(String id) {
+    log.info("Restarting portal {}...", id);
     executor.restart(id);
+  }
+  
+  public String status(String id) {
+    log.info("Getting status of portal {}...", id);
+    return executor.status(id);
   }
 
 }

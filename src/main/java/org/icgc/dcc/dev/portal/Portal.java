@@ -17,6 +17,7 @@ public class Portal {
   String description;
   String ticket;
 
+  String url;
   State state = State.NONE;
   
   Candidate target;

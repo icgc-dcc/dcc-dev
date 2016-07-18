@@ -2,6 +2,8 @@ package org.icgc.dcc.dev.log;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.annotation.PreDestroy;
 
@@ -22,23 +24,25 @@ import lombok.extern.slf4j.Slf4j;
 public class LogService {
 
   Map<File, Tailer> tailers = Maps.newConcurrentMap();
+  ExecutorService executor = Executors.newCachedThreadPool();
   
   @Autowired
   SimpMessagingTemplate messages;
 
   @Synchronized
-  public void tail(File log) {
-    if (!tailers.containsKey(log)) {
-      val tailer = new Tailer(log, this.new LogListener());
-      tailer.run();
+  public void tail(File logFile) {
+    if (!tailers.containsKey(logFile)) {
+      log.info("Tailing {}...", logFile);
+      val tailer = new Tailer(logFile, this.new LogListener());
+      executor.execute(tailer);
       
-      tailers.put(log, tailer);
+      tailers.put(logFile, tailer);
     }
   }
   
   @Synchronized
-  public void stop(File log) {
-    val tailer = tailers.remove(log);
+  public void stop(File logFile) {
+    val tailer = tailers.remove(logFile);
     if (tailer == null) {
       return;
     }

@@ -23,6 +23,10 @@ public class PortalFileSystem {
     return new File(getRootDir(id), "bin");
   }
 
+  public File getSettingsFile(String id) {
+    return new File(getConfDir(id), "settings.yml");
+  }
+  
   public File getConfDir(String id) {
     return new File(getRootDir(id), "conf");
   }
@@ -35,7 +39,7 @@ public class PortalFileSystem {
     return new File(getRootDir(id), "logs");
   }
 
-  public File getExecutableFile(String id) {
+  public File getScriptFile(String id) {
     return new File(getBinDir(id), "dcc-portal-api");
   }
 
