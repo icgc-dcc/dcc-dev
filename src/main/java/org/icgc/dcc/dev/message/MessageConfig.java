@@ -19,7 +19,7 @@ public class MessageConfig extends AbstractWebSocketMessageBrokerConfigurer {
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     // Websocket endpoint: ws://localhost:8080/messages
-    registry.addEndpoint("/messages");
+    registry.addEndpoint("/messages").withSockJS();
   }
 
 }
