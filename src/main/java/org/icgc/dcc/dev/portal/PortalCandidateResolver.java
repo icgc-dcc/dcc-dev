@@ -3,6 +3,7 @@ package org.icgc.dcc.dev.portal;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.icgc.dcc.dev.artifact.ArtifactoryService;
 import org.icgc.dcc.dev.github.GithubPr;
@@ -15,6 +16,11 @@ import lombok.val;
 
 @Component
 public class PortalCandidateResolver {
+
+  /**
+   * Constants.
+   */
+  private static final Pattern PR_PATTERN = Pattern.compile("^(DCC-\\d+)/.*$");
 
   /**
    * Dependencies.
@@ -38,17 +44,23 @@ public class PortalCandidateResolver {
 
   public Portal.Candidate resolve(GithubPr pr) {
     val buildNumber = github.getBuildNumber(pr.getHead());
-    if (buildNumber == null) {
-      return null;
-    }
+    if (buildNumber == null) return null;
 
     val build = jenkins.getBuild(buildNumber);
     val artifact = artifactory.getArtifact(buildNumber);
+    val ticket = resolveTicket(pr.getBranch());
 
     return new Portal.Candidate()
         .setPr(pr)
         .setBuild(build)
-        .setArtifact(artifact);
+        .setArtifact(artifact)
+        .setTicket(ticket);
+  }
+
+  private static String resolveTicket(String branch) {
+    val matcher = PR_PATTERN.matcher(branch);
+
+    return matcher.find() ? matcher.group() : null;
   }
 
 }

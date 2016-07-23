@@ -42,10 +42,10 @@ public class PortalDeployer {
   /**
    * Configuration.
    */
-  @Value("${template.dir}")
-  File templateDir;
   @Value("${template.url}")
   URL templateUrl;
+  @Value("${template.dir}")
+  File templateDir;
   @Value("${template.settings}")
   File templateSettings;
 
@@ -140,6 +140,7 @@ public class PortalDeployer {
   private String nextId() {
     val id = resolveIds().stream().map(Integer::valueOf).sorted(natural().reversed()).findFirst().orElse(0);
 
+    // Advance
     return String.valueOf(id + 1);
   }
 

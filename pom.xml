@@ -148,25 +148,17 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
   <build>
     <plugins>
       <plugin>
-        <groupId>sg.enixsoft</groupId>
-        <artifactId>capsule-maven-plugin</artifactId>
-        <version>${capsule-maven-plugin.version}</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${spring-maven-plugin.version}</version>
+        <configuration>
+          <fork>true</fork>
+        </configuration>
         <executions>
           <execution>
             <goals>
-              <goal>build</goal>
+              <goal>repackage</goal>
             </goals>
-            <configuration>
-              <appClass>org.icgc.dcc.dev.ServerMain</appClass>
-              <type>thin</type>
-              <chmod>true</chmod>
-              <manifest>
-                <entry>
-                  <key>Min-Java-Version</key>
-                  <value>1.8.0</value>
-                </entry>
-              </manifest>
-            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -181,8 +173,7 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
     <jackson.version>2.7.5</jackson.version>
 
     <!-- Plugins  -->
-    <spring-maven-plugin.version>${spring-boot.version}</spring-maven-plugin.version>
-    <capsule-maven-plugin.version>1.3.0</capsule-maven-plugin.version>
+    <spring-maven-plugin.version>1.4.0.BUILD-SNAPSHOT</spring-maven-plugin.version>
   </properties>
 
 </project>

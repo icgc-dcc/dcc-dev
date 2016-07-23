@@ -58,7 +58,12 @@ jenkins:
   user:
   password:
   cron: 0/10 * * * * ?
-  
+
+# JIRA
+jira:
+  url: https://jira.oicr.on.ca
+  project: DCC
+
 # Messages
 message:
   topicPrefix: /topic
