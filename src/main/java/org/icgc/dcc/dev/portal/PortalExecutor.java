@@ -13,25 +13,25 @@ public class PortalExecutor {
   @Autowired
   PortalFileSystem fileSystem;
 
-  public String start(String id) {
-    return executeScript(id, "start");
+  public String start(String portalId) {
+    return executeScript(portalId, "start");
   }
 
-  public String stop(String id) {
-    return executeScript(id, "stop");
+  public String stop(String portalId) {
+    return executeScript(portalId, "stop");
   }
 
-  public String restart(String id) {
-    return executeScript(id, "restart");
+  public String restart(String portalId) {
+    return executeScript(portalId, "restart");
   }
   
-  public String status(String id) {
-    return executeScript(id, "status");
+  public String status(String portalId) {
+    return executeScript(portalId, "status");
   }
 
   @SneakyThrows
-  private String executeScript(String id, String command) {
-    val scriptFile = fileSystem.getScriptFile(id);
+  private String executeScript(String portalId, String command) {
+    val scriptFile = fileSystem.getScriptFile(portalId);
 
     return new ProcessExecutor()
         .command(scriptFile.getAbsolutePath(), command)

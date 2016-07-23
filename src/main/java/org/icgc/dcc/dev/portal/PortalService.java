@@ -68,7 +68,7 @@ public class PortalService {
     val output = executor.start(portal.getId());
     log.info("Output: {}", output);
     
-    logs.tail(fileSystem.getLogFile(portal.getId()));
+    logs.startTailing(portal.getId());
 
     return portal;
   }

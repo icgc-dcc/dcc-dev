@@ -1,5 +1,6 @@
 package org.icgc.dcc.dev.portal;
 
+import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static java.util.stream.Collectors.toList;
 
@@ -10,24 +11,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 import lombok.SneakyThrows;
 
 @Service
 public class PortalRepository {
 
-  private static final ObjectMapper MAPPER = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+  private static final ObjectMapper MAPPER = new ObjectMapper().enable(INDENT_OUTPUT);
 
   @Autowired
   PortalFileSystem fileSystem;
 
   public List<Portal> list() {
-    return resolveIds().stream().map(this::get).collect(toList());
+    return resolvePortalIds().stream().map(this::get).collect(toList());
   }
 
-  public Portal get(String id) {
-    return read(file(id));
+  public Portal get(String portalId) {
+    return read(file(portalId));
   }
 
   public void save(Portal portal) {
@@ -44,11 +44,11 @@ public class PortalRepository {
     MAPPER.writeValue(file, portal);
   }
 
-  private File file(String id) {
-    return fileSystem.getMetadataFile(id);
+  private File file(String portalId) {
+    return fileSystem.getMetadataFile(portalId);
   }
 
-  private List<String> resolveIds() {
+  private List<String> resolvePortalIds() {
     return copyOf(fileSystem.getDir().list());
   }
 
