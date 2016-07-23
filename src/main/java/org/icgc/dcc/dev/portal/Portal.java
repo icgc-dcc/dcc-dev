@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.icgc.dcc.dev.github.GithubPr;
 import org.icgc.dcc.dev.jenkins.JenkinsBuild;
+import org.icgc.dcc.dev.jira.JiraTicket;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -74,7 +75,7 @@ public class Portal {
     GithubPr pr;
     JenkinsBuild build;
     String artifact;
-    String ticket;
+    JiraTicket ticket;
 
   }
 

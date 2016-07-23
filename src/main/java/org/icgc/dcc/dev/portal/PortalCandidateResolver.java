@@ -9,6 +9,7 @@ import org.icgc.dcc.dev.artifact.ArtifactoryService;
 import org.icgc.dcc.dev.github.GithubPr;
 import org.icgc.dcc.dev.github.GithubService;
 import org.icgc.dcc.dev.jenkins.JenkinsService;
+import org.icgc.dcc.dev.jira.JiraService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +26,8 @@ public class PortalCandidateResolver {
   /**
    * Dependencies.
    */
+  @Autowired
+  JiraService jira;
   @Autowired
   GithubService github;
   @Autowired
@@ -48,7 +51,8 @@ public class PortalCandidateResolver {
 
     val build = jenkins.getBuild(buildNumber);
     val artifact = artifactory.getArtifact(buildNumber);
-    val ticket = resolveTicket(pr.getBranch());
+    val ticketKey = resolveTicket(pr.getBranch());
+    val ticket = ticketKey == null ? null : jira.getTicket(ticketKey);
 
     return new Portal.Candidate()
         .setPr(pr)

@@ -55,7 +55,8 @@ public class GithubConfig {
 
   @Bean
   public HttpConnector connector() throws IOException {
-    val cache = new Cache(cacheDir, 10 * 1024 * 1024); // 10MB cache
+    val maxSize = 10 * 1024 * 1024;  // 10MB cache
+    val cache = new Cache(cacheDir, maxSize);
 
     return new OkHttpConnector(new OkUrlFactory(new OkHttpClient().setCache(cache)));
   }
