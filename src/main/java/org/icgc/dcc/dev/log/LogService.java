@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Maps;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Synchronized;
 import lombok.val;
@@ -40,7 +41,7 @@ public class LogService {
   ExecutorService executor = Executors.newCachedThreadPool();
 
   @Synchronized
-  public void startTailing(String portalId) {
+  public void startTailing(@NonNull String portalId) {
     if (!tailers.containsKey(portalId)) {
       val logFile = fileSystem.getLogFile(portalId);
       log.info("Tailing {}...", logFile);
@@ -53,11 +54,9 @@ public class LogService {
   }
 
   @Synchronized
-  public void stopTailing(String portalId) {
+  public void stopTailing(@NonNull String portalId) {
     val tailer = tailers.remove(portalId);
-    if (tailer == null) {
-      return;
-    }
+    if (tailer == null) return;
 
     tailer.stop();
   }
