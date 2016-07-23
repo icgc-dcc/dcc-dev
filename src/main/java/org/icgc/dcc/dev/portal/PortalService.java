@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import lombok.NonNull;
 import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -47,12 +48,12 @@ public class PortalService {
     return repository.list();
   }
 
-  public Portal get(String portalId) {
+  public Portal get(@NonNull String portalId) {
     return repository.get(portalId);
   }
 
   @Synchronized
-  public Portal create(String prNumber, String name, String title, String description, String ticket,
+  public Portal create(@NonNull String prNumber, String name, String title, String description, String ticket,
       Map<String, String> properties) {
     log.info("Creating portal {}...", name);
     val candidate = candidates.resolve(prNumber);
@@ -83,7 +84,7 @@ public class PortalService {
   }
 
   @Synchronized
-  public Portal update(String portalId, String name, String title, String description, String ticket,
+  public Portal update(@NonNull String portalId, String name, String title, String description, String ticket,
       Map<String, String> properties) {
     log.info("Updating portal {}...", portalId);
     val portal = repository.get(portalId);
@@ -103,34 +104,34 @@ public class PortalService {
   }
 
   @Synchronized
-  public void remove(String portalId) {
+  public void remove(@NonNull String portalId) {
     log.info("Removing portal {}...", portalId);
     deployer.undeploy(portalId);
     executor.stop(portalId);
     logs.stopTailing(portalId);
   }
 
-  public void start(String portalId) {
+  public void start(@NonNull String portalId) {
     log.info("Starting portal {}...", portalId);
     val portal = repository.get(portalId);
     executor.start(portalId, portal.getProperties());
     logs.startTailing(portalId);
   }
 
-  public void restart(String portalId) {
+  public void restart(@NonNull String portalId) {
     log.info("Restarting portal {}...", portalId);
     val portal = repository.get(portalId);
     executor.restart(portalId, portal.getProperties());
     logs.startTailing(portalId);
   }
 
-  public void stop(String portalId) {
+  public void stop(@NonNull String portalId) {
     log.info("Stopping portal {}...", portalId);
     executor.stop(portalId);
     logs.stopTailing(portalId);
   }
 
-  public String status(String portalId) {
+  public String status(@NonNull String portalId) {
     log.info("Getting status of portal {}...", portalId);
     return executor.status(portalId);
   }

@@ -46,46 +46,46 @@ public class PortalController {
     return service.create(pr, name, title, description, ticket, properties);
   }
 
-  @PutMapping("/portals/{id}")
+  @PutMapping("/portals/{portalId}")
   public Portal update(
-      @PathVariable("id") String id,
+      @PathVariable("portalId") String portalId,
 
       @RequestParam(value = "name", required = false) String name,
       @RequestParam(value = "title", required = false) String title,
       @RequestParam(value = "description", required = false) String description,
       @RequestParam(value = "ticket", required = false) String ticket,
       @RequestParam(value = "properties", required = false) Map<String, String> properties) {
-    return service.update(id, name, title, description, ticket, properties);
+    return service.update(portalId, name, title, description, ticket, properties);
   }
 
-  @GetMapping("/portals/{id}")
-  public Portal get(@PathVariable("id") String id) {
-    return service.get(id);
+  @GetMapping("/portals/{portalId}")
+  public Portal get(@PathVariable("portalId") String portalId) {
+    return service.get(portalId);
   }
 
-  @GetMapping("/portals/{id}/status")
-  public String status(@PathVariable("id") String id) {
-    return service.status(id);
+  @GetMapping("/portals/{portalId}/status")
+  public String status(@PathVariable("portalId") String portalId) {
+    return service.status(portalId);
   }
 
-  @DeleteMapping("/portals/{id}")
-  public void remove(@PathVariable("id") String id) {
-    service.remove(id);
+  @DeleteMapping("/portals/{portalId}")
+  public void remove(@PathVariable("portalId") String portalId) {
+    service.remove(portalId);
   }
 
-  @PostMapping("/portals/{id}/start")
-  public void start(@PathVariable("id") String id) {
-    service.start(id);
+  @PostMapping("/portals/{portalId}/start")
+  public void start(@PathVariable("portalId") String portalId) {
+    service.start(portalId);
   }
 
-  @PostMapping("/portals/{id}/stop")
-  public void stop(@PathVariable("id") String id) {
-    service.stop(id);
+  @PostMapping("/portals/{portalId}/stop")
+  public void stop(@PathVariable("portalId") String portalId) {
+    service.stop(portalId);
   }
 
-  @PostMapping("/portals/{id}/restart")
-  public void restart(@PathVariable("id") String id) {
-    service.restart(id);
+  @PostMapping("/portals/{portalId}/restart")
+  public void restart(@PathVariable("portalId") String portalId) {
+    service.restart(portalId);
   }
 
 }

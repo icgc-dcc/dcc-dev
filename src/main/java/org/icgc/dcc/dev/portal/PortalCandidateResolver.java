@@ -13,6 +13,7 @@ import org.icgc.dcc.dev.jira.JiraService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import lombok.NonNull;
 import lombok.val;
 
 @Component
@@ -39,13 +40,13 @@ public class PortalCandidateResolver {
     return github.getPrs().stream().map(this::resolve).collect(toList());
   }
 
-  public Portal.Candidate resolve(String prNumber) {
+  public Portal.Candidate resolve(@NonNull String prNumber) {
     val pr = github.getPr(prNumber);
 
     return resolve(pr);
   }
 
-  public Portal.Candidate resolve(GithubPr pr) {
+  public Portal.Candidate resolve(@NonNull GithubPr pr) {
     val buildNumber = github.getBuildNumber(pr.getHead());
     if (buildNumber == null) return null;
 

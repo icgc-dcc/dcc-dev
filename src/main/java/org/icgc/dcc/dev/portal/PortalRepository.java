@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.NonNull;
 import lombok.SneakyThrows;
 
 @Service
@@ -32,11 +33,11 @@ public class PortalRepository {
     return resolvePortalIds().stream().map(this::get).collect(toList());
   }
 
-  public Portal get(String portalId) {
+  public Portal get(@NonNull String portalId) {
     return read(file(portalId));
   }
 
-  public void save(Portal portal) {
+  public void save(@NonNull Portal portal) {
     write(file(portal.getId()), portal);
   }
 

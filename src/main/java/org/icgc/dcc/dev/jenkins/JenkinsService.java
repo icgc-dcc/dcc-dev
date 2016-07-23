@@ -15,6 +15,7 @@ import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.MavenBuild;
 import com.offbytwo.jenkins.model.MavenJobWithDetails;
 
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +65,7 @@ public class JenkinsService {
   }
 
   @SneakyThrows
-  public JenkinsBuild getBuild(String buildNumber) {
+  public JenkinsBuild getBuild(@NonNull String buildNumber) {
     val value = Integer.valueOf(buildNumber);
     val defaultValue = new JenkinsBuild().setNumber(value);
 

@@ -7,6 +7,11 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class JenkinsBuild {
 
+  /**
+   * Build number.
+   * <p>
+   * Primary key.
+   */
   int number;
 
   Integer queueId;

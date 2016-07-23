@@ -17,6 +17,8 @@ public class Portal {
 
   /**
    * The unique identifier for the portal instance.
+   * <p>
+   * Primary key.
    */
   String id;
 

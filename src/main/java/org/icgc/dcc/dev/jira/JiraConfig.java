@@ -21,6 +21,7 @@ public class JiraConfig {
       @Value("${jira.user}") String user,
       @Value("${jira.password}") String password) {
     val creds = new BasicCredentials(user, password);
+    
     return new JiraClient(url.toString(), creds);    
   }
   

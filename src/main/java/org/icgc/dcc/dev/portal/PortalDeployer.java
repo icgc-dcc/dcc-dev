@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import lombok.Cleanup;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -85,22 +86,22 @@ public class PortalDeployer {
   }
 
   @SneakyThrows
-  public void deploy(Portal portal) {
-    val id = nextId();
-    portal.setId(id);
+  public void deploy(@NonNull Portal portal) {
+    val portalId = nextPortalId();
+    portal.setId(portalId);
 
-    val targetDir = fileSystem.getRootDir(id);
+    val targetDir = fileSystem.getRootDir(portalId);
     if (!targetDir.exists()) {
       copyTemplate(targetDir);
 
       // Make executable
-      val binaries = fileSystem.getBinDir(id).listFiles();
+      val binaries = fileSystem.getBinDir(portalId).listFiles();
       for (val binary : binaries) {
         Files.setPosixFilePermissions(binary.toPath(), ImmutableSet.of(OWNER_EXECUTE, OWNER_READ));
       }
     }
 
-    val settingsFile = fileSystem.getSettingsFile(id);
+    val settingsFile = fileSystem.getSettingsFile(portalId);
 
     log.info("Copying settings from {} to {}", templateSettings, settingsFile);
     copy(templateSettings.toPath(), settingsFile.toPath(), REPLACE_EXISTING);
@@ -114,13 +115,13 @@ public class PortalDeployer {
   }
 
   @SneakyThrows
-  public void update(Portal portal) {
+  public void update(@NonNull Portal portal) {
     downloadJar(portal);
   }
 
   @SneakyThrows
-  public void undeploy(String id) {
-    val targetDir = fileSystem.getRootDir(id);
+  public void undeploy(@NonNull String portalId) {
+    val targetDir = fileSystem.getRootDir(portalId);
 
     deleteDirectory(targetDir);
   }
@@ -137,14 +138,14 @@ public class PortalDeployer {
     copy(artifactUrl.openStream(), jarFile.toPath(), REPLACE_EXISTING);
   }
 
-  private String nextId() {
-    val id = resolveIds().stream().map(Integer::valueOf).sorted(natural().reversed()).findFirst().orElse(0);
+  private String nextPortalId() {
+    val portalId = resolvePortalIds().stream().map(Integer::valueOf).sorted(natural().reversed()).findFirst().orElse(0);
 
     // Advance
-    return String.valueOf(id + 1);
+    return String.valueOf(portalId + 1);
   }
 
-  private List<String> resolveIds() {
+  private List<String> resolvePortalIds() {
     String[] list = fileSystem.getDir().list();
     if (list == null) return emptyList();
 

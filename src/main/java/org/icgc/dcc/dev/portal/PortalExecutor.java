@@ -13,6 +13,7 @@ import org.zeroturnaround.exec.ProcessExecutor;
 
 import com.google.common.collect.ImmutableList;
 
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 
@@ -25,19 +26,19 @@ public class PortalExecutor {
   @Autowired
   PortalFileSystem fileSystem;
 
-  public String start(String portalId, Map<String, String> arguments) {
+  public String start(@NonNull String portalId, Map<String, String> arguments) {
     return executeScript(portalId, "start", arguments);
   }
 
-  public String restart(String portalId, Map<String, String> arguments) {
+  public String restart(@NonNull String portalId, Map<String, String> arguments) {
     return executeScript(portalId, "restart", arguments);
   }
 
-  public String stop(String portalId) {
+  public String stop(@NonNull String portalId) {
     return executeScript(portalId, "stop", null);
   }
 
-  public String status(String portalId) {
+  public String status(@NonNull String portalId) {
     return executeScript(portalId, "status", null);
   }
 

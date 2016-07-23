@@ -7,7 +7,13 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class JiraTicket {
 
+  /**
+   * Issue key.
+   * <p>
+   * Primary key.
+   */
   String key;
+  
   String title;
   String status;
   String assignee;

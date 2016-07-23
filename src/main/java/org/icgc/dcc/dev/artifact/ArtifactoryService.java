@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 
@@ -44,7 +45,7 @@ public class ArtifactoryService {
   }
 
   @SneakyThrows
-  public String getArtifact(String buildNumber) {
+  public String getArtifact(@NonNull String buildNumber) {
     val paths = prepareSearch().itemsByProperty().property(BUILD_NUMBER_PROPERTY_NAME, buildNumber).doSearch();
     val path = paths.stream().filter(p -> p.getItemPath().contains(artifactId) && p.getItemPath().endsWith(".jar"))
         .findFirst().map(RepoPath::getItemPath).orElse(null);

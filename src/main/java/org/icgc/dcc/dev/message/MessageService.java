@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import lombok.NonNull;
 import lombok.val;
 
 @Service
@@ -27,7 +28,7 @@ public class MessageService {
   @Autowired
   SlackService slack;
 
-  public void sendMessage(Object message) {
+  public void sendMessage(@NonNull Object message) {
     if (message instanceof LogMessage) {
       val logMessage = (LogMessage) message;
       sendWebSocketMessage("/logs", logMessage);

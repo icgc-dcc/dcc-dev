@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import in.ashwanthkumar.slack.webhook.Slack;
 import in.ashwanthkumar.slack.webhook.SlackMessage;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 
 @Service
@@ -17,7 +18,7 @@ public class SlackService {
   Slack slack;
 
   @SneakyThrows
-  public void notify(SlackMessage message) {
+  public void notify(@NonNull SlackMessage message) {
     slack.push(message);
   }
 

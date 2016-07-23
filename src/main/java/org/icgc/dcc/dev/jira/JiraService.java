@@ -3,6 +3,7 @@ package org.icgc.dcc.dev.jira;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 import net.rcarz.jiraclient.JiraClient;
@@ -17,7 +18,7 @@ public class JiraService {
   JiraClient jira;
 
   @SneakyThrows
-  public JiraTicket getTicket(String key) {
+  public JiraTicket getTicket(@NonNull String key) {
     val issue = jira.getIssue(key);
 
     return new JiraTicket()

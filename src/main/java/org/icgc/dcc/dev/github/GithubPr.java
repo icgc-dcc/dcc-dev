@@ -7,7 +7,13 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class GithubPr {
 
+  /**
+   * Pull request number.
+   * <p>
+   * Primary key.
+   */
   String number;
+  
   String title;
   String description;
   String user;

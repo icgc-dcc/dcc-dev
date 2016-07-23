@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableList;
 
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 
@@ -24,7 +25,7 @@ public class GithubService {
   @Autowired
   GHRepository repo;
 
-  public GithubPr getPr(String number) {
+  public GithubPr getPr(@NonNull String number) {
     return getPrs().stream().filter(pr -> number.equals(pr.getNumber())).findFirst().orElse(null);
   }
 
@@ -41,7 +42,7 @@ public class GithubService {
   }
 
   @SneakyThrows
-  public String getBuildNumber(String sha1) {
+  public String getBuildNumber(@NonNull String sha1) {
     val status = repo.getLastCommitStatus(sha1);
     val state = status.getState();
     if (state != GHCommitState.SUCCESS) {
@@ -52,16 +53,16 @@ public class GithubService {
     return jobUrl.split("/")[5];
   }
 
-  private GithubPr convert(GHPullRequest element) {
+  private GithubPr convert(GHPullRequest pr) {
     return new GithubPr()
-        .setNumber(element.getNumber() + "")
-        .setTitle(element.getTitle())
-        .setDescription(element.getBody())
-        .setUser(element.getUser().getLogin())
-        .setBranch(element.getHead().getRef())
-        .setHead(element.getHead().getSha())
-        .setAvatarUrl(element.getUser().getAvatarUrl())
-        .setUrl(element.getHtmlUrl().toString());
+        .setNumber(pr.getNumber() + "")
+        .setTitle(pr.getTitle())
+        .setDescription(pr.getBody())
+        .setUser(pr.getUser().getLogin())
+        .setBranch(pr.getHead().getRef())
+        .setHead(pr.getHead().getSha())
+        .setAvatarUrl(pr.getUser().getAvatarUrl())
+        .setUrl(pr.getHtmlUrl().toString());
   }
 
 }
