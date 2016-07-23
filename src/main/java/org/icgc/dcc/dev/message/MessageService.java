@@ -35,6 +35,8 @@ public class MessageService {
     } else if (message instanceof JenkinsBuild) {
       val build = (JenkinsBuild) message;
       sendWebSocketMessage("/builds", build);
+    } else {
+      sendWebSocketMessage("/", message);
     }
   }
 

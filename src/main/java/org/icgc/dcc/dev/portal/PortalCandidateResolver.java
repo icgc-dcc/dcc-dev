@@ -52,7 +52,7 @@ public class PortalCandidateResolver {
 
     val build = jenkins.getBuild(buildNumber);
     val artifact = artifactory.getArtifact(buildNumber);
-    val ticketKey = resolveTicket(pr.getBranch());
+    val ticketKey = parseTicketKey(pr.getBranch());
     val ticket = ticketKey == null ? null : jira.getTicket(ticketKey);
 
     return new Portal.Candidate()
@@ -62,7 +62,7 @@ public class PortalCandidateResolver {
         .setTicket(ticket);
   }
 
-  private static String resolveTicket(String branch) {
+  private static String parseTicketKey(String branch) {
     val matcher = PR_PATTERN.matcher(branch);
 
     return matcher.find() ? matcher.group() : null;

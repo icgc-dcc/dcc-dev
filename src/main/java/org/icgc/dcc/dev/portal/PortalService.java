@@ -1,9 +1,11 @@
 package org.icgc.dcc.dev.portal;
 
 import java.io.File;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import org.icgc.dcc.dev.jira.JiraService;
 import org.icgc.dcc.dev.log.LogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +25,8 @@ public class PortalService {
    */
   @Value("${workspace.dir}")
   File workspaceDir;
+  @Value("${server.url}")
+  URL publicUrl;
 
   /**
    * Dependencies.
@@ -33,6 +37,8 @@ public class PortalService {
   LogService logs;
   @Autowired
   PortalFileSystem fileSystem;
+  @Autowired
+  JiraService jira;
   @Autowired
   PortalDeployer deployer;
   @Autowired
@@ -56,12 +62,14 @@ public class PortalService {
   public Portal create(@NonNull String prNumber, String name, String title, String description, String ticket,
       Map<String, String> properties) {
     log.info("Creating portal {}...", name);
+    
+    // Resolve portal candidate by PR
     val candidate = candidates.resolve(prNumber);
     if (candidate == null) {
       return null;
     }
 
-    // Collect metadata
+    // Collect metadata in a single object
     val portal = new Portal()
         .setName(name)
         .setTitle(title)
@@ -70,14 +78,21 @@ public class PortalService {
         .setProperties(properties)
         .setTarget(candidate);
 
-    // Create directory with aritfact
+    // Create directory with artifact
     deployer.deploy(portal);
+    val url = publicUrl + "/portal/" + portal.getId();
+    
+    // Ensure ticket is marked for test with the portal URL
+    jira.updateTicket(ticket, "Deployed to " + url +" for testing");
 
     // Save the metadata
     repository.save(portal);
+    
+    // Start the portal
     val output = executor.start(portal.getId(), portal.getProperties());
     log.info("Output: {}", output);
 
+    // Stream log lines to UI
     logs.startTailing(portal.getId());
 
     return portal;

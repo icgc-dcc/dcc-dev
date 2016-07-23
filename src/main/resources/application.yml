@@ -22,6 +22,10 @@
 # Profile - common
 ###############################################################################
 
+# Server
+server:
+  publicUrl: http://localhost:${port}
+
 # Workspace
 workspace:
   dir: /tmp/dcc-dev
