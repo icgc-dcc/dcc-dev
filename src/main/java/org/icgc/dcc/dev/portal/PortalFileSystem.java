@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class PortalFileSystem {
 
+  /**
+   * Configuration.
+   */
   @Value("${workspace.dir}")
   File workspaceDir;
   @Value("${artifact.artifactId}")

@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.zeroturnaround.exec.ProcessExecutor;
 
-import com.google.api.client.util.Lists;
+import com.google.common.collect.ImmutableList;
 
 import lombok.SneakyThrows;
 import lombok.val;
@@ -19,6 +19,9 @@ import lombok.val;
 @Component
 public class PortalExecutor {
 
+  /**
+   * Dependencies.
+   */
   @Autowired
   PortalFileSystem fileSystem;
 
@@ -50,18 +53,14 @@ public class PortalExecutor {
   }
 
   private static List<String> createCommand(File scriptFile, String action, Map<String, String> arguments) {
-    val command = Lists.<String> newArrayList();
-    command.add(scriptFile.getAbsolutePath());
-    command.add(action);
-    command.addAll(createCommandArgs(arguments));
-
-    return command;
+    return ImmutableList.<String> builder()
+        .add(scriptFile.getAbsolutePath())
+        .add(action)
+        .addAll(createCommandArgs(arguments)).build();
   }
 
   private static List<String> createCommandArgs(Map<String, String> arguments) {
-    if (arguments == null) {
-      return emptyList();
-    }
+    if (arguments == null) return emptyList();
 
     return arguments.entrySet().stream().map(e -> "--" + e.getKey() + "=" + e.getValue()).collect(toList());
   }

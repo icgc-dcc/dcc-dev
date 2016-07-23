@@ -41,7 +41,7 @@ slack:
 github:
   repoName: icgc-dcc/dcc-portal
   user: dcc-jenkins
-  cache: ${workspace.dir}/github
+  cache.dir: ${workspace.dir}/github
   token:
   
 # Artifacts
@@ -58,3 +58,7 @@ jenkins:
   user:
   password:
   cron: 0/10 * * * * ?
+  
+# Messages
+message:
+  topicPrefix: /topic

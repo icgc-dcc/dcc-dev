@@ -25,13 +25,19 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class LogService {
 
-  Map<String, Tailer> tailers = Maps.newConcurrentMap();
-  ExecutorService executor = Executors.newCachedThreadPool();
-
+  /**
+   * Dependencies.
+   */
   @Autowired
   PortalFileSystem fileSystem;
   @Autowired
   MessageService messages;
+
+  /**
+   * State.
+   */
+  Map<String, Tailer> tailers = Maps.newConcurrentMap();
+  ExecutorService executor = Executors.newCachedThreadPool();
 
   @Synchronized
   public void startTailing(String portalId) {

@@ -8,28 +8,37 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 
-import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
+@EnableAsync
 public class PortalConfig {
 
+  /**
+   * Configuration.
+   */
   @Value("${workspace.dir}")
   File workspaceDir;
   @Value("${template.dir}")
   File templateDir;
-  
+
+  /**
+   * Dependencies.
+   */
   @Autowired
   PortalDeployer deployer;
   @Autowired
   PortalService service;
 
   @PostConstruct
-  @SneakyThrows
   public void init() {
     if (!workspaceDir.exists()) {
       log.info("Creating workspace...");
@@ -40,10 +49,20 @@ public class PortalConfig {
       log.info("Creating template...");
       deployer.setup();
     }
-    
+  }
+
+  @Async
+  @EventListener
+  public void start(ApplicationReadyEvent event) {
+    log.info("**** Started!");
+
     val portals = service.list();
+    if (portals.isEmpty()) {
+      return;
+    }
+
+    log.info("Restarting portals...");
     for (val portal : portals) {
-      log.info("Restaring portal {}...", portal.getId());
       service.restart(portal.getId());
     }
   }

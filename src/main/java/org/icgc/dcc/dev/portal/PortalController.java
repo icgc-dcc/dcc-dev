@@ -1,18 +1,16 @@
 package org.icgc.dcc.dev.portal;
 
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
-
 import java.util.List;
 import java.util.Map;
 
 import org.icgc.dcc.dev.portal.Portal.Candidate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,20 +18,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class PortalController {
 
+  /**
+   * Dependencies.
+   */
   @Autowired
   PortalService service;
 
-  @RequestMapping(value = "/candidates", method = GET)
+  @GetMapping("/candidates")
   public List<Candidate> getCandidates() {
     return service.getCandidates();
   }
 
-  @RequestMapping(value = "/portals", method = GET)
+  @GetMapping("/portals")
   public List<Portal> list() {
     return service.list();
   }
 
-  @RequestMapping(value = "/portals", method = POST)
+  @PostMapping("/portals")
   public Portal create(
       @RequestParam(value = "pr", required = true) String pr,
 
@@ -45,7 +46,7 @@ public class PortalController {
     return service.create(pr, name, title, description, ticket, properties);
   }
 
-  @RequestMapping(value = "/portals/{id}", method = PUT)
+  @PutMapping("/portals/{id}")
   public Portal update(
       @PathVariable("id") String id,
 
@@ -57,32 +58,32 @@ public class PortalController {
     return service.update(id, name, title, description, ticket, properties);
   }
 
-  @RequestMapping(value = "/portals/{id}", method = GET)
+  @GetMapping("/portals/{id}")
   public Portal get(@PathVariable("id") String id) {
     return service.get(id);
   }
 
-  @RequestMapping(value = "/portals/{id}/status", method = GET)
+  @GetMapping("/portals/{id}/status")
   public String status(@PathVariable("id") String id) {
     return service.status(id);
   }
 
-  @RequestMapping(value = "/portals/{id}", method = DELETE)
+  @DeleteMapping("/portals/{id}")
   public void remove(@PathVariable("id") String id) {
     service.remove(id);
   }
 
-  @RequestMapping(value = "/portals/{id}/start", method = POST)
+  @PostMapping("/portals/{id}/start")
   public void start(@PathVariable("id") String id) {
     service.start(id);
   }
 
-  @RequestMapping(value = "/portals/{id}/stop", method = POST)
+  @PostMapping("/portals/{id}/stop")
   public void stop(@PathVariable("id") String id) {
     service.stop(id);
   }
 
-  @RequestMapping(value = "/portals/{id}/restart", method = POST)
+  @PostMapping("/portals/{id}/restart")
   public void restart(@PathVariable("id") String id) {
     service.restart(id);
   }

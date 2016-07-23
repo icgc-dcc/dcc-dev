@@ -1,4 +1,3 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 Copyright (c) 2016 The Ontario Institute for Cancer Research. All rights reserved.
@@ -89,6 +88,14 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
           <artifactId>jackson-annotations</artifactId>
           <groupId>com.fasterxml.jackson.core</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -167,14 +174,14 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
   </build>
 
   <properties>
-    <!-- Spring -->
-    <spring-boot.version>1.3.6.RELEASE</spring-boot.version>
+    <!-- Spring Boot -->
+    <spring-boot.version>1.4.0.RC1</spring-boot.version>
 
-    <!-- Jackson -->
-    <jackson.version>2.4.5</jackson.version>
+    <!-- Jackson - Spring Boot version -->
+    <jackson.version>2.7.5</jackson.version>
 
     <!-- Plugins  -->
-    <spring-maven-plugin.version>1.3.0.RELEASE</spring-maven-plugin.version>
+    <spring-maven-plugin.version>${spring-boot.version}</spring-maven-plugin.version>
     <capsule-maven-plugin.version>1.3.0</capsule-maven-plugin.version>
   </properties>
 

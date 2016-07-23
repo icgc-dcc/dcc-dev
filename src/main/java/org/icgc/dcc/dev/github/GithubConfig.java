@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
+import org.kohsuke.github.HttpConnector;
 import org.kohsuke.github.extras.OkHttpConnector;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -23,8 +24,11 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 public class GithubConfig {
 
-  @Value("${github.cache}")
-  File cache;
+  /**
+   * Configuration.
+   */
+  @Value("${github.cache.dir}")
+  File cacheDir;
 
   @Bean
   @SneakyThrows
@@ -50,8 +54,8 @@ public class GithubConfig {
   }
 
   @Bean
-  public OkHttpConnector connector() throws IOException {
-    val cache = new Cache(cache, 10 * 1024 * 1024); // 10MB cache
+  public HttpConnector connector() throws IOException {
+    val cache = new Cache(cacheDir, 10 * 1024 * 1024); // 10MB cache
 
     return new OkHttpConnector(new OkUrlFactory(new OkHttpClient().setCache(cache)));
   }

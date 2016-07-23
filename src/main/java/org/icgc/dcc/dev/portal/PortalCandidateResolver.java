@@ -16,12 +16,15 @@ import lombok.val;
 @Component
 public class PortalCandidateResolver {
 
+  /**
+   * Dependencies.
+   */
   @Autowired
   GithubService github;
   @Autowired
-  ArtifactoryService artifactory;
-  @Autowired
   JenkinsService jenkins;
+  @Autowired
+  ArtifactoryService artifactory;
 
   public List<Portal.Candidate> resolve() {
     return github.getPrs().stream().map(this::resolve).collect(toList());

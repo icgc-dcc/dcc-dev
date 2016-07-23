@@ -10,6 +10,9 @@ import lombok.SneakyThrows;
 @Service
 public class SlackService {
 
+  /**
+   * Dependencies.
+   */
   @Autowired
   Slack slack;
 

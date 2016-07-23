@@ -17,9 +17,15 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class PortalService {
 
+  /**
+   * Configuration.
+   */
   @Value("${workspace.dir}")
   File workspaceDir;
 
+  /**
+   * Dependencies.
+   */
   @Autowired
   PortalRepository repository;
   @Autowired
@@ -89,7 +95,9 @@ public class PortalService {
         .setTicket(ticket)
         .setProperties(properties));
 
+    executor.stop(portalId);
     deployer.update(portal);
+    executor.start(portalId, properties);
 
     return portal;
   }
@@ -97,25 +105,29 @@ public class PortalService {
   @Synchronized
   public void remove(String portalId) {
     log.info("Removing portal {}...", portalId);
-    stop(portalId);
     deployer.undeploy(portalId);
+    executor.stop(portalId);
+    logs.stopTailing(portalId);
   }
 
   public void start(String portalId) {
     log.info("Starting portal {}...", portalId);
     val portal = repository.get(portalId);
     executor.start(portalId, portal.getProperties());
+    logs.startTailing(portalId);
   }
 
   public void restart(String portalId) {
     log.info("Restarting portal {}...", portalId);
     val portal = repository.get(portalId);
     executor.restart(portalId, portal.getProperties());
+    logs.startTailing(portalId);
   }
 
   public void stop(String portalId) {
     log.info("Stopping portal {}...", portalId);
     executor.stop(portalId);
+    logs.stopTailing(portalId);
   }
 
   public String status(String portalId) {

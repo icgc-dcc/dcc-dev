@@ -17,8 +17,14 @@ import lombok.val;
 @Service
 public class ArtifactoryService {
 
+  /**
+   * Constants.
+   */
   private static final String BUILD_NUMBER_PROPERTY_NAME = "build.number";
 
+  /**
+   * Configuration.
+   */
   @Value("${artifact.repoName}")
   String repoName;
   @Value("${artifact.groupId}")
@@ -26,6 +32,9 @@ public class ArtifactoryService {
   @Value("${artifact.artifactId}")
   String artifactId;
 
+  /**
+   * Dependencies.
+   */
   @Autowired
   Artifactory artifactory;
 

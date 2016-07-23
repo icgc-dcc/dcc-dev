@@ -18,6 +18,9 @@ import lombok.val;
 @Service
 public class GithubService {
 
+  /**
+   * Dependencies.
+   */
   @Autowired
   GHRepository repo;
 

@@ -1,7 +1,6 @@
 package org.icgc.dcc.dev.portal;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Ordering.natural;
 import static java.nio.file.Files.copy;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -28,6 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.SocketUtils;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import lombok.Cleanup;
@@ -39,6 +39,9 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class PortalDeployer {
 
+  /**
+   * Configuration.
+   */
   @Value("${template.dir}")
   File templateDir;
   @Value("${template.url}")
@@ -46,6 +49,9 @@ public class PortalDeployer {
   @Value("${template.settings}")
   File templateSettings;
 
+  /**
+   * Dependencies.
+   */
   @Autowired
   PortalFileSystem fileSystem;
 
@@ -139,11 +145,9 @@ public class PortalDeployer {
 
   private List<String> resolveIds() {
     String[] list = fileSystem.getDir().list();
-    if (list == null) {
-      return emptyList();
-    }
+    if (list == null) return emptyList();
 
-    return copyOf(list);
+    return ImmutableList.copyOf(list);
   }
 
 }

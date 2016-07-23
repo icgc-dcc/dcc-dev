@@ -17,8 +17,14 @@ import lombok.SneakyThrows;
 @Service
 public class PortalRepository {
 
+  /**
+   * Constants.
+   */
   private static final ObjectMapper MAPPER = new ObjectMapper().enable(INDENT_OUTPUT);
 
+  /**
+   * Dependencies.
+   */
   @Autowired
   PortalFileSystem fileSystem;
 
