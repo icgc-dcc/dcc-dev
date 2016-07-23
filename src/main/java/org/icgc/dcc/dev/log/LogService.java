@@ -38,10 +38,10 @@ public class LogService {
     if (!tailers.containsKey(portalId)) {
       val logFile = fileSystem.getLogFile(portalId);
       log.info("Tailing {}...", logFile);
-      
+
       val tailer = new Tailer(logFile, this.new LogListener(portalId));
       tailers.put(portalId, tailer);
-      
+
       executor.execute(tailer);
     }
   }
@@ -69,7 +69,7 @@ public class LogService {
     @Override
     public void handle(String line) {
       log.info("{}: {}", portalId, line);
-      val message =  new LogMessage().setLine(line).setPortalId(portalId);
+      val message = new LogMessage().setLine(line).setPortalId(portalId);
       messages.sendMessage(message);
     }
 

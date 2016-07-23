@@ -6,6 +6,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.util.List;
+import java.util.Map;
 
 import org.icgc.dcc.dev.portal.Portal.Candidate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,23 +36,25 @@ public class PortalController {
   @RequestMapping(value = "/portals", method = POST)
   public Portal create(
       @RequestParam(value = "pr", required = true) String pr,
-      
+
       @RequestParam(value = "name", required = false) String name,
       @RequestParam(value = "title", required = false) String title,
       @RequestParam(value = "description", required = false) String description,
-      @RequestParam(value = "ticket", required = false) String ticket) {
-    return service.create(pr, name, title, description, ticket);
+      @RequestParam(value = "ticket", required = false) String ticket,
+      @RequestParam(value = "properties", required = false) Map<String, String> properties) {
+    return service.create(pr, name, title, description, ticket, properties);
   }
 
   @RequestMapping(value = "/portals/{id}", method = PUT)
   public Portal update(
       @PathVariable("id") String id,
-      
+
       @RequestParam(value = "name", required = false) String name,
       @RequestParam(value = "title", required = false) String title,
       @RequestParam(value = "description", required = false) String description,
-      @RequestParam(value = "ticket", required = false) String ticket) {
-    return service.update(id,name, title, description, ticket);
+      @RequestParam(value = "ticket", required = false) String ticket,
+      @RequestParam(value = "properties", required = false) Map<String, String> properties) {
+    return service.update(id, name, title, description, ticket, properties);
   }
 
   @RequestMapping(value = "/portals/{id}", method = GET)

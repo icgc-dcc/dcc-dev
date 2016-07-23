@@ -15,5 +15,5 @@ public class GithubPr {
   String url;
   String head;
   String avatarUrl;
-  
+
 }

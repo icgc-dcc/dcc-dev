@@ -25,34 +25,35 @@ public class GithubConfig {
 
   @Value("${github.cache}")
   File cache;
-  
+
   @Bean
   @SneakyThrows
   public GHRepository repo(GitHub github, @Value("${github.repoName}") String repoName) {
     log.info("Getting repository...");
     val repo = github.getRepository(repoName);
     log.info("Finished getting repository: {}", repo);
-    
+
     return repo;
   }
 
   @Bean
-  public GitHub github(@Value("${github.user}") String user, @Value("${github.token}") String  token) throws IOException {
+  public GitHub github(@Value("${github.user}") String user, @Value("${github.token}") String token)
+      throws IOException {
     log.info("Connecting to GitHub...");
     val github = new GitHubBuilder()
         .withOAuthToken(token, user)
         .withConnector(connector())
         .build();
     log.info("Connected: {}", github);
-    
+
     return github;
   }
 
   @Bean
   public OkHttpConnector connector() throws IOException {
     val cache = new Cache(cache, 10 * 1024 * 1024); // 10MB cache
-    
+
     return new OkHttpConnector(new OkUrlFactory(new OkHttpClient().setCache(cache)));
   }
-  
+
 }

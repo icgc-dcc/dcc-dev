@@ -13,5 +13,5 @@ public class SlackConfig {
   public Slack slack(@Value("${slack.url}") String url) {
     return new Slack(url);
   }
-  
+
 }

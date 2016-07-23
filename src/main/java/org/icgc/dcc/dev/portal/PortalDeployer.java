@@ -7,6 +7,7 @@ import static java.nio.file.Files.copy;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
+import static java.util.Collections.emptyList;
 import static org.apache.commons.io.FileUtils.copyDirectory;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.apache.commons.io.IOUtils.copy;
@@ -47,7 +48,7 @@ public class PortalDeployer {
 
   @Autowired
   PortalFileSystem fileSystem;
-  
+
   @SneakyThrows
   public void setup() {
     log.info("Creating template...");
@@ -62,7 +63,6 @@ public class PortalDeployer {
       val name = tarEntry.getName().replaceFirst("^[^/]+/", "");
       val file = new File(templateDir, name);
       if (tarEntry.isDirectory()) {
-        checkState(file.mkdirs(), "Could not make dir %s", file);
         continue;
       }
 
@@ -95,7 +95,7 @@ public class PortalDeployer {
     }
 
     val settingsFile = fileSystem.getSettingsFile(id);
-    
+
     log.info("Copying settings from {} to {}", templateSettings, settingsFile);
     copy(templateSettings.toPath(), settingsFile.toPath(), REPLACE_EXISTING);
 
@@ -103,7 +103,7 @@ public class PortalDeployer {
     val httpPort = SocketUtils.findAvailableTcpPort(8000, 9000);
     val adminPort = SocketUtils.findAvailableTcpPort(httpPort, 9000);
     log.info("httpPort = {}, adminPort = {}", httpPort, adminPort);
-    
+
     downloadJar(portal);
   }
 
@@ -138,7 +138,12 @@ public class PortalDeployer {
   }
 
   private List<String> resolveIds() {
-    return copyOf(fileSystem.getDir().list());
+    String[] list = fileSystem.getDir().list();
+    if (list == null) {
+      return emptyList();
+    }
+
+    return copyOf(list);
   }
 
 }

@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PortalFileSystem {
-  
+
   @Value("${workspace.dir}")
   File workspaceDir;
-  
+
   public File getDir() {
     return new File(workspaceDir, "portals");
   }
@@ -18,7 +18,7 @@ public class PortalFileSystem {
   public File getRootDir(String portalId) {
     return new File(getDir(), portalId);
   }
-  
+
   public File getBinDir(String portalId) {
     return new File(getRootDir(portalId), "bin");
   }
@@ -26,15 +26,15 @@ public class PortalFileSystem {
   public File getSettingsFile(String portalId) {
     return new File(getConfDir(portalId), "application.yml");
   }
-  
+
   public File getConfDir(String portalId) {
     return new File(getRootDir(portalId), "conf");
   }
-  
+
   public File getLibDir(String portalId) {
     return new File(getRootDir(portalId), "lib");
   }
-  
+
   public File getLogsDir(String portalId) {
     return new File(getRootDir(portalId), "logs");
   }
@@ -50,10 +50,9 @@ public class PortalFileSystem {
   public File getJarFile(String portalId) {
     return new File(getLibDir(portalId), "dcc-portal-server.jar");
   }
-  
+
   public File getLogFile(String portalId) {
     return new File(getLibDir(portalId), "dcc-portal-server.log");
   }
-  
-  
+
 }

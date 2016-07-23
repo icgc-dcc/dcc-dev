@@ -13,5 +13,5 @@ public class ArtifactoryConfig {
   public Artifactory artifactory(@Value("${artifact.url}") String url) {
     return ArtifactoryClient.create(url);
   }
-  
+
 }

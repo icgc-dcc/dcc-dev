@@ -9,19 +9,18 @@ public class Messages {
   @Data
   @Accessors(chain = true)
   public static abstract class PortalMessage {
-    
+
     String portalId;
-    
+
   }
-  
-  
+
   @Data
   @Accessors(chain = true)
   @EqualsAndHashCode(callSuper = true)
   public static class LogMessage extends PortalMessage {
-    
+
     String line;
-    
+
   }
-  
+
 }

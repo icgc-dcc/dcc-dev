@@ -22,23 +22,23 @@ public class PortalCandidateResolver {
   ArtifactoryService artifactory;
   @Autowired
   JenkinsService jenkins;
-  
+
   public List<Portal.Candidate> resolve() {
     return github.getPrs().stream().map(this::resolve).collect(toList());
   }
-  
+
   public Portal.Candidate resolve(String prNumber) {
     val pr = github.getPr(prNumber);
-    
+
     return resolve(pr);
   }
-  
+
   public Portal.Candidate resolve(GithubPr pr) {
     val buildNumber = github.getBuildNumber(pr.getHead());
     if (buildNumber == null) {
       return null;
     }
-    
+
     val build = jenkins.getBuild(buildNumber);
     val artifact = artifactory.getArtifact(buildNumber);
 
@@ -47,5 +47,5 @@ public class PortalCandidateResolver {
         .setBuild(build)
         .setArtifact(artifact);
   }
-  
+
 }

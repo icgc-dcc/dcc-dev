@@ -8,7 +8,7 @@ import lombok.experimental.Accessors;
 public class JenkinsBuild {
 
   int number;
-  
+
   Integer queueId;
   String url;
   Long timestamp;

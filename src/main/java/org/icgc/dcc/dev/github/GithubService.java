@@ -44,7 +44,7 @@ public class GithubService {
     if (state != GHCommitState.SUCCESS) {
       return null;
     }
-    
+
     val jobUrl = status.getTargetUrl();
     return jobUrl.split("/")[5];
   }

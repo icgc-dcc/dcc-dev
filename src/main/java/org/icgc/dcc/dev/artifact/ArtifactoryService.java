@@ -18,17 +18,17 @@ import lombok.val;
 public class ArtifactoryService {
 
   private static final String BUILD_NUMBER_PROPERTY_NAME = "build.number";
-  
+
   @Value("${artifact.repoName}")
   String repoName;
   @Value("${artifact.groupId}")
   String groupId;
   @Value("${artifact.artifactId}")
   String artifactId;
-  
+
   @Autowired
   Artifactory artifactory;
-  
+
   @SneakyThrows
   public List<RepoPath> list() {
     return prepareSearch().doSearch();
@@ -36,17 +36,18 @@ public class ArtifactoryService {
 
   @SneakyThrows
   public String getArtifact(String buildNumber) {
-     val paths = prepareSearch().itemsByProperty().property(BUILD_NUMBER_PROPERTY_NAME, buildNumber).doSearch();
-     val path = paths.stream().filter(p -> p.getItemPath().contains(artifactId) && p.getItemPath().endsWith(".jar")).findFirst().map(RepoPath::getItemPath).orElse(null);
-     
+    val paths = prepareSearch().itemsByProperty().property(BUILD_NUMBER_PROPERTY_NAME, buildNumber).doSearch();
+    val path = paths.stream().filter(p -> p.getItemPath().contains(artifactId) && p.getItemPath().endsWith(".jar"))
+        .findFirst().map(RepoPath::getItemPath).orElse(null);
+
     return artifactory.getUri() + "/" + artifactory.getContextName() + "/" + repoName + "/" + path;
   }
-  
+
   @SneakyThrows
   public List<Item> getArtifactFolder() {
     val path = resolveGroupPath(groupId) + "/" + artifactId;
     Folder folder = artifactory.repository(repoName).folder(path).info();
-    
+
     return folder.getChildren();
   }
 
@@ -57,5 +58,5 @@ public class ArtifactoryService {
   private static String resolveGroupPath(String groupId) {
     return groupId.replaceAll("\\.", "/");
   }
-  
+
 }

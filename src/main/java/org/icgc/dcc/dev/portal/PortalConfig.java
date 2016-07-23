@@ -20,7 +20,7 @@ public class PortalConfig {
   @Value("${workspace.dir}")
   File workspaceDir;
   @Value("${template.dir}")
-  File templateDir;  
+  File templateDir;
   @Autowired
   PortalDeployer deployer;
 
@@ -31,7 +31,7 @@ public class PortalConfig {
       log.info("Creating workspace...");
       checkState(workspaceDir.mkdirs(), "Could not create workspace dir %s", workspaceDir);
     }
-    
+
     if (!templateDir.exists()) {
       deployer.setup();
     }

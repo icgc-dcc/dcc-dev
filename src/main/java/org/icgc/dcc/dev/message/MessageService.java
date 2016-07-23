@@ -12,13 +12,13 @@ public class MessageService {
 
   @Autowired
   SimpMessagingTemplate messages;
-  
+
   public void sendMessage(Object message) {
     if (message instanceof LogMessage) {
       val logMessage = (LogMessage) message;
       messages.convertAndSend("/topic/log", logMessage);
-      
+
     }
   }
-  
+
 }

@@ -24,10 +24,10 @@ public class JenkinsService {
 
   @Value("${jenkins.jobName}")
   String jobName;
-  
+
   @Autowired
   JenkinsServer jenkins;
-  
+
   @Scheduled(cron = "${jenkins.cron}")
   public void poll() {
     val build = convert(getJob().getLastStableBuild());
@@ -43,7 +43,7 @@ public class JenkinsService {
   public JenkinsBuild getBuild(String buildNumber) {
     val value = Integer.valueOf(buildNumber);
     val defaultValue = new JenkinsBuild().setNumber(value);
-    
+
     return builds().filter(b -> b.getNumber() == value).findFirst().map(this::convert).orElse(defaultValue);
   }
 
