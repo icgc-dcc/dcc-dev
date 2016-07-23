@@ -10,6 +10,8 @@ public class PortalFileSystem {
 
   @Value("${workspace.dir}")
   File workspaceDir;
+  @Value("${artifact.artifactId}")
+  String baseName = "dcc-portal-server";
 
   public File getDir() {
     return new File(workspaceDir, "portals");
@@ -40,7 +42,7 @@ public class PortalFileSystem {
   }
 
   public File getScriptFile(String portalId) {
-    return new File(getBinDir(portalId), "dcc-portal-server");
+    return new File(getBinDir(portalId), baseName);
   }
 
   public File getMetadataFile(String portalId) {
@@ -48,11 +50,11 @@ public class PortalFileSystem {
   }
 
   public File getJarFile(String portalId) {
-    return new File(getLibDir(portalId), "dcc-portal-server.jar");
+    return new File(getLibDir(portalId), baseName + ".jar");
   }
 
   public File getLogFile(String portalId) {
-    return new File(getLibDir(portalId), "dcc-portal-server.log");
+    return new File(getLibDir(portalId), baseName + ".log");
   }
 
 }

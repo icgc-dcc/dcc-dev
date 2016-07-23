@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.icgc.dcc.dev.message.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,16 +23,39 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class JenkinsService {
 
+  /**
+   * Configuration.
+   */
   @Value("${jenkins.jobName}")
   String jobName;
 
+  /**
+   * Dependencies.
+   */
   @Autowired
   JenkinsServer jenkins;
+  @Autowired
+  MessageService messages;
+
+  /**
+   * State.
+   */
+  JenkinsBuild latestBuild;
 
   @Scheduled(cron = "${jenkins.cron}")
   public void poll() {
     val build = convert(getJob().getLastStableBuild());
-    log.info("Build: {}", build);
+
+    val notify = latestBuild != null;
+    val refresh = latestBuild == null || latestBuild.getNumber() < build.getNumber();
+    if (refresh) {
+      latestBuild = build;
+
+      if (notify) {
+        messages.sendMessage(refresh);
+        log.info("New build: {}", build);
+      }
+    }
   }
 
   @SneakyThrows

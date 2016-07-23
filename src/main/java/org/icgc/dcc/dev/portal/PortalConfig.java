@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import lombok.SneakyThrows;
+import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -21,8 +22,11 @@ public class PortalConfig {
   File workspaceDir;
   @Value("${template.dir}")
   File templateDir;
+  
   @Autowired
   PortalDeployer deployer;
+  @Autowired
+  PortalService service;
 
   @PostConstruct
   @SneakyThrows
@@ -33,7 +37,14 @@ public class PortalConfig {
     }
 
     if (!templateDir.exists()) {
+      log.info("Creating template...");
       deployer.setup();
+    }
+    
+    val portals = service.list();
+    for (val portal : portals) {
+      log.info("Restaring portal {}...", portal.getId());
+      service.restart(portal.getId());
     }
   }
 

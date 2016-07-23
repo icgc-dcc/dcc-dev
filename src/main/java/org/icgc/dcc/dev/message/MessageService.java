@@ -1,5 +1,6 @@
 package org.icgc.dcc.dev.message;
 
+import org.icgc.dcc.dev.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.message.Messages.LogMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -16,8 +17,10 @@ public class MessageService {
   public void sendMessage(Object message) {
     if (message instanceof LogMessage) {
       val logMessage = (LogMessage) message;
-      messages.convertAndSend("/topic/log", logMessage);
-
+      messages.convertAndSend("/topic/logs", logMessage);
+    } else if (message instanceof JenkinsBuild) {
+      val build = (JenkinsBuild) message;
+      messages.convertAndSend("/topic/builds", build);
     }
   }
 

@@ -41,8 +41,8 @@ public class PortalService {
     return repository.list();
   }
 
-  public Portal get(String id) {
-    return repository.get(id);
+  public Portal get(String portalId) {
+    return repository.get(portalId);
   }
 
   @Synchronized
@@ -77,10 +77,10 @@ public class PortalService {
   }
 
   @Synchronized
-  public Portal update(String id, String name, String title, String description, String ticket,
+  public Portal update(String portalId, String name, String title, String description, String ticket,
       Map<String, String> properties) {
-    log.info("Updating portal {}...", id);
-    val portal = repository.get(id);
+    log.info("Updating portal {}...", portalId);
+    val portal = repository.get(portalId);
 
     repository.save(portal
         .setName(name)
@@ -95,32 +95,32 @@ public class PortalService {
   }
 
   @Synchronized
-  public void remove(String id) {
-    log.info("Removing portal {}...", id);
-    stop(id);
-    deployer.undeploy(id);
+  public void remove(String portalId) {
+    log.info("Removing portal {}...", portalId);
+    stop(portalId);
+    deployer.undeploy(portalId);
   }
 
-  public void start(String id) {
-    log.info("Starting portal {}...", id);
-    val portal = repository.get(id);
-    executor.start(id, portal.getProperties());
+  public void start(String portalId) {
+    log.info("Starting portal {}...", portalId);
+    val portal = repository.get(portalId);
+    executor.start(portalId, portal.getProperties());
   }
 
-  public void restart(String id) {
-    log.info("Restarting portal {}...", id);
-    val portal = repository.get(id);
-    executor.restart(id, portal.getProperties());
+  public void restart(String portalId) {
+    log.info("Restarting portal {}...", portalId);
+    val portal = repository.get(portalId);
+    executor.restart(portalId, portal.getProperties());
   }
 
-  public void stop(String id) {
-    log.info("Stopping portal {}...", id);
-    executor.stop(id);
+  public void stop(String portalId) {
+    log.info("Stopping portal {}...", portalId);
+    executor.stop(portalId);
   }
 
-  public String status(String id) {
-    log.info("Getting status of portal {}...", id);
-    return executor.status(id);
+  public String status(String portalId) {
+    log.info("Getting status of portal {}...", portalId);
+    return executor.status(portalId);
   }
 
 }

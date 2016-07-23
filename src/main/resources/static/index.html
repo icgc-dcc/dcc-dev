@@ -20,7 +20,7 @@
             stompClient.connect({}, function(frame) {
                 setConnected(true);
                 console.log('Connected: ' + frame);
-                stompClient.subscribe('/topic/log', function(greeting){
+                stompClient.subscribe('/topic/logs', function(greeting){
                     showGreeting(JSON.parse(greeting.body).content);
                 });
             });
@@ -36,7 +36,7 @@
 
         function sendName() {
             var name = document.getElementById('name').value;
-            stompClient.send("/messages/hello", {}, JSON.stringify({ 'name': name }));
+            stompClient.send("/service/hello", {}, JSON.stringify({ 'name': name }));
         }
 
         function showGreeting(message) {
