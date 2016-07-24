@@ -18,6 +18,7 @@
 package org.icgc.dcc.dev.portal;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 import java.io.File;
@@ -73,7 +74,10 @@ public class PortalRepository {
   }
 
   private List<String> resolvePortalIds() {
-    return ImmutableList.copyOf(fileSystem.getDir().list());
+    String[] portalIds = fileSystem.getDir().list();
+    if (portalIds == null) return emptyList();
+
+    return ImmutableList.copyOf(portalIds);
   }
 
 }

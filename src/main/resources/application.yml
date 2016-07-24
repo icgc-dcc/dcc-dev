@@ -34,7 +34,6 @@ workspace:
 template:
   dir: ${workspace.dir}/template
   url: ${artifact.url}/dcc-release/org/icgc/dcc/${artifact.artifactId}/[RELEASE]/${artifact.artifactId}-[RELEASE]-dist.tar.gz
-  settingsFile:
 
 # Slack
 slack:

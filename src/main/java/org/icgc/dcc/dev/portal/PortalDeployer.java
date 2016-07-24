@@ -36,7 +36,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.SocketUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -57,8 +56,6 @@ public class PortalDeployer {
   URL templateUrl;
   @Value("${template.dir}")
   File templateDir;
-  @Value("${template.settings}")
-  File templateSettings;
 
   /**
    * Dependencies.
@@ -84,16 +81,6 @@ public class PortalDeployer {
     if (!targetDir.exists()) {
       copyTemplate(portalId, targetDir);
     }
-
-    val settingsFile = fileSystem.getSettingsFile(portalId);
-
-    log.info("Copying settings from {} to {}", templateSettings, settingsFile);
-    copy(templateSettings.toPath(), settingsFile.toPath(), REPLACE_EXISTING);
-
-    // TODO: Override port settings
-    val httpPort = SocketUtils.findAvailableTcpPort(8000, 9000);
-    val adminPort = SocketUtils.findAvailableTcpPort(httpPort, 9000);
-    log.info("httpPort = {}, adminPort = {}", httpPort, adminPort);
 
     downloadJar(portal);
   }
@@ -136,10 +123,10 @@ public class PortalDeployer {
   }
 
   private List<String> resolvePortalIds() {
-    String[] list = fileSystem.getDir().list();
-    if (list == null) return emptyList();
+    String[] portalIds = fileSystem.getDir().list();
+    if (portalIds == null) return emptyList();
 
-    return ImmutableList.copyOf(list);
+    return ImmutableList.copyOf(portalIds);
   }
 
 }

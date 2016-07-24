@@ -23,9 +23,11 @@ import org.springframework.stereotype.Service;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
+import lombok.extern.slf4j.Slf4j;
 import net.rcarz.jiraclient.Issue;
 import net.rcarz.jiraclient.JiraClient;
 
+@Slf4j
 @Service
 public class JiraService {
 
@@ -55,6 +57,11 @@ public class JiraService {
   @SneakyThrows
   public void updateTicket(@NonNull String key, String comment) {
     val issue = getIssue(key);
+    if (issue == null) {
+      log.warn("Cannot find ticket {}", key);
+      return;
+    }
+    
     if (!issue.getStatus().getName().equals(TEST_STATUS)) {
       issue.update().field(STATUS_FIELD_NAME, TEST_STATUS);
     }

@@ -17,6 +17,8 @@
  */
 package org.icgc.dcc.dev.portal;
 
+import static com.google.common.collect.Maps.newHashMap;
+
 import java.util.Map;
 
 import org.icgc.dcc.dev.github.GithubPr;
@@ -62,7 +64,7 @@ public class Portal {
   /**
    * User supplied configuration properties.
    */
-  Map<String, String> properties;
+  Map<String, String> properties = newHashMap();
 
   /**
    * System supplied configuration properties.
@@ -70,7 +72,7 @@ public class Portal {
    * Not intended to be exposed to users as may contain sensitive information (e.g. credentials).
    */
   @JsonIgnore
-  Map<String, String> systemProperties;
+  Map<String, String> systemProperties = newHashMap();
 
   /**
    * The absolute URL of the running portal instance.

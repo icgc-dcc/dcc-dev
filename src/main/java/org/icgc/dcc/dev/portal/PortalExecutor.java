@@ -18,10 +18,11 @@
 package org.icgc.dcc.dev.portal;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.SocketUtils.findAvailableTcpPort;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -49,19 +50,21 @@ public class PortalExecutor {
   @Autowired
   @Qualifier("config")
   Properties config;
-  
+
   /**
    * Dependencies.
    */
   @Autowired
   PortalFileSystem fileSystem;
-  
-  public String start(@NonNull String portalId, Map<String, String> arguments) {
-    return executeScript(portalId, "start", resolveArguments(arguments));
+
+  public String start(@NonNull Portal portal) {
+    assignPorts(portal);
+
+    return executeScript(portal.getId(), "start", resolveArguments(portal));
   }
 
-  public String restart(@NonNull String portalId, Map<String, String> arguments) {
-    return executeScript(portalId, "restart", resolveArguments(arguments));
+  public String restart(@NonNull Portal portal) {
+    return executeScript(portal.getId(), "restart", resolveArguments(portal));
   }
 
   public String stop(@NonNull String portalId) {
@@ -72,25 +75,36 @@ public class PortalExecutor {
     return executeScript(portalId, "status", null);
   }
 
+  private void assignPorts(Portal portal) {
+    val systemProperties = portal.getSystemProperties();
+    systemProperties.put("server.port", findFreePort());
+    systemProperties.put("management.port", findFreePort());
+    log.info("systemProperties: {}", systemProperties);
+  }
+
   @SneakyThrows
   private String executeScript(String portalId, String action, Map<String, String> arguments) {
     val scriptFile = fileSystem.getScriptFile(portalId);
     val command = createCommand(scriptFile, action, arguments);
+
     log.info("Executing command: {}", command);
-    
-    return new ProcessExecutor()
+    val output = new ProcessExecutor()
         .command(command)
         .readOutput(true)
         .execute()
         .outputUTF8();
+
+    log.info("Output: {}", output);
+    return output;
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  private Map<String, String> resolveArguments(Map<String, String> arguments) {
+  private Map<String, String> resolveArguments(Portal portal) {
     val effectiveArguments = Maps.<String, String> newHashMap();
-    effectiveArguments.putAll(arguments == null ? Collections.emptyMap() : arguments);
+    effectiveArguments.putAll(portal.getProperties() == null ? emptyMap() : portal.getProperties());
     effectiveArguments.putAll((Map) config);
-    
+    effectiveArguments.putAll(portal.getSystemProperties());
+
     return effectiveArguments;
   }
 
@@ -105,6 +119,10 @@ public class PortalExecutor {
     if (arguments == null) return emptyList();
 
     return arguments.entrySet().stream().map(e -> "--" + e.getKey() + "=" + e.getValue()).collect(toList());
+  }
+
+  private static String findFreePort() {
+    return String.valueOf(findAvailableTcpPort(8000, 9000));
   }
 
 }

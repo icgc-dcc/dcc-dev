@@ -51,14 +51,14 @@ public class PortalController {
 
   @PostMapping("/portals")
   public Portal create(
-      @RequestParam(value = "pr", required = true) String pr,
+      @RequestParam(value = "prNumber", required = true) Integer prNumber,
 
       @RequestParam(value = "name", required = false) String name,
       @RequestParam(value = "title", required = false) String title,
       @RequestParam(value = "description", required = false) String description,
       @RequestParam(value = "ticket", required = false) String ticket,
       @RequestParam(value = "properties", required = false) Map<String, String> properties) {
-    return service.create(pr, name, title, description, ticket, properties);
+    return service.create(prNumber, name, title, description, ticket, properties);
   }
 
   @PutMapping("/portals/{portalId}")

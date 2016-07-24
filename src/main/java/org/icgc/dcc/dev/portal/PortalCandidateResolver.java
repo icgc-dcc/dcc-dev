@@ -57,7 +57,7 @@ public class PortalCandidateResolver {
     return github.getPrs().stream().map(this::resolve).collect(toList());
   }
 
-  public Portal.Candidate resolve(@NonNull String prNumber) {
+  public Portal.Candidate resolve(@NonNull Integer prNumber) {
     val pr = github.getPr(prNumber);
 
     return resolve(pr);

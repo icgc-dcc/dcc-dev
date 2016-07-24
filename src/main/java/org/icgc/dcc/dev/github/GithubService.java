@@ -48,7 +48,7 @@ public class GithubService {
   @Autowired
   GHRepository repo;
 
-  public GithubPr getPr(@NonNull String number) {
+  public GithubPr getPr(@NonNull Integer number) {
     return getPrs().stream().filter(pr -> number.equals(pr.getNumber())).findFirst().orElse(null);
   }
 

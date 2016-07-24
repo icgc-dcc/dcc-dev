@@ -75,15 +75,13 @@ public class PortalService {
   }
 
   @Synchronized
-  public Portal create(@NonNull String prNumber, String name, String title, String description, String ticket,
+  public Portal create(@NonNull Integer prNumber, String name, String title, String description, String ticket,
       Map<String, String> properties) {
     log.info("Creating portal {}...", name);
-    
+
     // Resolve portal candidate by PR
     val candidate = candidates.resolve(prNumber);
-    if (candidate == null) {
-      return null;
-    }
+    if (candidate == null) return null;
 
     // Collect metadata in a single object
     val portal = new Portal()
@@ -96,20 +94,21 @@ public class PortalService {
 
     // Create directory with artifact
     deployer.deploy(portal);
-    val url = publicUrl + "/portal/" + portal.getId();
-    
-    // Ensure ticket is marked for test with the portal URL
-    jira.updateTicket(ticket, "Deployed to " + url +" for testing");
-
-    // Save the metadata
     repository.save(portal);
-    
+
     // Start the portal
-    val output = executor.start(portal.getId(), portal.getProperties());
-    log.info("Output: {}", output);
+    executor.start(portal);
+    repository.save(portal);
+
+    // Update URL
+    portal.setUrl(resolveUrl(portal));
+    repository.save(portal);
 
     // Stream log lines to UI
     logs.startTailing(portal.getId());
+
+    // Ensure ticket is marked for test with the portal URL
+    updateTicket(portal);
 
     return portal;
   }
@@ -129,7 +128,7 @@ public class PortalService {
 
     executor.stop(portalId);
     deployer.update(portal);
-    executor.start(portalId, properties);
+    executor.start(portal);
 
     return portal;
   }
@@ -145,14 +144,14 @@ public class PortalService {
   public void start(@NonNull String portalId) {
     log.info("Starting portal {}...", portalId);
     val portal = repository.get(portalId);
-    executor.start(portalId, portal.getProperties());
+    executor.start(portal);
     logs.startTailing(portalId);
   }
 
   public void restart(@NonNull String portalId) {
     log.info("Restarting portal {}...", portalId);
     val portal = repository.get(portalId);
-    executor.restart(portalId, portal.getProperties());
+    executor.restart(portal);
     logs.startTailing(portalId);
   }
 
@@ -165,6 +164,20 @@ public class PortalService {
   public String status(@NonNull String portalId) {
     log.info("Getting status of portal {}...", portalId);
     return executor.status(portalId);
+  }
+
+  private String resolveUrl(Portal portal) {
+    // Strip this port and add portal port
+    return publicUrl.toString().replaceFirst(":\\d+", "") + ":" + portal.getSystemProperties().get("server.port");
+  }
+
+  private void updateTicket(Portal portal) {
+    val ticketKey = portal.getTicket() != null ? portal
+        .getTicket() : portal.getTarget().getTicket() != null ? portal.getTarget().getTicket().getKey() : null;
+    if (ticketKey == null) return;
+
+    val iframeUrl = publicUrl + "/" + portal.getId();
+    jira.updateTicket(ticketKey, "Deployed to " + iframeUrl + " for testing");
   }
 
 }
