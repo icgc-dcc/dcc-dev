@@ -24,7 +24,7 @@
 
 # Server
 server:
-  publicUrl: http://localhost:${port}
+  publicUrl: http://localhost:8080
 
 # Workspace
 workspace:

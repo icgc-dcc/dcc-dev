@@ -15,68 +15,20 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.portal;
+package org.icgc.dcc.dev.artifactory;
 
-import java.io.File;
-
+import org.jfrog.artifactory.client.Artifactory;
+import org.jfrog.artifactory.client.ArtifactoryClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import lombok.NonNull;
+@Configuration
+public class ArtifactoryConfig {
 
-@Component
-public class PortalFileSystem {
-
-  /**
-   * Configuration.
-   */
-  @Value("${workspace.dir}")
-  File workspaceDir;
-  @Value("${artifact.artifactId}")
-  String baseName = "dcc-portal-server";
-
-  public File getDir() {
-    return new File(workspaceDir, "portals");
-  }
-
-  public File getRootDir(@NonNull String portalId) {
-    return new File(getDir(), portalId);
-  }
-
-  public File getBinDir(@NonNull String portalId) {
-    return new File(getRootDir(portalId), "bin");
-  }
-
-  public File getSettingsFile(@NonNull String portalId) {
-    return new File(getConfDir(portalId), "application.yml");
-  }
-
-  public File getConfDir(@NonNull String portalId) {
-    return new File(getRootDir(portalId), "conf");
-  }
-
-  public File getLibDir(@NonNull String portalId) {
-    return new File(getRootDir(portalId), "lib");
-  }
-
-  public File getLogsDir(@NonNull String portalId) {
-    return new File(getRootDir(portalId), "logs");
-  }
-
-  public File getScriptFile(@NonNull String portalId) {
-    return new File(getBinDir(portalId), baseName);
-  }
-
-  public File getMetadataFile(@NonNull String portalId) {
-    return new File(getRootDir(portalId), "portal.json");
-  }
-
-  public File getJarFile(@NonNull String portalId) {
-    return new File(getLibDir(portalId), baseName + ".jar");
-  }
-
-  public File getLogFile(@NonNull String portalId) {
-    return new File(getLibDir(portalId), baseName + ".log");
+  @Bean
+  public Artifactory artifactory(@Value("${artifact.url}") String url) {
+    return ArtifactoryClient.create(url);
   }
 
 }

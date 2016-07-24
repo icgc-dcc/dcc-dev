@@ -15,97 +15,85 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.jenkins;
-
-import static java.util.stream.Collectors.toList;
+package org.icgc.dcc.dev.artifactory;
 
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Optional;
 
-import org.icgc.dcc.dev.message.MessageService;
+import org.jfrog.artifactory.client.Artifactory;
+import org.jfrog.artifactory.client.Searches;
+import org.jfrog.artifactory.client.model.Folder;
+import org.jfrog.artifactory.client.model.Item;
+import org.jfrog.artifactory.client.model.RepoPath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import com.google.common.primitives.Ints;
-import com.offbytwo.jenkins.JenkinsServer;
-import com.offbytwo.jenkins.model.MavenBuild;
-import com.offbytwo.jenkins.model.MavenJobWithDetails;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Service
-public class JenkinsService {
+public class ArtifactoryService {
+
+  /**
+   * Constants.
+   */
+  private static final String BUILD_NUMBER_PROPERTY_NAME = "build.number";
 
   /**
    * Configuration.
    */
-  @Value("${jenkins.jobName}")
-  String jobName;
+  @Value("${artifact.repoName}")
+  String repoName;
+  @Value("${artifact.groupId}")
+  String groupId;
+  @Value("${artifact.artifactId}")
+  String artifactId;
 
   /**
    * Dependencies.
    */
   @Autowired
-  JenkinsServer jenkins;
-  @Autowired
-  MessageService messages;
+  Artifactory artifactory;
 
-  /**
-   * State.
-   */
-  JenkinsBuild latestBuild;
-
-  @Scheduled(cron = "${jenkins.cron}")
-  public void poll() {
-    val build = convert(getJob().getLastStableBuild());
-
-    val notify = latestBuild != null;
-    val refresh = latestBuild == null || latestBuild.getNumber() < build.getNumber();
-    if (refresh) {
-      latestBuild = build;
-
-      if (notify) {
-        messages.sendMessage(refresh);
-        log.info("New build: {}", build);
-      }
-    }
+  @SneakyThrows
+  public List<RepoPath> list() {
+    return prepareSearch().doSearch();
   }
 
   @SneakyThrows
-  public List<JenkinsBuild> getBuilds() {
-    return builds().map(this::convert).collect(toList());
+  public Optional<String> getArtifact(@NonNull String buildNumber) {
+    val paths = prepareSearch().itemsByProperty().property(BUILD_NUMBER_PROPERTY_NAME, buildNumber).doSearch();
+    return paths.stream()
+        .filter(this::isPrimaryArifact)
+        .findFirst()
+        .map(RepoPath::getItemPath)
+        .map(this::resolveAbsolutePath);
   }
 
   @SneakyThrows
-  public JenkinsBuild getBuild(@NonNull String buildNumber) {
-    val value =  Ints.tryParse(buildNumber);
-    val defaultValue = new JenkinsBuild().setNumber(value);
+  public List<Item> getArtifactFolder() {
+    val path = resolveGroupPath(groupId) + "/" + artifactId;
+    Folder folder = artifactory.repository(repoName).folder(path).info();
 
-    return builds().filter(b -> b.getNumber() == value).findFirst().map(this::convert).orElse(defaultValue);
+    return folder.getChildren();
   }
 
-  @SneakyThrows
-  private MavenJobWithDetails getJob() {
-    return jenkins.getMavenJob(jobName);
+  private Searches prepareSearch() {
+    return artifactory.searches().repositories(repoName).artifactsByName(artifactId);
   }
 
-  private Stream<MavenBuild> builds() {
-    return getJob().getBuilds().stream();
+  private boolean isPrimaryArifact(RepoPath p){
+    return  p.getItemPath().contains(artifactId) && p.getItemPath().endsWith(".jar");
   }
 
-  @SneakyThrows
-  private JenkinsBuild convert(MavenBuild build) {
-    return new JenkinsBuild()
-        .setNumber(build.getNumber())
-        .setQueueId(build.getQueueId())
-        .setUrl(build.getUrl())
-        .setTimestamp(build.details().getTimestamp());
+  private String resolveAbsolutePath(final java.lang.String path) {
+    return artifactory.getUri() + "/" + artifactory.getContextName() + "/" + repoName + "/" + path;
+  }
+
+  private static String resolveGroupPath(String groupId) {
+    return groupId.replaceAll("\\.", "/");
   }
 
 }
