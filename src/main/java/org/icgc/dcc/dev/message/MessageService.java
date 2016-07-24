@@ -18,7 +18,9 @@
 package org.icgc.dcc.dev.message;
 
 import org.icgc.dcc.dev.jenkins.JenkinsBuild;
+import org.icgc.dcc.dev.message.Messages.ExecutionMessage;
 import org.icgc.dcc.dev.message.Messages.LogMessage;
+import org.icgc.dcc.dev.message.Messages.StateMessage;
 import org.icgc.dcc.dev.slack.SlackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,6 +54,12 @@ public class MessageService {
     } else if (message instanceof JenkinsBuild) {
       val build = (JenkinsBuild) message;
       sendWebSocketMessage("/builds", build);
+    } else if (message instanceof StateMessage) {
+      val stateMessage = (StateMessage) message;
+      sendWebSocketMessage("/portal/state", stateMessage);
+    } else if (message instanceof ExecutionMessage) {
+      val executionMessage = (ExecutionMessage) message;
+      sendWebSocketMessage("/portal/execute", executionMessage);
     } else {
       sendWebSocketMessage("/", message);
     }

@@ -17,6 +17,8 @@
  */
 package org.icgc.dcc.dev.portal;
 
+import static org.springframework.util.SocketUtils.findAvailableTcpPort;
+
 import java.io.File;
 import java.net.URL;
 import java.util.List;
@@ -92,20 +94,17 @@ public class PortalService {
         .setProperties(properties)
         .setTarget(candidate);
 
-    // Create directory with artifact
+    // Create id and directory with artifact
     deployer.deploy(portal);
     repository.save(portal);
 
-    // Start the portal
-    executor.start(portal);
-    repository.save(portal);
-
-    // Update URL
+    // Assign ports and URL
+    assignPorts(portal);
     portal.setUrl(resolveUrl(portal));
     repository.save(portal);
 
-    // Stream log lines to UI
-    logs.startTailing(portal.getId());
+    // Start the portal
+    start(portal.getId());
 
     // Ensure ticket is marked for test with the portal URL
     updateTicket(portal);
@@ -126,7 +125,7 @@ public class PortalService {
         .setTicket(ticket)
         .setProperties(properties));
 
-    executor.stop(portalId);
+    executor.stop(portal);
     deployer.update(portal);
     executor.start(portal);
 
@@ -136,14 +135,18 @@ public class PortalService {
   @Synchronized
   public void remove(@NonNull String portalId) {
     log.info("Removing portal {}...", portalId);
-    deployer.undeploy(portalId);
-    executor.stop(portalId);
+    val portal = repository.get(portalId);
+
+    executor.stop(portal);
     logs.stopTailing(portalId);
+    
+    deployer.undeploy(portalId);
   }
 
   public void start(@NonNull String portalId) {
     log.info("Starting portal {}...", portalId);
     val portal = repository.get(portalId);
+
     executor.start(portal);
     logs.startTailing(portalId);
   }
@@ -151,13 +154,16 @@ public class PortalService {
   public void restart(@NonNull String portalId) {
     log.info("Restarting portal {}...", portalId);
     val portal = repository.get(portalId);
+
     executor.restart(portal);
     logs.startTailing(portalId);
   }
 
   public void stop(@NonNull String portalId) {
     log.info("Stopping portal {}...", portalId);
-    executor.stop(portalId);
+    val portal = repository.get(portalId);
+
+    executor.stop(portal);
     logs.stopTailing(portalId);
   }
 
@@ -178,6 +184,17 @@ public class PortalService {
 
     val iframeUrl = publicUrl + "/" + portal.getId();
     jira.updateTicket(ticketKey, "Deployed to " + iframeUrl + " for testing");
+  }
+
+  private static void assignPorts(Portal portal) {
+    val systemProperties = portal.getSystemProperties();
+    systemProperties.put("server.port", findFreePort());
+    systemProperties.put("management.port", findFreePort());
+    log.info("systemProperties: {}", systemProperties);
+  }
+
+  private static String findFreePort() {
+    return String.valueOf(findAvailableTcpPort(8000, 9000));
   }
 
 }

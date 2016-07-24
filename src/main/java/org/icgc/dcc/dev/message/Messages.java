@@ -17,6 +17,8 @@
  */
 package org.icgc.dcc.dev.message;
 
+import org.icgc.dcc.dev.portal.Portal.State;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -37,6 +39,25 @@ public class Messages {
   public static class LogMessage extends PortalMessage {
 
     String line;
+
+  }
+  
+  @Data
+  @Accessors(chain = true)
+  @EqualsAndHashCode(callSuper = true)
+  public static class ExecutionMessage extends PortalMessage {
+
+    String action;
+    String output;
+
+  }
+  
+  @Data
+  @Accessors(chain = true)
+  @EqualsAndHashCode(callSuper = true)
+  public static class StateMessage extends PortalMessage {
+
+    State state;
 
   }
 

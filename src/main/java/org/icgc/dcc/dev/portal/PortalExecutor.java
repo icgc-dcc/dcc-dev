@@ -20,13 +20,21 @@ package org.icgc.dcc.dev.portal;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.util.SocketUtils.findAvailableTcpPort;
+import static org.icgc.dcc.dev.portal.Portal.State.RESTARTING;
+import static org.icgc.dcc.dev.portal.Portal.State.RUNNING;
+import static org.icgc.dcc.dev.portal.Portal.State.STARTING;
+import static org.icgc.dcc.dev.portal.Portal.State.STOPPED;
+import static org.icgc.dcc.dev.portal.Portal.State.STOPPING;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.icgc.dcc.dev.message.MessageService;
+import org.icgc.dcc.dev.message.Messages.ExecutionMessage;
+import org.icgc.dcc.dev.message.Messages.StateMessage;
+import org.icgc.dcc.dev.portal.Portal.State;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -56,30 +64,36 @@ public class PortalExecutor {
    */
   @Autowired
   PortalFileSystem fileSystem;
+  @Autowired
+  PortalRepository repository;
+  @Autowired
+  MessageService messages;
 
-  public String start(@NonNull Portal portal) {
-    assignPorts(portal);
-
-    return executeScript(portal.getId(), "start", resolveArguments(portal));
+  public void start(@NonNull Portal portal) {
+    updateState(portal, STARTING);
+    executeScript(portal.getId(), "start", resolveArguments(portal));
+    updateState(portal, RUNNING);
   }
 
-  public String restart(@NonNull Portal portal) {
-    return executeScript(portal.getId(), "restart", resolveArguments(portal));
+  public void restart(@NonNull Portal portal) {
+    updateState(portal, RESTARTING);
+    executeScript(portal.getId(), "restart", resolveArguments(portal));
+    updateState(portal, RUNNING);
   }
 
-  public String stop(@NonNull String portalId) {
-    return executeScript(portalId, "stop", null);
+  public void stop(@NonNull Portal portal) {
+    updateState(portal, STOPPING);
+    executeScript(portal.getId(), "stop", null);
+    updateState(portal, STOPPED);
   }
 
   public String status(@NonNull String portalId) {
     return executeScript(portalId, "status", null);
   }
-
-  private void assignPorts(Portal portal) {
-    val systemProperties = portal.getSystemProperties();
-    systemProperties.put("server.port", findFreePort());
-    systemProperties.put("management.port", findFreePort());
-    log.info("systemProperties: {}", systemProperties);
+  
+  private void updateState(Portal portal, State state) {
+    repository.save(portal.setState(state));
+    messages.sendMessage(new StateMessage().setState(state).setPortalId(portal.getId()));
   }
 
   @SneakyThrows
@@ -95,6 +109,8 @@ public class PortalExecutor {
         .outputUTF8();
 
     log.info("Output: {}", output);
+    messages.sendMessage(new ExecutionMessage().setAction(action).setOutput(output).setPortalId(portalId));
+
     return output;
   }
 
@@ -118,11 +134,9 @@ public class PortalExecutor {
   private static List<String> createCommandArgs(Map<String, String> arguments) {
     if (arguments == null) return emptyList();
 
-    return arguments.entrySet().stream().map(e -> "--" + e.getKey() + "=" + e.getValue()).collect(toList());
-  }
-
-  private static String findFreePort() {
-    return String.valueOf(findAvailableTcpPort(8000, 9000));
+    return arguments.entrySet().stream()
+        .map(e -> "--" + e.getKey() + "=" + e.getValue())
+        .collect(toList());
   }
 
 }

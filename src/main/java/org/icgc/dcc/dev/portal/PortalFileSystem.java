@@ -76,7 +76,7 @@ public class PortalFileSystem {
   }
 
   public File getLogFile(@NonNull String portalId) {
-    return new File(getLibDir(portalId), baseName + ".log");
+    return new File(getLogsDir(portalId), baseName + ".log");
   }
 
 }

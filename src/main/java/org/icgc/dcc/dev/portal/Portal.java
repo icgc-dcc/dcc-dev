@@ -25,8 +25,6 @@ import org.icgc.dcc.dev.github.GithubPr;
 import org.icgc.dcc.dev.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.jira.JiraTicket;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -68,10 +66,7 @@ public class Portal {
 
   /**
    * System supplied configuration properties.
-   * <p>
-   * Not intended to be exposed to users as may contain sensitive information (e.g. credentials).
    */
-  @JsonIgnore
   Map<String, String> systemProperties = newHashMap();
 
   /**
@@ -82,7 +77,7 @@ public class Portal {
   /**
    * The execution state of the portal instance.
    */
-  State state = State.NONE;
+  State state = State.NEW;
 
   /**
    * The upstream canidate information about the running portal instance.
@@ -102,7 +97,7 @@ public class Portal {
 
   public static enum State {
 
-    NONE, STARTED, STOPPED;
+    NEW, STARTING, RUNNING, STOPPING, STOPPED, RESTARTING, FAILED;
 
   }
 
