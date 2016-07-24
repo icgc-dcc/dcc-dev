@@ -21,34 +21,47 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.zeroturnaround.exec.ProcessExecutor;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 public class PortalExecutor {
 
+  /**
+   * Configuration.
+   */
+  @Autowired
+  @Qualifier("config")
+  Properties config;
+  
   /**
    * Dependencies.
    */
   @Autowired
   PortalFileSystem fileSystem;
-
+  
   public String start(@NonNull String portalId, Map<String, String> arguments) {
-    return executeScript(portalId, "start", arguments);
+    return executeScript(portalId, "start", resolveArguments(arguments));
   }
 
   public String restart(@NonNull String portalId, Map<String, String> arguments) {
-    return executeScript(portalId, "restart", arguments);
+    return executeScript(portalId, "restart", resolveArguments(arguments));
   }
 
   public String stop(@NonNull String portalId) {
@@ -62,12 +75,23 @@ public class PortalExecutor {
   @SneakyThrows
   private String executeScript(String portalId, String action, Map<String, String> arguments) {
     val scriptFile = fileSystem.getScriptFile(portalId);
-
+    val command = createCommand(scriptFile, action, arguments);
+    log.info("Executing command: {}", command);
+    
     return new ProcessExecutor()
-        .command(createCommand(scriptFile, action, arguments))
+        .command(command)
         .readOutput(true)
         .execute()
         .outputUTF8();
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private Map<String, String> resolveArguments(Map<String, String> arguments) {
+    val effectiveArguments = Maps.<String, String> newHashMap();
+    effectiveArguments.putAll(arguments == null ? Collections.emptyMap() : arguments);
+    effectiveArguments.putAll((Map) config);
+    
+    return effectiveArguments;
   }
 
   private static List<String> createCommand(File scriptFile, String action, Map<String, String> arguments) {

@@ -20,17 +20,21 @@ package org.icgc.dcc.dev.portal;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.io.File;
+import java.io.StringReader;
+import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,6 +58,15 @@ public class PortalConfig {
   PortalDeployer deployer;
   @Autowired
   PortalService service;
+  
+  @Bean
+  @SneakyThrows
+  public Properties config(@Value("${config}") String text) {
+    val config = new Properties();
+    config.load(new StringReader(text));
+
+    return config;
+  }
 
   @PostConstruct
   public void init() {
