@@ -1,13 +1,18 @@
 $(function(){
 	var stompClient = null;
+	
 	var $connect = $('#connect');
 	var $disconnect = $('#disconnect');
-	var $messages = $('#messages');
+	
+	var $state = $('#state');
+	var $execute = $('#execute');
+	var $log = $('#log');
+	var $build = $('#build');
 
 	function setConnected(connected) {
 		$connect.prop('disabled', connected);
 		$disconnect.prop('disabled', !connected);
-	    $messages.html('');
+	    $(".tab-pane").empty();
 	}
 
 	function connect() {
@@ -17,10 +22,10 @@ $(function(){
 	        setConnected(true);
 	        console.log('Connected: ' + frame);
 	        
-	        stompClient.subscribe('/topic/builds', showMessage);
-	        stompClient.subscribe('/topic/logs', showMessage);
-	        stompClient.subscribe('/topic/portal/state', showMessage);
-	        stompClient.subscribe('/topic/portal/execute', showMessage);
+	        stompClient.subscribe('/topic/portal/state', onState);
+	        stompClient.subscribe('/topic/portal/execute', onExecute);
+	        stompClient.subscribe('/topic/logs', onLog);
+	        stompClient.subscribe('/topic/builds', onBuild);
 	    });
 	}
 
@@ -33,9 +38,20 @@ $(function(){
 	    console.log("Disconnected");
 	}
 
-	function showMessage(message) {
-		$messages.append('<pre>' + message.body + '</pre>')
+	function onState(message) {
+		$state.append('<pre>' + message.body + '</pre>')
 	}
+	function onExecute(message) {
+		$execute.append('<pre>' + message.body + '</pre>')
+	}
+	function onLog(message) {
+		$log.append('<pre>' + message.body + '</pre>')
+	}
+	function onBuild(message) {
+		$build.append('<pre>' + message.body + '</pre>')
+	}
+	
+	//$('#tabs').tab();
 	
 	$connect.on('click', connect);
 	$disconnect.on('click', disconnect);

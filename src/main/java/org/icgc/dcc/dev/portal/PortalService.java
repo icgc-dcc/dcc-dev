@@ -72,11 +72,10 @@ public class PortalService {
     return repository.list();
   }
 
-  public Portal get(@NonNull String portalId) {
+  public Portal get(@PortalLock @NonNull String portalId) {
     return repository.get(portalId);
   }
 
-  @Synchronized
   public Portal create(@NonNull Integer prNumber, String name, String title, String description, String ticket,
       Map<String, String> properties) {
     log.info("Creating portal {}...", name);
@@ -112,8 +111,7 @@ public class PortalService {
     return portal;
   }
 
-  @Synchronized
-  public Portal update(@NonNull String portalId, String name, String title, String description, String ticket,
+  public Portal update(@PortalLock(write = true) @NonNull String portalId, String name, String title, String description, String ticket,
       Map<String, String> properties) {
     log.info("Updating portal {}...", portalId);
     val portal = repository.get(portalId);
@@ -133,7 +131,7 @@ public class PortalService {
   }
 
   @Synchronized
-  public void remove(@NonNull String portalId) {
+  public void remove(@PortalLock(write = true) @NonNull String portalId) {
     log.info("Removing portal {}...", portalId);
     val portal = repository.get(portalId);
 
@@ -143,7 +141,7 @@ public class PortalService {
     deployer.undeploy(portalId);
   }
 
-  public void start(@NonNull String portalId) {
+  public void start(@PortalLock(write = true) @NonNull String portalId) {
     log.info("Starting portal {}...", portalId);
     val portal = repository.get(portalId);
 
@@ -151,7 +149,7 @@ public class PortalService {
     logs.startTailing(portalId);
   }
 
-  public void restart(@NonNull String portalId) {
+  public void restart(@PortalLock(write = true) @NonNull String portalId) {
     log.info("Restarting portal {}...", portalId);
     val portal = repository.get(portalId);
 
@@ -159,7 +157,7 @@ public class PortalService {
     logs.startTailing(portalId);
   }
 
-  public void stop(@NonNull String portalId) {
+  public void stop(@PortalLock(write = true) @NonNull String portalId) {
     log.info("Stopping portal {}...", portalId);
     val portal = repository.get(portalId);
 
@@ -167,7 +165,7 @@ public class PortalService {
     logs.stopTailing(portalId);
   }
 
-  public String status(@NonNull String portalId) {
+  public String status(@PortalLock @NonNull String portalId) {
     log.info("Getting status of portal {}...", portalId);
     return executor.status(portalId);
   }
