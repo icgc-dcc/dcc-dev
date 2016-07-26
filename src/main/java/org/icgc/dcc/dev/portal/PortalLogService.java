@@ -17,6 +17,7 @@
  */
 package org.icgc.dcc.dev.portal;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,9 +32,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Maps;
+import com.google.common.io.Files;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +58,12 @@ public class PortalLogService {
    */
   Map<String, Tailer> tailers = Maps.newConcurrentMap();
   ExecutorService executor = Executors.newCachedThreadPool();
+
+  @SneakyThrows
+  public String cat(String portalId) {
+    val logFile = fileSystem.getLogFile(portalId);
+    return Files.toString(logFile, StandardCharsets.UTF_8);
+  }
 
   @Synchronized
   public void startTailing(@NonNull String portalId) {

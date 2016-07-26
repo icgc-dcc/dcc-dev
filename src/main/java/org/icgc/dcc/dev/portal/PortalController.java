@@ -78,6 +78,11 @@ public class PortalController {
     return service.get(portalId);
   }
 
+  @GetMapping("/portals/{portalId}/log")
+  public String getLog(@PathVariable("portalId") String portalId) {
+    return service.getLog(portalId);
+  }
+
   @GetMapping("/portals/{portalId}/status")
   public String status(@PathVariable("portalId") String portalId) {
     return service.status(portalId);

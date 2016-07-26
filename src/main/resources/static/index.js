@@ -24,7 +24,7 @@ $(function(){
 	        
 	        stompClient.subscribe('/topic/portal/state', onState);
 	        stompClient.subscribe('/topic/portal/execute', onExecute);
-	        stompClient.subscribe('/topic/logs', onLog);
+	        stompClient.subscribe('/topic/logs/1', onLog);
 	        stompClient.subscribe('/topic/builds', onBuild);
 	    });
 	}
@@ -50,8 +50,6 @@ $(function(){
 	function onBuild(message) {
 		$build.append('<pre>' + message.body + '</pre>')
 	}
-	
-	//$('#tabs').tab();
 	
 	$connect.on('click', connect);
 	$disconnect.on('click', disconnect);

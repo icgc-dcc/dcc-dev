@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import lombok.NonNull;
-import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
@@ -130,7 +129,6 @@ public class PortalService {
     return portal;
   }
 
-  @Synchronized
   public void remove(@PortalLock(write = true) @NonNull String portalId) {
     log.info("Removing portal {}...", portalId);
     val portal = repository.get(portalId);
@@ -168,6 +166,11 @@ public class PortalService {
   public String status(@PortalLock @NonNull String portalId) {
     log.info("Getting status of portal {}...", portalId);
     return executor.status(portalId);
+  }
+  
+  public String getLog(@PortalLock @NonNull String portalId) {
+    log.info("Getting log of portal {}...", portalId);
+    return logs.cat(portalId);
   }
 
   private String resolveUrl(Portal portal) {
