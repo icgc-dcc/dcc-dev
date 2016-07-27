@@ -24,9 +24,11 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import org.icgc.dcc.dev.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.jira.JiraService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import lombok.NonNull;
@@ -110,7 +112,34 @@ public class PortalService {
     return portal;
   }
 
-  public Portal update(@PortalLock(write = true) @NonNull String portalId, String name, String title, String description, String ticket,
+  @EventListener
+  public void update(JenkinsBuild build) {
+    val prMatch = list().stream()
+        .filter(p -> p.getTarget().getPr().getNumber() == build.getPrNumber()
+            && p.getTarget().getBuild().getNumber() != build.getNumber())
+        .findFirst();
+    if (!prMatch.isPresent()) return;
+
+    val portal = prMatch.get();
+    log.info("Update found for {}", build);
+    if (portal.isAutoDeploy()) {
+      log.info("Auto deploying portal {}: {}", portal.getId(), build);
+      portal.getTarget().setBuild(build);
+
+      update(portal);
+    }
+  }
+
+  public void update(@PortalLock(write = true) Portal portal) {
+    executor.stop(portal);
+    deployer.update(portal);
+    executor.start(portal);
+
+    repository.save(portal);
+  }
+
+  public Portal update(@PortalLock(write = true) @NonNull String portalId, String name, String title,
+      String description, String ticket,
       Map<String, String> properties) {
     log.info("Updating portal {}...", portalId);
     val portal = repository.get(portalId);
@@ -135,7 +164,7 @@ public class PortalService {
 
     executor.stop(portal);
     logs.stopTailing(portalId);
-    
+
     deployer.undeploy(portalId);
   }
 
@@ -167,7 +196,7 @@ public class PortalService {
     log.info("Getting status of portal {}...", portalId);
     return executor.status(portalId);
   }
-  
+
   public String getLog(@PortalLock @NonNull String portalId) {
     log.info("Getting log of portal {}...", portalId);
     return logs.cat(portalId);

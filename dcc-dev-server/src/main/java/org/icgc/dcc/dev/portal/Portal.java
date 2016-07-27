@@ -80,6 +80,11 @@ public class Portal {
   State state = State.NEW;
 
   /**
+   * Whether or not to automatically deploy a new build when available.
+   */
+  boolean autoDeploy;
+  
+  /**
    * The upstream canidate information about the running portal instance.
    */
   Candidate target;

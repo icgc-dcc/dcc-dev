@@ -15,97 +15,71 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.jenkins;
+package org.icgc.dcc.dev.message;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.List;
-import java.util.stream.Stream;
-
-import org.icgc.dcc.dev.message.MessageService;
+import org.icgc.dcc.dev.jenkins.JenkinsBuild;
+import org.icgc.dcc.dev.message.Messages.ExecutionMessage;
+import org.icgc.dcc.dev.message.Messages.LogMessage;
+import org.icgc.dcc.dev.message.Messages.StateMessage;
+import org.icgc.dcc.dev.slack.SlackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-
-import com.google.common.primitives.Ints;
-import com.offbytwo.jenkins.JenkinsServer;
-import com.offbytwo.jenkins.model.MavenBuild;
-import com.offbytwo.jenkins.model.MavenJobWithDetails;
+import org.springframework.web.socket.messaging.AbstractSubProtocolEvent;
 
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class JenkinsService {
+public class MessageService {
 
   /**
    * Configuration.
    */
-  @Value("${jenkins.jobName}")
-  String jobName;
+  @Value("${message.topicPrefix}")
+  String topicPrefix;
 
   /**
    * Dependencies.
    */
   @Autowired
-  JenkinsServer jenkins;
+  SimpMessagingTemplate messages;
   @Autowired
-  MessageService messages;
+  ApplicationEventPublisher publisher;
+  @Autowired
+  SlackService slack;
 
-  /**
-   * State.
-   */
-  JenkinsBuild latestBuild;
-
-  @Scheduled(cron = "${jenkins.cron}")
-  public void poll() {
-    val build = convert(getJob().getLastStableBuild());
-
-    val notify = latestBuild != null;
-    val refresh = latestBuild == null || latestBuild.getNumber() < build.getNumber();
-    if (refresh) {
-      latestBuild = build;
-
-      if (notify) {
-        messages.sendMessage(refresh);
-        log.info("New build: {}", build);
-      }
+  public void sendMessage(@NonNull Object message) {
+    if (message instanceof StateMessage) {
+      val stateMessage = (StateMessage) message;
+      sendWebSocketMessage("/portal/state", stateMessage);
+    } else if (message instanceof ExecutionMessage) {
+      val executionMessage = (ExecutionMessage) message;
+      sendWebSocketMessage("/portal/execute", executionMessage);
+    } else if (message instanceof LogMessage) {
+      val logMessage = (LogMessage) message;
+      sendWebSocketMessage("/logs/" + logMessage.getPortalId(), logMessage);
+    } else if (message instanceof JenkinsBuild) {
+      val build = (JenkinsBuild) message;
+      publisher.publishEvent(build);
+      sendWebSocketMessage("/builds", build);
+    } else {
+      sendWebSocketMessage("/", message);
     }
   }
-
-  @SneakyThrows
-  public List<JenkinsBuild> getBuilds() {
-    return builds().map(this::convert).collect(toList());
+  
+  @EventListener
+  public void onSessionEvent(AbstractSubProtocolEvent event) {
+    log.info("Session event: {}", event);
   }
 
-  @SneakyThrows
-  public JenkinsBuild getBuild(@NonNull String buildNumber) {
-    val value =  Ints.tryParse(buildNumber);
-    val defaultValue = new JenkinsBuild().setNumber(value);
-
-    return builds().filter(b -> b.getNumber() == value).findFirst().map(this::convert).orElse(defaultValue);
-  }
-
-  @SneakyThrows
-  private MavenJobWithDetails getJob() {
-    return jenkins.getMavenJob(jobName);
-  }
-
-  private Stream<MavenBuild> builds() {
-    return getJob().getBuilds().stream();
-  }
-
-  @SneakyThrows
-  private JenkinsBuild convert(MavenBuild build) {
-    return new JenkinsBuild()
-        .setNumber(build.getNumber())
-        .setQueueId(build.getQueueId())
-        .setUrl(build.getUrl())
-        .setTimestamp(build.details().getTimestamp());
+  private void sendWebSocketMessage(String destination, Object message) {
+    messages.convertAndSend(topicPrefix + destination, message);
   }
 
 }
