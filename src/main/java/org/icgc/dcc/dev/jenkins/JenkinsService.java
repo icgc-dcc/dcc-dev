@@ -17,9 +17,13 @@
  */
 package org.icgc.dcc.dev.jenkins;
 
+import static com.google.common.primitives.Ints.tryParse;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.icgc.dcc.dev.message.MessageService;
@@ -30,6 +34,7 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.primitives.Ints;
 import com.offbytwo.jenkins.JenkinsServer;
+import com.offbytwo.jenkins.model.BuildCause;
 import com.offbytwo.jenkins.model.MavenBuild;
 import com.offbytwo.jenkins.model.MavenJobWithDetails;
 
@@ -41,6 +46,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class JenkinsService {
+
+  /**
+   * Constants.
+   */
+  private static final Pattern CAUSE_SHORT_DESCRIPTION_PATTERN =
+      Pattern.compile("GitHub pull request #(\\d+) of commit ([a-f0-9]+)");
 
   /**
    * Configuration.
@@ -71,8 +82,8 @@ public class JenkinsService {
       latestBuild = build;
 
       if (notify) {
-        messages.sendMessage(refresh);
         log.info("New build: {}", build);
+        messages.sendMessage(build);
       }
     }
   }
@@ -84,7 +95,7 @@ public class JenkinsService {
 
   @SneakyThrows
   public JenkinsBuild getBuild(@NonNull String buildNumber) {
-    val value =  Ints.tryParse(buildNumber);
+    val value = Ints.tryParse(buildNumber);
     val defaultValue = new JenkinsBuild().setNumber(value);
 
     return builds().filter(b -> b.getNumber() == value).findFirst().map(this::convert).orElse(defaultValue);
@@ -101,11 +112,24 @@ public class JenkinsService {
 
   @SneakyThrows
   private JenkinsBuild convert(MavenBuild build) {
+    val matcher = matchCause(build.details().getCauses());
+    val prNumber= matcher.isPresent() ? tryParse(matcher.get().group(1)) : null;
+    val commitId = matcher.isPresent() ? matcher.get().group(2) : null;
+
     return new JenkinsBuild()
         .setNumber(build.getNumber())
-        .setQueueId(build.getQueueId())
+        .setPrNumber(prNumber)
+        .setCommitId(commitId)
         .setUrl(build.getUrl())
         .setTimestamp(build.details().getTimestamp());
+  }
+
+  private Optional<Matcher> matchCause(List<BuildCause> causes) {
+    // Heuristic to get commit and pr
+    return causes.stream()
+        .map(cause -> CAUSE_SHORT_DESCRIPTION_PATTERN.matcher(cause.getShortDescription()))
+        .filter(Matcher::find)
+        .findFirst();
   }
 
 }

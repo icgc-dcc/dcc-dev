@@ -1,2 +1,3 @@
-# dcc-dev
-DCC Portal development server
+# dcc-config
+
+DCC config server

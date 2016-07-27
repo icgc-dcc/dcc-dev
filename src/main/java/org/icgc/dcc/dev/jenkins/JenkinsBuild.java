@@ -31,7 +31,8 @@ public class JenkinsBuild {
    */
   int number;
 
-  Integer queueId;
+  Integer prNumber;
+  String commitId;
   String url;
   Long timestamp;
 

@@ -24,6 +24,7 @@ import org.icgc.dcc.dev.message.Messages.StateMessage;
 import org.icgc.dcc.dev.slack.SlackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,8 @@ public class MessageService {
   @Autowired
   SimpMessagingTemplate messages;
   @Autowired
+  ApplicationEventPublisher publisher;
+  @Autowired
   SlackService slack;
 
   public void sendMessage(@NonNull Object message) {
@@ -63,6 +66,7 @@ public class MessageService {
       sendWebSocketMessage("/logs/" + logMessage.getPortalId(), logMessage);
     } else if (message instanceof JenkinsBuild) {
       val build = (JenkinsBuild) message;
+      publisher.publishEvent(build);
       sendWebSocketMessage("/builds", build);
     } else {
       sendWebSocketMessage("/", message);
