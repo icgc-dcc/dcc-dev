@@ -1,6 +1,6 @@
-# ICGC DCC - Config - Change Log
+# ICGC DCC - Dev - Change Log
 
-Change log for Config system
+Change log for Dev system
 
 0.0.1
 --
