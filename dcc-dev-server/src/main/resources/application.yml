@@ -37,7 +37,8 @@ workspace:
 # Template
 template:
   dir: ${workspace.dir}/template
-  url: ${artifact.url}/dcc-release/org/icgc/dcc/${artifact.artifactId}/[RELEASE]/${artifact.artifactId}-[RELEASE]-dist.tar.gz
+  # url: ${artifact.url}/dcc-release/org/icgc/dcc/${artifact.artifactId}/[RELEASE]/${artifact.artifactId}-[RELEASE]-dist.tar.gz
+  url: ${artifact.url}/dcc-snapshot/org/icgc/dcc/${artifact.artifactId}/4.3.5-SNAPSHOT/${artifact.artifactId}-4.3.5-SNAPSHOT-dist.tar.gz
 
 # Slack
 slack:

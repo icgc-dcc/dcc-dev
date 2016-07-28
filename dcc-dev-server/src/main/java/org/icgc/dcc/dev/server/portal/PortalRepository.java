@@ -23,6 +23,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -32,6 +33,7 @@ import com.google.common.collect.ImmutableList;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import lombok.val;
 
 @Repository
 public class PortalRepository {
@@ -55,15 +57,38 @@ public class PortalRepository {
   }
 
   public List<Portal> list() {
-    return getIds().stream().map(portalId -> get(portalId)).collect(toList());
+    return getIds().stream()
+        .map(this::get)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(toList());
   }
 
-  public Portal get(@NonNull String portalId) {
-    return read(getMetadataFile(portalId));
+  public Optional<Portal> get(@NonNull String portalId) {
+    val metadataFile = getMetadataFile(portalId);
+    if (!metadataFile.exists()) {
+      return Optional.empty();
+    }
+    
+    return Optional.of(read(metadataFile));
   }
 
-  public void save(@NonNull Portal portal) {
-    write(getMetadataFile(portal.getId()), portal);
+  public void create(@NonNull Portal portal) {
+    val metadataFile = getMetadataFile(portal.getId());
+    if (metadataFile.exists()) {
+      throw new IllegalStateException("Portal " + portal.getId() + " already exists!");
+    }
+    
+    write(metadataFile, portal);
+  }
+  
+  public void update(@NonNull Portal portal) {
+    val metadataFile = getMetadataFile(portal.getId());
+    if (!metadataFile.exists()) {
+      throw new IllegalStateException("Portal " + portal.getId() + " no longer exists!");
+    }
+    
+    write(metadataFile, portal);
   }
 
   @SneakyThrows

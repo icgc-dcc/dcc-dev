@@ -69,7 +69,7 @@ public class PortalLogService {
   public void startTailing(@NonNull String portalId) {
     if (!tailers.containsKey(portalId)) {
       val logFile = fileSystem.getLogFile(portalId);
-      log.info("Tailing {}...", logFile);
+      log.info("Tailing portal {}: {}...", portalId, logFile);
 
       val tailer = new Tailer(logFile, this.new LogListener(portalId));
       tailers.put(portalId, tailer);

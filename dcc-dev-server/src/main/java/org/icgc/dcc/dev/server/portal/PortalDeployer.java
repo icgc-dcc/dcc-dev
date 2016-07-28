@@ -17,12 +17,10 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
-import static com.google.common.collect.Ordering.natural;
 import static java.nio.file.Files.copy;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
-import static java.util.Collections.emptyList;
 import static org.apache.commons.io.FileUtils.copyDirectory;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 
@@ -31,13 +29,11 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import lombok.NonNull;
@@ -73,20 +69,18 @@ public class PortalDeployer {
   }
 
   @SneakyThrows
-  public void deploy(@NonNull Portal portal) {
-    val portalId = nextPortalId();
-    portal.setId(portalId);
-
-    val targetDir = fileSystem.getRootDir(portalId);
+  public void init(@NonNull Portal portal) {
+    val targetDir = fileSystem.getRootDir(portal.getId());
     if (!targetDir.exists()) {
-      copyTemplate(portalId, targetDir);
+      copyTemplate(portal.getId(), targetDir);
+      
+      // Ensure log dir is created (JSW won't make it but logback will)
+      fileSystem.getLogsDir(portal.getId()).mkdir();
     }
-
-    downloadJar(portal);
   }
 
   @SneakyThrows
-  public void update(@NonNull Portal portal) {
+  public void deploy(@NonNull Portal portal) {
     downloadJar(portal);
   }
 
@@ -99,7 +93,7 @@ public class PortalDeployer {
 
   private void copyTemplate(String portalId, File targetDir) throws IOException {
     copyDirectory(templateDir, targetDir);
-    
+
     // Make executable
     val binaries = fileSystem.getBinDir(portalId).listFiles();
     for (val binary : binaries) {
@@ -113,20 +107,6 @@ public class PortalDeployer {
 
     log.info("Downloading {} to {}", artifactUrl, jarFile);
     copy(artifactUrl.openStream(), jarFile.toPath(), REPLACE_EXISTING);
-  }
-
-  private String nextPortalId() {
-    val portalId = resolvePortalIds().stream().map(Integer::valueOf).sorted(natural().reversed()).findFirst().orElse(0);
-
-    // Advance
-    return String.valueOf(portalId + 1);
-  }
-
-  private List<String> resolvePortalIds() {
-    String[] portalIds = fileSystem.getDir().list();
-    if (portalIds == null) return emptyList();
-
-    return ImmutableList.copyOf(portalIds);
   }
 
 }

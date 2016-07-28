@@ -19,6 +19,7 @@ package org.icgc.dcc.dev.server.portal;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +75,7 @@ public class PortalController {
   }
 
   @GetMapping("/portals/{portalId}")
-  public Portal get(@PathVariable("portalId") String portalId) {
+  public Optional<Portal> get(@PathVariable("portalId") String portalId) {
     return service.get(portalId);
   }
 

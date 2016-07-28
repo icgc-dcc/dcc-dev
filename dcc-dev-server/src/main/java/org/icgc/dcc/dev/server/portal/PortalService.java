@@ -18,6 +18,7 @@
 package org.icgc.dcc.dev.server.portal;
 
 import static com.google.common.collect.Iterables.getLast;
+import static com.google.common.collect.Ordering.natural;
 import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 import static org.springframework.util.SocketUtils.findAvailableTcpPort;
 
@@ -25,6 +26,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
@@ -39,6 +41,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 
+import lombok.Cleanup;
 import lombok.NonNull;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -59,11 +62,13 @@ public class PortalService {
    * Dependencies.
    */
   @Autowired
+  PortalLocks locks;
+  @Autowired
   PortalRepository repository;
   @Autowired
-  PortalLogService logs;
-  @Autowired
   PortalFileSystem fileSystem;
+  @Autowired
+  PortalLogService logs;
   @Autowired
   JiraService jira;
   @Autowired
@@ -96,7 +101,7 @@ public class PortalService {
   @EventListener
   public void handle(GithubPrsMessage message) {
     val openPrNumbers = Maps.uniqueIndex(message.getPrs(), GithubPr::getNumber);
-    
+
     for (val portal : list()) {
       boolean prOpen = openPrNumbers.containsKey(portal.getTarget().getPr().getNumber());
       if (prOpen) continue;
@@ -114,17 +119,25 @@ public class PortalService {
   }
 
   public List<Portal> list() {
-    // Use this::get to apply lock
-    return repository.getIds().stream().map(this::get).collect(toImmutableList());
+    // Use this::get to apply read lock
+    return repository.getIds().stream()
+        .map(this::get)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(toImmutableList());
   }
 
-  public Portal get(@PortalLock @NonNull String portalId) {
+  public Optional<Portal> get(@NonNull String portalId) {
+    @Cleanup
+    val lock = locks.readLock(portalId);
+    lock.lock();
+
     return repository.get(portalId);
   }
 
   public Portal create(@NonNull Integer prNumber, String name, String title, String description, String ticket,
       Map<String, String> properties) {
-    log.info("Creating portal {}...", name);
+    log.info("Creating portal for PR {}...", prNumber);
 
     // Resolve portal candidate by PR
     val candidate = candidates.resolve(prNumber);
@@ -132,6 +145,7 @@ public class PortalService {
 
     // Collect metadata in a single object
     val portal = new Portal()
+        .setId(nextPortalId())
         .setName(name)
         .setTitle(title)
         .setDescription(description)
@@ -139,14 +153,23 @@ public class PortalService {
         .setProperties(properties)
         .setTarget(candidate);
 
-    // Create id and directory with artifact
+    @Cleanup
+    val lock = locks.writeLock(portal);
+    lock.lock();
+
+    // Create directory
+    deployer.init(portal);
+
+    // Install jar
     deployer.deploy(portal);
-    repository.save(portal);
+
+    // Save instance
+    repository.create(portal);
 
     // Assign ports and URL
     assignPorts(portal);
     portal.setUrl(resolveUrl(portal));
-    repository.save(portal);
+    repository.create(portal);
 
     // Start the portal
     start(portal.getId());
@@ -157,21 +180,33 @@ public class PortalService {
     return portal;
   }
 
-  public void update(@PortalLock(write = true) Portal portal) {
+  public void update(Portal portal) {
+    @Cleanup
+    val lock = locks.writeLock(portal);
+    lock.lock();
+
     executor.stop(portal);
-    deployer.update(portal);
+    deployer.deploy(portal);
     executor.start(portal);
 
-    repository.save(portal);
+    repository.update(portal);
   }
 
-  public Portal update(@PortalLock(write = true) @NonNull String portalId, String name, String title,
-      String description, String ticket,
+  public Portal update(@NonNull String portalId, String name, String title, String description, String ticket,
       Map<String, String> properties) {
     log.info("Updating portal {}...", portalId);
-    val portal = repository.get(portalId);
 
-    repository.save(portal
+    @Cleanup
+    val lock = locks.writeLock(portalId);
+    lock.lock();
+
+    val optional = repository.get(portalId);
+    if (!optional.isPresent()) {
+      return null;
+    }
+
+    val portal = optional.get();
+    repository.update(portal
         .setName(name)
         .setTitle(title)
         .setDescription(description)
@@ -179,54 +214,107 @@ public class PortalService {
         .setProperties(properties));
 
     executor.stop(portal);
-    deployer.update(portal);
+    deployer.deploy(portal);
     executor.start(portal);
 
     return portal;
   }
 
-  public void remove(@PortalLock(write = true) @NonNull String portalId) {
+  public void remove(@NonNull String portalId) {
     log.info("Removing portal {}...", portalId);
-    val portal = repository.get(portalId);
 
+    @Cleanup
+    val lock = locks.writeLock(portalId);
+    lock.lock();
+
+    val optional = repository.get(portalId);
+    if (!optional.isPresent()) {
+      return;
+    }
+
+    val portal = optional.get();
     executor.stop(portal);
     logs.stopTailing(portalId);
 
     deployer.undeploy(portalId);
   }
 
-  public void start(@PortalLock(write = true) @NonNull String portalId) {
+  public void start(@NonNull String portalId) {
     log.info("Starting portal {}...", portalId);
-    val portal = repository.get(portalId);
+
+    @Cleanup
+    val lock = locks.writeLock(portalId);
+    lock.lock();
+
+    val optional = repository.get(portalId);
+    if (!optional.isPresent()) {
+      return;
+    }
+
+    val portal = optional.get();
 
     executor.start(portal);
     logs.startTailing(portalId);
   }
 
-  public void restart(@PortalLock(write = true) @NonNull String portalId) {
+  public void restart(@NonNull String portalId) {
     log.info("Restarting portal {}...", portalId);
-    val portal = repository.get(portalId);
+
+    @Cleanup
+    val lock = locks.writeLock(portalId);
+    lock.lock();
+
+    val optional = repository.get(portalId);
+    if (!optional.isPresent()) {
+      return;
+    }
+
+    val portal = optional.get();
 
     executor.restart(portal);
     logs.startTailing(portalId);
   }
 
-  public void stop(@PortalLock(write = true) @NonNull String portalId) {
+  public void stop(@NonNull String portalId) {
     log.info("Stopping portal {}...", portalId);
-    val portal = repository.get(portalId);
 
-    executor.stop(portal);
+    @Cleanup
+    val lock = locks.writeLock(portalId);
+    lock.lock();
+
+    val portal = repository.get(portalId);
+    if (!portal.isPresent()) {
+      return;
+    }
+
+    executor.stop(portal.get());
     logs.stopTailing(portalId);
   }
 
-  public String status(@PortalLock @NonNull String portalId) {
+  public String status(@NonNull String portalId) {
     log.info("Getting status of portal {}...", portalId);
+
+    @Cleanup
+    val lock = locks.readLock(portalId);
+    lock.lock();
+
     return executor.status(portalId);
   }
 
-  public String getLog(@PortalLock @NonNull String portalId) {
+  public String getLog(String portalId) {
     log.info("Getting log of portal {}...", portalId);
+
+    @Cleanup
+    val lock = locks.readLock(portalId);
+    lock.lock();
+
     return logs.cat(portalId);
+  }
+
+  private String nextPortalId() {
+    val currentId =
+        repository.getIds().stream().map(Integer::valueOf).sorted(natural().reversed()).findFirst().orElse(0);
+    return String.valueOf(currentId + 1);
   }
 
   private String resolveUrl(Portal portal) {
