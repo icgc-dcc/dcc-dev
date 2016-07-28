@@ -15,6 +15,7 @@ mvn
 The Dev system is comprised of the following modules:
 
 - [Server](dcc-dev-server/README.md)
+- [UI](dcc-dev-ui/README.md)
 
 ## Changes
 

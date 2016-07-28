@@ -26,6 +26,9 @@
 server:
   publicUrl: http://localhost:8080
 
+# UI
+spring.resources.staticLocations: classpath:/app/
+
 # Workspace
 workspace:
   dir: /tmp/dcc-dev
