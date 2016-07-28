@@ -47,6 +47,7 @@ slack:
 # GitHub
 github:
   repoName: icgc-dcc/dcc-portal
+  # cron: 0 */5 * * * *
   cron: 0/10 * * * * ?  
   cache.dir: ${workspace.dir}/github
   user: dcc-jenkins
@@ -63,7 +64,7 @@ artifact:
 jenkins:
   url: https://dcc-jenkins.oicr.on.ca
   jobName: dcc-portal-pr
-  cron: 0 */5 * * * *
+  cron: 0/10 * * * * ?  
   # user:
   # password:
 
