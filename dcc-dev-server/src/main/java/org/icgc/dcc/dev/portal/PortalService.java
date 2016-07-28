@@ -17,6 +17,7 @@
  */
 package org.icgc.dcc.dev.portal;
 
+import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableSet;
 import static org.springframework.util.SocketUtils.findAvailableTcpPort;
 
 import java.io.File;
@@ -24,6 +25,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import org.icgc.dcc.dev.github.GithubPr;
 import org.icgc.dcc.dev.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.jira.JiraService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +66,39 @@ public class PortalService {
   PortalExecutor executor;
   @Autowired
   PortalCandidateResolver candidates;
+
+  @EventListener
+  public void handle(JenkinsBuild newBuild) {
+    val prMatch = list().stream()
+        .filter(p -> p.getTarget().getPr().getNumber() == newBuild.getPrNumber()
+            && p.getTarget().getBuild().getNumber() != newBuild.getNumber())
+        .findFirst();
+    if (!prMatch.isPresent()) return;
+
+    val portal = prMatch.get();
+    log.info("Update found for {}", newBuild);
+    if (portal.isAutoDeploy()) {
+      log.info("Auto deploying portal {}: {}", portal.getId(), newBuild);
+      portal.getTarget().setBuild(newBuild);
+
+      update(portal);
+    }
+  }
+
+  @EventListener
+  public void handle(List<GithubPr> openPrs) {
+    val openPrNumbers = openPrs.stream().collect(toImmutableSet());
+    for (val portal : list()) {
+      boolean prOpen = openPrNumbers.contains(portal.getTarget().getPr().getNumber());
+      if (prOpen) continue;
+
+      log.info("Closed PR found for portal {}", portal.getId());
+      if (portal.isAutoRemove()) {
+        log.info("Auto removing portal {}", portal.getId());
+        remove(portal.getId());
+      }
+    }
+  }
 
   public List<Portal.Candidate> getCandidates() {
     return candidates.resolve();
@@ -110,24 +145,6 @@ public class PortalService {
     updateTicket(portal);
 
     return portal;
-  }
-
-  @EventListener
-  public void update(JenkinsBuild build) {
-    val prMatch = list().stream()
-        .filter(p -> p.getTarget().getPr().getNumber() == build.getPrNumber()
-            && p.getTarget().getBuild().getNumber() != build.getNumber())
-        .findFirst();
-    if (!prMatch.isPresent()) return;
-
-    val portal = prMatch.get();
-    log.info("Update found for {}", build);
-    if (portal.isAutoDeploy()) {
-      log.info("Auto deploying portal {}: {}", portal.getId(), build);
-      portal.getTarget().setBuild(build);
-
-      update(portal);
-    }
   }
 
   public void update(@PortalLock(write = true) Portal portal) {

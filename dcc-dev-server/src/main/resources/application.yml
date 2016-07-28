@@ -27,7 +27,8 @@ server:
   publicUrl: http://localhost:8080
 
 # UI
-spring.resources.staticLocations: classpath:/app/
+spring.resources:
+  staticLocations: classpath:/app/
 
 # Workspace
 workspace:
@@ -41,14 +42,15 @@ template:
 # Slack
 slack:
   url: https://hooks.slack.com/services/B0FC7K2GJ/${slack.token}
-  token:
+  # token:
   
 # GitHub
 github:
   repoName: icgc-dcc/dcc-portal
-  user: dcc-jenkins
+  cron: 0/10 * * * * ?  
   cache.dir: ${workspace.dir}/github
-  token:
+  user: dcc-jenkins
+  # token:
   
 # Artifacts
 artifact:
@@ -61,9 +63,9 @@ artifact:
 jenkins:
   url: https://dcc-jenkins.oicr.on.ca
   jobName: dcc-portal-pr
-  user:
-  password:
-  cron: 0/10 * * * * ?
+  cron: 0 */5 * * * *
+  # user:
+  # password:
 
 # JIRA
 jira:

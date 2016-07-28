@@ -74,13 +74,14 @@ public class JenkinsService {
 
   @Scheduled(cron = "${jenkins.cron}")
   public void poll() {
+    log.info("Polling...");
     val build = convert(getJob().getLastStableBuild());
 
-    val notify = latestBuild != null;
     val refresh = latestBuild == null || latestBuild.getNumber() < build.getNumber();
     if (refresh) {
       latestBuild = build;
 
+      val notify = latestBuild != null;
       if (notify) {
         log.info("New build: {}", build);
         messages.sendMessage(build);

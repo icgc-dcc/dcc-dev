@@ -25,15 +25,19 @@ import static org.kohsuke.github.GHIssueState.OPEN;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.icgc.dcc.dev.message.MessageService;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class GithubService {
 
@@ -41,12 +45,21 @@ public class GithubService {
    * Constants.
    */
   private static final Pattern BUILD_NUMBER_PATTERN = Pattern.compile("/([^/]+)/?$");
-  
+
   /**
    * Dependencies.
    */
   @Autowired
   GHRepository repo;
+  @Autowired
+  MessageService messages;
+
+  @Scheduled(cron = "${github.cron}")
+  public void poll() {
+    log.info("Polling...");
+
+    messages.sendMessage(getPrs());
+  }
 
   public GithubPr getPr(@NonNull Integer number) {
     return getPrs().stream().filter(pr -> number.equals(pr.getNumber())).findFirst().orElse(null);
@@ -55,7 +68,7 @@ public class GithubService {
   @SneakyThrows
   public List<GithubPr> getPrs() {
     val prs = repo.queryPullRequests().state(OPEN).list();
-    
+
     return stream(prs).map(this::convert).collect(toImmutableList());
   }
 

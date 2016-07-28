@@ -69,10 +69,10 @@ public class MessageService {
       publisher.publishEvent(build);
       sendWebSocketMessage("/builds", build);
     } else {
-      sendWebSocketMessage("/", message);
+      publisher.publishEvent(message);
     }
   }
-  
+
   @EventListener
   public void onSessionEvent(AbstractSubProtocolEvent event) {
     log.info("Session event: {}", event);

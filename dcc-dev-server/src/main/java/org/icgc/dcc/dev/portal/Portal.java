@@ -85,6 +85,11 @@ public class Portal {
   boolean autoDeploy;
   
   /**
+   * Whether or not to automatically destroy when a PR is merged.
+   */
+  boolean autoRemove;
+  
+  /**
    * The upstream canidate information about the running portal instance.
    */
   Candidate target;
