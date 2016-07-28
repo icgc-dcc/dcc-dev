@@ -17,8 +17,9 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.getLast;
-import static com.google.common.collect.Ordering.natural;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 import static org.springframework.util.SocketUtils.findAvailableTcpPort;
 
@@ -40,9 +41,12 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
+import com.google.common.io.Files;
 
 import lombok.Cleanup;
 import lombok.NonNull;
+import lombok.SneakyThrows;
+import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
@@ -169,7 +173,7 @@ public class PortalService {
     // Assign ports and URL
     assignPorts(portal);
     portal.setUrl(resolveUrl(portal));
-    repository.create(portal);
+    repository.update(portal);
 
     // Start the portal
     start(portal.getId());
@@ -311,10 +315,24 @@ public class PortalService {
     return logs.cat(portalId);
   }
 
+  @SneakyThrows
+  @Synchronized
   private String nextPortalId() {
-    val currentId =
-        repository.getIds().stream().map(Integer::valueOf).sorted(natural().reversed()).findFirst().orElse(0);
-    return String.valueOf(currentId + 1);
+    // Use a file to always monotonically increase portal ids to avoid confusion
+    val currentPortalFile = new File(workspaceDir, "currentPortalId");
+    if (!currentPortalFile.exists()) {
+      log.info("Creating {}...", currentPortalFile);
+      checkState(currentPortalFile.createNewFile(), "Could not create file %s", currentPortalFile);
+      
+      val currentPortalId = "0";
+      Files.write(currentPortalId, currentPortalFile, UTF_8);
+    }
+    
+    val currentPortalId = Files.toString(currentPortalFile, UTF_8);
+    val nextPortalId = String.valueOf(Integer.parseInt(currentPortalId) + 1);
+    
+    Files.write(nextPortalId, currentPortalFile, UTF_8);
+    return nextPortalId;
   }
 
   private String resolveUrl(Portal portal) {

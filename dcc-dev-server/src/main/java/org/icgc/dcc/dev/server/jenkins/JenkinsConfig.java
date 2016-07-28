@@ -37,8 +37,8 @@ public class JenkinsConfig {
   public JenkinsServer jenkins(
       @Value("${jenkins.url}") URI url, 
       @Value("${jenkins.user}") String user,
-      @Value("${jenkins.password}") String password) {
-    return new JenkinsServer(url, user, password);
+      @Value("${jenkins.token}") String token) {
+    return new JenkinsServer(url, user, token);
   }
 
 }

@@ -67,7 +67,7 @@ jenkins:
   jobName: dcc-portal-pr
   cron: 0/10 * * * * ?  
   # user:
-  # password:
+  # token:
 
 # JIRA
 jira:

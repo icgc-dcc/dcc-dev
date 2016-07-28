@@ -92,7 +92,7 @@ public class PortalExecutor {
   }
   
   private void updateState(Portal portal, State state) {
-    repository.create(portal.setState(state));
+    repository.update(portal.setState(state));
     messages.sendMessage(new StateMessage().setState(state).setPortalId(portal.getId()));
   }
 
