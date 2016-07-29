@@ -208,6 +208,9 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
 
     <!-- Spring Boot -->
     <spring-boot.version>1.4.0.RC1</spring-boot.version>
+    
+    <!-- Spring Boot Logging-->
+    <logback.version>1.1.7</logback.version>
 
     <!-- Jackson - Spring Boot version -->
     <jackson.version>2.7.5</jackson.version>
