@@ -20,6 +20,7 @@ package org.icgc.dcc.dev.server.portal;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.icgc.dcc.dev.server.artifactory.ArtifactoryService;
@@ -27,6 +28,7 @@ import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.github.GithubService;
 import org.icgc.dcc.dev.server.jenkins.JenkinsService;
 import org.icgc.dcc.dev.server.jira.JiraService;
+import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,29 +56,33 @@ public class PortalCandidateResolver {
   ArtifactoryService artifactory;
 
   public List<Portal.Candidate> resolve() {
-    return github.getPrs().stream().map(this::resolve).collect(toList());
+    return github.getPrs().stream()
+        .map(this::resolve)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(toList());
   }
 
-  public Portal.Candidate resolve(@NonNull Integer prNumber) {
+  public Optional<Candidate> resolve(@NonNull Integer prNumber) {
     val pr = github.getPr(prNumber);
 
     return resolve(pr);
   }
 
-  public Portal.Candidate resolve(@NonNull GithubPr pr) {
+  public Optional<Portal.Candidate> resolve(@NonNull GithubPr pr) {
     val buildNumber = github.getBuildNumber(pr.getHead());
-    if (buildNumber == null) return null;
+    if (buildNumber == null) return Optional.empty();
 
     val build = jenkins.getBuild(buildNumber);
     val artifact = artifactory.getArtifact(buildNumber);
     val ticketKey = parseTicketKey(pr.getBranch());
     val ticket = ticketKey == null ? null : jira.getTicket(ticketKey);
 
-    return new Portal.Candidate()
+    return Optional.of(new Portal.Candidate()
         .setPr(pr)
         .setBuild(build)
         .setArtifact(artifact.orElse(null))
-        .setTicket(ticket);
+        .setTicket(ticket));
   }
 
   private static String parseTicketKey(String branch) {

@@ -145,7 +145,7 @@ public class PortalService {
 
     // Resolve portal candidate by PR
     val candidate = candidates.resolve(prNumber);
-    if (candidate == null) return null;
+    if (!candidate.isPresent()) return null;
 
     // Collect metadata in a single object
     val portal = new Portal()
@@ -155,7 +155,7 @@ public class PortalService {
         .setDescription(description)
         .setTicket(ticket)
         .setProperties(properties)
-        .setTarget(candidate);
+        .setTarget(candidate.get());
 
     @Cleanup
     val lock = locks.writeLock(portal);
