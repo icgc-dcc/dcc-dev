@@ -60,8 +60,10 @@ public class PortalController {
       @RequestParam(value = "title", required = false) String title,
       @RequestParam(value = "description", required = false) String description,
       @RequestParam(value = "ticket", required = false) String ticket,
-      @RequestParam(value = "properties", required = false) Map<String, String> properties) {
-    return service.create(prNumber, name, title, description, ticket, properties);
+      @RequestParam(value = "properties", required = false) Map<String, String> properties,
+      @RequestParam(value = "start", required = false, defaultValue = "true") boolean start
+      ) {
+    return service.create(prNumber, name, title, description, ticket, properties, start);
   }
 
   @PutMapping("/portals/{portalId}")

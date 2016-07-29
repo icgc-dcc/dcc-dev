@@ -140,7 +140,7 @@ public class PortalService {
   }
 
   public Portal create(@NonNull Integer prNumber, String name, String title, String description, String ticket,
-      Map<String, String> properties) {
+      Map<String, String> properties, boolean start) {
     log.info("Creating portal for PR {}...", prNumber);
 
     // Resolve portal candidate by PR
@@ -175,12 +175,14 @@ public class PortalService {
     portal.setUrl(resolveUrl(portal));
     repository.update(portal);
 
-    // Start the portal
-    start(portal.getId());
+    if (start) {
+      // Start the portal
+      start(portal.getId());
 
-    // Ensure ticket is marked for test with the portal URL
-    updateTicket(portal);
-
+      // Ensure ticket is marked for test with the portal URL
+      updateTicket(portal);
+    }
+    
     return portal;
   }
 
@@ -323,14 +325,14 @@ public class PortalService {
     if (!currentPortalFile.exists()) {
       log.info("Creating {}...", currentPortalFile);
       checkState(currentPortalFile.createNewFile(), "Could not create file %s", currentPortalFile);
-      
+
       val currentPortalId = "0";
       Files.write(currentPortalId, currentPortalFile, UTF_8);
     }
-    
+
     val currentPortalId = Files.toString(currentPortalFile, UTF_8);
     val nextPortalId = String.valueOf(Integer.parseInt(currentPortalId) + 1);
-    
+
     Files.write(nextPortalId, currentPortalFile, UTF_8);
     return nextPortalId;
   }
