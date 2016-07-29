@@ -65,8 +65,9 @@ public class PortalCandidateResolver {
 
   public Optional<Candidate> resolve(@NonNull Integer prNumber) {
     val pr = github.getPr(prNumber);
+    if (!pr.isPresent()) return Optional.empty();
 
-    return resolve(pr);
+    return resolve(pr.get());
   }
 
   public Optional<Portal.Candidate> resolve(@NonNull GithubPr pr) {

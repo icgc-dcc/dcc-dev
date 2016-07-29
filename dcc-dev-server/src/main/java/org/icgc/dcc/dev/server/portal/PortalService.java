@@ -145,7 +145,9 @@ public class PortalService {
 
     // Resolve portal candidate by PR
     val candidate = candidates.resolve(prNumber);
-    if (!candidate.isPresent()) return null;
+    if (!candidate.isPresent()) {
+      throw new PortalPrNotFoundException("PR " + prNumber + " not found or no build available");
+    }
 
     // Collect metadata in a single object
     val portal = new Portal()

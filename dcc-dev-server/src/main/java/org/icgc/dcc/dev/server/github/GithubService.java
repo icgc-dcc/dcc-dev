@@ -23,6 +23,7 @@ import static org.kohsuke.github.GHCommitState.SUCCESS;
 import static org.kohsuke.github.GHIssueState.OPEN;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.icgc.dcc.dev.server.message.MessageService;
@@ -63,8 +64,8 @@ public class GithubService {
     messages.sendMessage(new GithubPrsMessage(getPrs()));
   }
 
-  public GithubPr getPr(@NonNull Integer number) {
-    return getPrs().stream().filter(pr -> number.equals(pr.getNumber())).findFirst().orElse(null);
+  public Optional<GithubPr> getPr(@NonNull Integer number) {
+    return getPrs().stream().filter(pr -> number.equals(pr.getNumber())).findFirst();
   }
 
   @SneakyThrows
