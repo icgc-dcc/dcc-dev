@@ -7,18 +7,17 @@ Server module that is the execution entry point into the system.
 To compile, test and package the module, execute the following from the root of the repository:
 
 ```shell
-mvn -am -pl dcc-dev/dcc-dev-server
+mvn -am -pl dcc-dev-server
 ```
 
 ## Running 
 
 ### Command-line
 
-To run against  setup, create an `application-production.yml` in `src/main/resources/` and fill in the commented out properties from `application.yml`. When finished, execute the following:
+To run the `production` profile, create an `application-production.yml` in `src/main/resources/` and fill in the commented out properties from `application.yml`. When finished, execute the following:
 
 ```shell
-mvn clean install
-mvn -pl dcc-dev-server spring-boot:run -Drun.profiles=production
+mvn -pl dcc-dev-server -am spring-boot:run -Drun.profiles=production
 ```
 
 ## Configuration
