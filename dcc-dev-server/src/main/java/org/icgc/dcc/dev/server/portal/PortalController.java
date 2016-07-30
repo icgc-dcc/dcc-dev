@@ -17,9 +17,10 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
+import static org.icgc.dcc.common.core.json.Jackson.DEFAULT;
+
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import lombok.SneakyThrows;
 
 @CrossOrigin
 @RestController
@@ -60,57 +65,62 @@ public class PortalController {
       @RequestParam(value = "title", required = false) String title,
       @RequestParam(value = "description", required = false) String description,
       @RequestParam(value = "ticket", required = false) String ticket,
-      @RequestParam(value = "properties", required = false) Map<String, String> properties,
-      @RequestParam(value = "start", required = false, defaultValue = "true") boolean start
-      ) {
-    return service.create(prNumber, name, title, description, ticket, properties, start);
+      @RequestParam(value = "config", required = false) Map<String, String>  config,
+      
+      @RequestParam(value = "start", required = false, defaultValue = "true") boolean start) {
+    return service.create(prNumber, name, title, description, ticket, config, start);
   }
 
   @PutMapping("/portals/{portalId}")
   public Portal update(
-      @PathVariable("portalId") String portalId,
+      @PathVariable("portalId") Integer portalId,
 
       @RequestParam(value = "name", required = false) String name,
       @RequestParam(value = "title", required = false) String title,
       @RequestParam(value = "description", required = false) String description,
       @RequestParam(value = "ticket", required = false) String ticket,
-      @RequestParam(value = "properties", required = false) Map<String, String> properties) {
-    return service.update(portalId, name, title, description, ticket, properties);
+      @RequestParam(value = "config", required = false) Map<String, String>  config) {
+    return service.update(portalId, name, title, description, ticket, config);
   }
 
   @GetMapping("/portals/{portalId}")
-  public Optional<Portal> get(@PathVariable("portalId") String portalId) {
+  public Portal get(@PathVariable("portalId") Integer portalId) {
     return service.get(portalId);
   }
 
   @GetMapping("/portals/{portalId}/log")
-  public String getLog(@PathVariable("portalId") String portalId) {
+  public String getLog(@PathVariable("portalId") Integer portalId) {
     return service.getLog(portalId);
   }
 
   @GetMapping("/portals/{portalId}/status")
-  public String status(@PathVariable("portalId") String portalId) {
+  public String status(@PathVariable("portalId") Integer portalId) {
     return service.status(portalId);
   }
 
   @DeleteMapping("/portals/{portalId}")
-  public void remove(@PathVariable("portalId") String portalId) {
+  public void remove(@PathVariable("portalId") Integer portalId) {
     service.remove(portalId);
   }
 
   @PostMapping("/portals/{portalId}/start")
-  public void start(@PathVariable("portalId") String portalId) {
+  public void start(@PathVariable("portalId") Integer portalId) {
     service.start(portalId);
   }
 
   @PostMapping("/portals/{portalId}/stop")
-  public void stop(@PathVariable("portalId") String portalId) {
+  public void stop(@PathVariable("portalId") Integer portalId) {
     service.stop(portalId);
   }
 
   @PostMapping("/portals/{portalId}/restart")
-  public void restart(@PathVariable("portalId") String portalId) {
+  public void restart(@PathVariable("portalId") Integer portalId) {
     service.restart(portalId);
+  }
+
+  @SneakyThrows
+  private static Map<String, String> parseProperties(String config) {
+    return DEFAULT.readValue(config, new TypeReference<Map<String, String>>() {});
   }
 
 }

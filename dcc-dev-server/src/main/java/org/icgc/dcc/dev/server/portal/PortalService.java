@@ -17,13 +17,10 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.getLast;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 import static org.springframework.util.SocketUtils.findAvailableTcpPort;
 
-import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +29,11 @@ import java.util.Optional;
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.server.jira.JiraService;
+import org.icgc.dcc.dev.server.jira.JiraTicket;
 import org.icgc.dcc.dev.server.message.Messages.GithubPrsMessage;
 import org.icgc.dcc.dev.server.message.Messages.JenkinsBuildsMessage;
+import org.icgc.dcc.dev.server.portal.Portal.Candidate;
+import org.icgc.dcc.dev.server.portal.PortalLocks.PortalLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
@@ -41,12 +41,9 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
-import com.google.common.io.Files;
 
 import lombok.Cleanup;
 import lombok.NonNull;
-import lombok.SneakyThrows;
-import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,8 +54,6 @@ public class PortalService {
   /**
    * Configuration.
    */
-  @Value("${workspace.dir}")
-  File workspaceDir;
   @Value("${server.publicUrl}")
   URL publicUrl;
 
@@ -123,45 +118,44 @@ public class PortalService {
   }
 
   public List<Portal> list() {
-    // Use this::get to apply read lock
     return repository.getIds().stream()
-        .map(this::get)
+        .map(this::find)
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(toImmutableList());
   }
 
-  public Optional<Portal> get(@NonNull String portalId) {
-    @Cleanup
-    val lock = locks.readLock(portalId);
-    lock.lock();
+  public Portal get(@NonNull Integer portalId) {
+    return find(portalId).orElseThrow(() -> new PortalNotFoundException(portalId));
+  }
 
+  public Optional<Portal> find(@NonNull Integer portalId) {
+    @Cleanup
+    val lock = lockReading(portalId);
     return repository.get(portalId);
   }
 
   public Portal create(@NonNull Integer prNumber, String name, String title, String description, String ticket,
-      Map<String, String> properties, boolean start) {
+      Map<String, String> config, boolean start) {
     log.info("Creating portal for PR {}...", prNumber);
 
     // Resolve portal candidate by PR
-    val candidate = candidates.resolve(prNumber);
-    if (!candidate.isPresent()) {
-      throw new PortalPrNotFoundException("PR " + prNumber + " not found or no build available");
-    }
+    val candidate = candidates.resolve(prNumber).orElseThrow(() -> new PortalPrNotFoundException(prNumber));
+
+    // Get new id and lock
+    val portalId = deployer.nextPortalId();
+    @Cleanup
+    val lock = lockWriting(portalId);
 
     // Collect metadata in a single object
     val portal = new Portal()
-        .setId(nextPortalId())
+        .setId(portalId)
         .setName(name)
         .setTitle(title)
         .setDescription(description)
         .setTicket(ticket)
-        .setProperties(properties)
-        .setTarget(candidate.get());
-
-    @Cleanup
-    val lock = locks.writeLock(portal);
-    lock.lock();
+        .setConfig(config)
+        .setTarget(candidate);
 
     // Create directory
     deployer.init(portal);
@@ -184,14 +178,13 @@ public class PortalService {
       // Ensure ticket is marked for test with the portal URL
       updateTicket(portal);
     }
-    
+
     return portal;
   }
 
   public void update(Portal portal) {
     @Cleanup
-    val lock = locks.writeLock(portal);
-    lock.lock();
+    val lock = lockWriting(portal.getId());
 
     executor.stop(portal);
     deployer.deploy(portal);
@@ -200,26 +193,20 @@ public class PortalService {
     repository.update(portal);
   }
 
-  public Portal update(@NonNull String portalId, String name, String title, String description, String ticket,
-      Map<String, String> properties) {
+  public Portal update(@NonNull Integer portalId, String name, String title, String description, String ticket,
+      Map<String, String> config) {
     log.info("Updating portal {}...", portalId);
 
     @Cleanup
-    val lock = locks.writeLock(portalId);
-    lock.lock();
+    val lock = lockWriting(portalId);
+    val portal = get(portalId);
 
-    val optional = repository.get(portalId);
-    if (!optional.isPresent()) {
-      return null;
-    }
-
-    val portal = optional.get();
     repository.update(portal
         .setName(name)
         .setTitle(title)
         .setDescription(description)
         .setTicket(ticket)
-        .setProperties(properties));
+        .setConfig(config));
 
     executor.stop(portal);
     deployer.deploy(portal);
@@ -228,136 +215,103 @@ public class PortalService {
     return portal;
   }
 
-  public void remove(@NonNull String portalId) {
+  public void remove(@NonNull Integer portalId) {
     log.info("Removing portal {}...", portalId);
 
     @Cleanup
-    val lock = locks.writeLock(portalId);
-    lock.lock();
+    val lock = lockWriting(portalId);
+    val portal = get(portalId);
 
-    val optional = repository.get(portalId);
-    if (!optional.isPresent()) {
-      return;
-    }
-
-    val portal = optional.get();
     executor.stop(portal);
     logs.stopTailing(portalId);
 
     deployer.undeploy(portalId);
   }
 
-  public void start(@NonNull String portalId) {
+  public void start(@NonNull Integer portalId) {
     log.info("Starting portal {}...", portalId);
 
     @Cleanup
-    val lock = locks.writeLock(portalId);
-    lock.lock();
-
-    val optional = repository.get(portalId);
-    if (!optional.isPresent()) {
-      return;
-    }
-
-    val portal = optional.get();
+    val lock = lockWriting(portalId);
+    val portal = get(portalId);
 
     executor.start(portal);
     logs.startTailing(portalId);
   }
 
-  public void restart(@NonNull String portalId) {
+  public void restart(@NonNull Integer portalId) {
     log.info("Restarting portal {}...", portalId);
 
     @Cleanup
-    val lock = locks.writeLock(portalId);
-    lock.lock();
-
-    val optional = repository.get(portalId);
-    if (!optional.isPresent()) {
-      return;
-    }
-
-    val portal = optional.get();
+    val lock = lockWriting(portalId);
+    val portal = get(portalId);
 
     executor.restart(portal);
     logs.startTailing(portalId);
   }
 
-  public void stop(@NonNull String portalId) {
+  public void stop(@NonNull Integer portalId) {
     log.info("Stopping portal {}...", portalId);
 
     @Cleanup
-    val lock = locks.writeLock(portalId);
-    lock.lock();
+    val lock = lockWriting(portalId);
+    val portal = get(portalId);
 
-    val portal = repository.get(portalId);
-    if (!portal.isPresent()) {
-      return;
-    }
-
-    executor.stop(portal.get());
+    executor.stop(portal);
     logs.stopTailing(portalId);
   }
 
-  public String status(@NonNull String portalId) {
+  public String status(@NonNull Integer portalId) {
     log.info("Getting status of portal {}...", portalId);
 
     @Cleanup
-    val lock = locks.readLock(portalId);
-    lock.lock();
-
+    val lock = lockReading(portalId);
     return executor.status(portalId);
   }
 
-  public String getLog(String portalId) {
+  public String getLog(Integer portalId) {
     log.info("Getting log of portal {}...", portalId);
 
     @Cleanup
-    val lock = locks.readLock(portalId);
-    lock.lock();
-
+    val lock = lockReading(portalId);
     return logs.cat(portalId);
   }
 
-  @SneakyThrows
-  @Synchronized
-  private String nextPortalId() {
-    // Use a file to always monotonically increase portal ids to avoid confusion
-    val currentPortalFile = new File(workspaceDir, "currentPortalId");
-    if (!currentPortalFile.exists()) {
-      log.info("Creating {}...", currentPortalFile);
-      checkState(currentPortalFile.createNewFile(), "Could not create file %s", currentPortalFile);
-
-      val currentPortalId = "0";
-      Files.write(currentPortalId, currentPortalFile, UTF_8);
-    }
-
-    val currentPortalId = Files.toString(currentPortalFile, UTF_8);
-    val nextPortalId = String.valueOf(Integer.parseInt(currentPortalId) + 1);
-
-    Files.write(nextPortalId, currentPortalFile, UTF_8);
-    return nextPortalId;
+  private PortalLock lockWriting(Integer portalId) {
+    val lock = locks.writeLock(portalId);
+    lock.lock();
+    return lock;
   }
 
-  private String resolveUrl(Portal portal) {
-    // Strip this port and add portal port
-    return publicUrl.toString().replaceFirst(":\\d+", "") + ":" + portal.getSystemProperties().get("server.port");
+  private PortalLock lockReading(Integer portalId) {
+    val lock = locks.readLock(portalId);
+    lock.lock();
+    return lock;
   }
 
   private void updateTicket(Portal portal) {
-    val ticketKey = portal.getTicket() != null ? portal
-        .getTicket() : portal.getTarget().getTicket() != null ? portal.getTarget().getTicket().getKey() : null;
+    val ticketKey = resolveTicketKey(portal);
     if (ticketKey == null) return;
 
     val iframeUrl = publicUrl + "/" + portal.getId();
     jira.updateTicket(ticketKey, "Deployed to " + iframeUrl + " for testing");
   }
 
+  private String resolveTicketKey(Portal portal) {
+    val ticket = portal.getTarget().getTicket();
+    return portal.getTicket() != null ? portal.getTicket() : ticket != null ? ticket.getKey() : null;
+  }
+
+  private String resolveUrl(Portal portal) {
+    // Strip this port and add portal port
+    return publicUrl.toString().replaceFirst(":\\d+", "") + ":" + portal.getSystemConfig().get("server.port");
+  }
+
   private static void assignPorts(Portal portal) {
-    val systemProperties = portal.getSystemProperties();
-    systemProperties.put("server.port", findFreePort());
-    systemProperties.put("management.port", findFreePort());
-    log.info("systemProperties: {}", systemProperties);
+    val systemConfig = portal.getConfig();
+    systemConfig.put("server.port", findFreePort());
+    systemConfig.put("management.port", findFreePort());
+    log.info("systemConfig: {}", systemConfig);
   }
 
   private static String findFreePort() {

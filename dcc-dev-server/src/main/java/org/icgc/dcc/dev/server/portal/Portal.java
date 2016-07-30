@@ -37,7 +37,7 @@ public class Portal {
    * <p>
    * Primary key.
    */
-  String id;
+  Integer id;
 
   /**
    * A symbolic name for the portal instance.
@@ -60,14 +60,14 @@ public class Portal {
   String ticket;
 
   /**
-   * User supplied configuration properties.
+   * User supplied configuration.
    */
-  Map<String, String> properties = newHashMap();
+  Map<String, String> config = newHashMap();
 
   /**
-   * System supplied configuration properties.
+   * System supplied configuration.
    */
-  Map<String, String> systemProperties = newHashMap();
+  Map<String, String> systemConfig = newHashMap();
 
   /**
    * The absolute URL of the running portal instance.

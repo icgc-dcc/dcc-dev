@@ -17,66 +17,20 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
-import java.io.File;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import lombok.Getter;
 
-import lombok.NonNull;
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class PortalNotFoundException extends RuntimeException {
 
-@Component
-public class PortalFileSystem {
+  @Getter
+  private final Integer portalId;
 
-  /**
-   * Configuration.
-   */
-  @Value("${workspace.dir}")
-  File workspaceDir;
-  @Value("${artifact.artifactId}")
-  String baseName = "dcc-portal-server";
-
-  public File getDir() {
-    return new File(workspaceDir, "portals");
-  }
-
-  public File getRootDir(@NonNull Integer portalId) {
-    return new File(getDir(), String.valueOf(portalId));
-  }
-
-  public File getBinDir(@NonNull Integer portalId) {
-    return new File(getRootDir(portalId), "bin");
-  }
-
-  public File getSettingsFile(@NonNull Integer portalId) {
-    return new File(getConfDir(portalId), "application.yml");
-  }
-
-  public File getConfDir(@NonNull Integer portalId) {
-    return new File(getRootDir(portalId), "conf");
-  }
-
-  public File getLibDir(@NonNull Integer portalId) {
-    return new File(getRootDir(portalId), "lib");
-  }
-
-  public File getLogsDir(@NonNull Integer portalId) {
-    return new File(getRootDir(portalId), "logs");
-  }
-
-  public File getScriptFile(@NonNull Integer portalId) {
-    return new File(getBinDir(portalId), baseName);
-  }
-
-  public File getMetadataFile(@NonNull Integer portalId) {
-    return new File(getRootDir(portalId), "portal.json");
-  }
-
-  public File getJarFile(@NonNull Integer portalId) {
-    return new File(getLibDir(portalId), baseName + ".jar");
-  }
-
-  public File getLogFile(@NonNull Integer portalId) {
-    return new File(getLogsDir(portalId), baseName + ".log");
+  public PortalNotFoundException(Integer portalId) {
+    super("Portal " + portalId + " not found");
+    this.portalId = portalId;
   }
 
 }

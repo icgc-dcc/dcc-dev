@@ -87,7 +87,7 @@ public class PortalExecutor {
     updateState(portal, STOPPED);
   }
 
-  public String status(@NonNull String portalId) {
+  public String status(@NonNull Integer portalId) {
     return executeScript(portalId, "status", null);
   }
   
@@ -97,7 +97,7 @@ public class PortalExecutor {
   }
 
   @SneakyThrows
-  private String executeScript(String portalId, String action, Map<String, String> arguments) {
+  private String executeScript(Integer portalId, String action, Map<String, String> arguments) {
     val scriptFile = fileSystem.getScriptFile(portalId);
     val command = createCommand(scriptFile, action, arguments);
 
@@ -117,9 +117,9 @@ public class PortalExecutor {
   @SuppressWarnings({ "rawtypes", "unchecked" })
   private Map<String, String> resolveArguments(Portal portal) {
     val effectiveArguments = Maps.<String, String> newHashMap();
-    effectiveArguments.putAll(portal.getProperties() == null ? emptyMap() : portal.getProperties());
+    effectiveArguments.putAll(portal.getConfig() == null ? emptyMap() : portal.getConfig());
     effectiveArguments.putAll((Map) config);
-    effectiveArguments.putAll(portal.getSystemProperties());
+    effectiveArguments.putAll(portal.getSystemConfig());
 
     return effectiveArguments;
   }

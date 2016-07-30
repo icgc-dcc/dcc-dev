@@ -48,7 +48,7 @@ public class Messages {
   @Accessors(chain = true)
   public static abstract class PortalMessage {
 
-    String portalId;
+    Integer portalId;
 
   }
 

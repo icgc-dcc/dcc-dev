@@ -15,68 +15,26 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.portal;
+package org.icgc.dcc.dev.server.util;
 
-import java.io.File;
+import static org.icgc.dcc.common.core.json.Jackson.DEFAULT;
 
-import org.springframework.beans.factory.annotation.Value;
+import java.util.Map;
+
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
-import lombok.NonNull;
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import lombok.SneakyThrows;
 
 @Component
-public class PortalFileSystem {
+public final class MapConverter implements Converter<String, Map<String, String>> {
 
-  /**
-   * Configuration.
-   */
-  @Value("${workspace.dir}")
-  File workspaceDir;
-  @Value("${artifact.artifactId}")
-  String baseName = "dcc-portal-server";
-
-  public File getDir() {
-    return new File(workspaceDir, "portals");
-  }
-
-  public File getRootDir(@NonNull Integer portalId) {
-    return new File(getDir(), String.valueOf(portalId));
-  }
-
-  public File getBinDir(@NonNull Integer portalId) {
-    return new File(getRootDir(portalId), "bin");
-  }
-
-  public File getSettingsFile(@NonNull Integer portalId) {
-    return new File(getConfDir(portalId), "application.yml");
-  }
-
-  public File getConfDir(@NonNull Integer portalId) {
-    return new File(getRootDir(portalId), "conf");
-  }
-
-  public File getLibDir(@NonNull Integer portalId) {
-    return new File(getRootDir(portalId), "lib");
-  }
-
-  public File getLogsDir(@NonNull Integer portalId) {
-    return new File(getRootDir(portalId), "logs");
-  }
-
-  public File getScriptFile(@NonNull Integer portalId) {
-    return new File(getBinDir(portalId), baseName);
-  }
-
-  public File getMetadataFile(@NonNull Integer portalId) {
-    return new File(getRootDir(portalId), "portal.json");
-  }
-
-  public File getJarFile(@NonNull Integer portalId) {
-    return new File(getLibDir(portalId), baseName + ".jar");
-  }
-
-  public File getLogFile(@NonNull Integer portalId) {
-    return new File(getLogsDir(portalId), baseName + ".log");
+  @Override
+  @SneakyThrows
+  public Map<String, String> convert(String source) {
+    return DEFAULT.readValue(source, new TypeReference<Map<String, String>>() {});
   }
 
 }

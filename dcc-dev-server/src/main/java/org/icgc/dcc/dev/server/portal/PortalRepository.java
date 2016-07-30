@@ -20,16 +20,17 @@ package org.icgc.dcc.dev.server.portal;
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -49,11 +50,11 @@ public class PortalRepository {
   @Autowired
   PortalFileSystem fileSystem;
 
-  public List<String> getIds() {
+  public List<Integer> getIds() {
     String[] portalIds = fileSystem.getDir().list();
     if (portalIds == null) return emptyList();
-  
-    return ImmutableList.copyOf(portalIds);
+
+    return Stream.of(portalIds).map(Integer::parseInt).collect(toImmutableList());
   }
 
   public List<Portal> list() {
@@ -64,12 +65,12 @@ public class PortalRepository {
         .collect(toList());
   }
 
-  public Optional<Portal> get(@NonNull String portalId) {
+  public Optional<Portal> get(@NonNull Integer portalId) {
     val metadataFile = getMetadataFile(portalId);
     if (!metadataFile.exists()) {
       return Optional.empty();
     }
-    
+
     return Optional.of(read(metadataFile));
   }
 
@@ -78,16 +79,16 @@ public class PortalRepository {
     if (metadataFile.exists()) {
       throw new IllegalStateException("Portal " + portal.getId() + " already exists!");
     }
-    
+
     write(metadataFile, portal);
   }
-  
+
   public void update(@NonNull Portal portal) {
     val metadataFile = getMetadataFile(portal.getId());
     if (!metadataFile.exists()) {
       throw new IllegalStateException("Portal " + portal.getId() + " no longer exists!");
     }
-    
+
     write(metadataFile, portal);
   }
 
@@ -101,7 +102,7 @@ public class PortalRepository {
     MAPPER.writeValue(file, portal);
   }
 
-  private File getMetadataFile(String portalId) {
+  private File getMetadataFile(Integer portalId) {
     return fileSystem.getMetadataFile(portalId);
   }
 

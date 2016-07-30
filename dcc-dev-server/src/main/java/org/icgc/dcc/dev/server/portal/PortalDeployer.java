@@ -17,7 +17,11 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.io.Files.write;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.copy;
+import static java.nio.file.Files.setPosixFilePermissions;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
@@ -28,16 +32,17 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.Files;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,6 +53,8 @@ public class PortalDeployer {
   /**
    * Configuration.
    */
+  @Value("${workspace.dir}")
+  File workspaceDir;
   @Value("${template.url}")
   URL templateUrl;
   @Value("${template.dir}")
@@ -69,11 +76,31 @@ public class PortalDeployer {
   }
 
   @SneakyThrows
+  @Synchronized
+  public Integer nextPortalId() {
+    // Use a file to always monotonically increase portal ids to avoid confusion
+    val currentPortalIdFile = new File(workspaceDir, "currentPortalId");
+    if (!currentPortalIdFile.exists()) {
+      log.info("Creating {}...", currentPortalIdFile);
+      checkState(currentPortalIdFile.createNewFile(), "Could not create file %s", currentPortalIdFile);
+
+      // Initialize
+      write("0", currentPortalIdFile, UTF_8);
+    }
+
+    val currentPortalId = Integer.parseInt(Files.toString(currentPortalIdFile, UTF_8));
+    val nextPortalId = currentPortalId + 1;
+    write(String.valueOf(nextPortalId), currentPortalIdFile, UTF_8);
+
+    return nextPortalId;
+  }
+
+  @SneakyThrows
   public void init(@NonNull Portal portal) {
     val targetDir = fileSystem.getRootDir(portal.getId());
     if (!targetDir.exists()) {
       copyTemplate(portal.getId(), targetDir);
-      
+
       // Ensure log dir is created (JSW won't make it but logback will)
       fileSystem.getLogsDir(portal.getId()).mkdir();
     }
@@ -85,19 +112,19 @@ public class PortalDeployer {
   }
 
   @SneakyThrows
-  public void undeploy(@NonNull String portalId) {
+  public void undeploy(@NonNull Integer portalId) {
     val targetDir = fileSystem.getRootDir(portalId);
 
     deleteDirectory(targetDir);
   }
 
-  private void copyTemplate(String portalId, File targetDir) throws IOException {
+  private void copyTemplate(Integer portalId, File targetDir) throws IOException {
     copyDirectory(templateDir, targetDir);
 
     // Make executable
     val binaries = fileSystem.getBinDir(portalId).listFiles();
     for (val binary : binaries) {
-      Files.setPosixFilePermissions(binary.toPath(), ImmutableSet.of(OWNER_EXECUTE, OWNER_READ));
+      setPosixFilePermissions(binary.toPath(), ImmutableSet.of(OWNER_EXECUTE, OWNER_READ));
     }
   }
 

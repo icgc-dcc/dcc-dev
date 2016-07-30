@@ -56,17 +56,17 @@ public class PortalLogService {
   /**
    * State.
    */
-  Map<String, Tailer> tailers = Maps.newConcurrentMap();
+  Map<Integer, Tailer> tailers = Maps.newConcurrentMap();
   ExecutorService executor = Executors.newCachedThreadPool();
 
   @SneakyThrows
-  public String cat(String portalId) {
+  public String cat(Integer portalId) {
     val logFile = fileSystem.getLogFile(portalId);
     return Files.toString(logFile, StandardCharsets.UTF_8);
   }
 
   @Synchronized
-  public void startTailing(@NonNull String portalId) {
+  public void startTailing(@NonNull Integer portalId) {
     if (!tailers.containsKey(portalId)) {
       val logFile = fileSystem.getLogFile(portalId);
       log.info("Tailing portal {}: {}...", portalId, logFile);
@@ -79,7 +79,7 @@ public class PortalLogService {
   }
 
   @Synchronized
-  public void stopTailing(@NonNull String portalId) {
+  public void stopTailing(@NonNull Integer portalId) {
     val tailer = tailers.remove(portalId);
     if (tailer == null) return;
 
@@ -94,7 +94,7 @@ public class PortalLogService {
   @RequiredArgsConstructor
   private class LogListener extends TailerListenerAdapter {
 
-    final String portalId;
+    final Integer portalId;
 
     @Override
     public void handle(String line) {
