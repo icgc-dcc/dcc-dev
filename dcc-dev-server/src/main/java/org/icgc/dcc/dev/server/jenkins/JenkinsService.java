@@ -45,6 +45,9 @@ import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Slack façade service.
+ */
 @Slf4j
 @Service
 public class JenkinsService {
@@ -69,6 +72,9 @@ public class JenkinsService {
   @Autowired
   MessageService messages;
 
+  /**
+   * Poll at regular intervals for available builds.
+   */
   @Scheduled(cron = "${jenkins.cron}")
   @Synchronized
   public void poll() {

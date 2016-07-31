@@ -46,6 +46,9 @@ import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Responsible for creating the physical environment for running portal instances.
+ */
 @Slf4j
 @Component
 public class PortalDeployer {

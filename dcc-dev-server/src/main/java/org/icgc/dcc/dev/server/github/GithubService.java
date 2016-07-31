@@ -57,6 +57,9 @@ public class GithubService {
   @Autowired
   MessageService messages;
 
+  /**
+   * Poll at regular intervals for available PRs.
+   */
   @Scheduled(cron = "${github.cron}")
   @Synchronized
   public void poll() {

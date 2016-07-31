@@ -28,6 +28,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.Accessors;
 
+/**
+ * Catalog of messages to be sent from publishers to subscribers.
+ */
 public class Messages {
 
   @Value

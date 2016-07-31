@@ -17,12 +17,16 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
-import org.springframework.http.HttpStatus;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import lombok.Getter;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
+/**
+ * Exception for representing when a portal instance is not available.
+ */
+@ResponseStatus(NOT_FOUND)
 public class PortalNotFoundException extends RuntimeException {
 
   @Getter

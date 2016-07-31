@@ -28,6 +28,9 @@ import org.icgc.dcc.dev.server.jira.JiraTicket;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+/**
+ * Represents a portal instance.
+ */
 @Data
 @Accessors(chain = true)
 public class Portal {

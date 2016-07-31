@@ -34,6 +34,9 @@ import lombok.NonNull;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Responsible for routing messages from publishers to subscribers using varies publication channels.
+ */
 @Slf4j
 @Service
 public class MessageService {

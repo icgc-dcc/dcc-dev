@@ -36,6 +36,9 @@ import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Represents a portal distribution and provides operation for interaction.
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class PortalArchive {

@@ -20,6 +20,9 @@ package org.icgc.dcc.dev.server.jira;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+/**
+ * A digest of a JIRA ticket.
+ */
 @Data
 @Accessors(chain = true)
 public class JiraTicket {

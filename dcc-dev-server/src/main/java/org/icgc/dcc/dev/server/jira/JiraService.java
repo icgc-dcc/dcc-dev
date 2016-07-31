@@ -27,6 +27,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.rcarz.jiraclient.Issue;
 import net.rcarz.jiraclient.JiraClient;
 
+/**
+ * JIRA façade service.
+ */
 @Slf4j
 @Service
 public class JiraService {

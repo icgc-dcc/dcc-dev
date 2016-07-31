@@ -20,6 +20,9 @@ package org.icgc.dcc.dev.server.github;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+/**
+ * A digest of a GitHub "pull request" (PR).
+ */
 @Data
 @Accessors(chain = true)
 public class GithubPr {

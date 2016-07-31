@@ -28,13 +28,21 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import lombok.SneakyThrows;
 
+/**
+ * {@link Converter} from a JSON object {@code String} to a {@code Map<String, String}}
+ */
 @Component
 public final class MapConverter implements Converter<String, Map<String, String>> {
+
+  /**
+   * Reified generic "to" type.
+   */
+  static final TypeReference<Map<String, String>> TO_TYPE = new TypeReference<Map<String, String>>() {};
 
   @Override
   @SneakyThrows
   public Map<String, String> convert(String source) {
-    return DEFAULT.readValue(source, new TypeReference<Map<String, String>>() {});
+    return DEFAULT.readValue(source, TO_TYPE);
   }
 
 }

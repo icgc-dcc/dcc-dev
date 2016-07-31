@@ -29,11 +29,8 @@ import java.util.Optional;
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.server.jira.JiraService;
-import org.icgc.dcc.dev.server.jira.JiraTicket;
 import org.icgc.dcc.dev.server.message.Messages.GithubPrsMessage;
 import org.icgc.dcc.dev.server.message.Messages.JenkinsBuildsMessage;
-import org.icgc.dcc.dev.server.portal.Portal.Candidate;
-import org.icgc.dcc.dev.server.portal.PortalLocks.PortalLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
@@ -47,6 +44,11 @@ import lombok.NonNull;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Main abstraction responsible for coordinating the lifecycle management of portal instances.
+ * <p>
+ * One of the main aspects this service provides is locking semantics.
+ */
 @Slf4j
 @Service
 public class PortalService {
@@ -131,7 +133,7 @@ public class PortalService {
 
   public Optional<Portal> find(@NonNull Integer portalId) {
     @Cleanup
-    val lock = lockReading(portalId);
+    val lock = locks.lockReading(portalId);
     return repository.get(portalId);
   }
 
@@ -145,7 +147,7 @@ public class PortalService {
     // Get new id and lock
     val portalId = deployer.nextPortalId();
     @Cleanup
-    val lock = lockWriting(portalId);
+    val lock = locks.lockWriting(portalId);
 
     // Collect metadata in a single object
     val portal = new Portal()
@@ -184,7 +186,7 @@ public class PortalService {
 
   public void update(Portal portal) {
     @Cleanup
-    val lock = lockWriting(portal.getId());
+    val lock = locks.lockWriting(portal.getId());
 
     executor.stop(portal);
     deployer.deploy(portal);
@@ -198,7 +200,7 @@ public class PortalService {
     log.info("Updating portal {}...", portalId);
 
     @Cleanup
-    val lock = lockWriting(portalId);
+    val lock = locks.lockWriting(portalId);
     val portal = get(portalId);
 
     repository.update(portal
@@ -219,7 +221,7 @@ public class PortalService {
     log.info("Removing portal {}...", portalId);
 
     @Cleanup
-    val lock = lockWriting(portalId);
+    val lock = locks.lockWriting(portalId);
     val portal = get(portalId);
 
     executor.stop(portal);
@@ -232,7 +234,7 @@ public class PortalService {
     log.info("Starting portal {}...", portalId);
 
     @Cleanup
-    val lock = lockWriting(portalId);
+    val lock = locks.lockWriting(portalId);
     val portal = get(portalId);
 
     executor.start(portal);
@@ -243,7 +245,7 @@ public class PortalService {
     log.info("Restarting portal {}...", portalId);
 
     @Cleanup
-    val lock = lockWriting(portalId);
+    val lock = locks.lockWriting(portalId);
     val portal = get(portalId);
 
     executor.restart(portal);
@@ -254,7 +256,7 @@ public class PortalService {
     log.info("Stopping portal {}...", portalId);
 
     @Cleanup
-    val lock = lockWriting(portalId);
+    val lock = locks.lockWriting(portalId);
     val portal = get(portalId);
 
     executor.stop(portal);
@@ -265,7 +267,7 @@ public class PortalService {
     log.info("Getting status of portal {}...", portalId);
 
     @Cleanup
-    val lock = lockReading(portalId);
+    val lock = locks.lockReading(portalId);
     return executor.status(portalId);
   }
 
@@ -273,20 +275,8 @@ public class PortalService {
     log.info("Getting log of portal {}...", portalId);
 
     @Cleanup
-    val lock = lockReading(portalId);
+    val lock = locks.lockReading(portalId);
     return logs.cat(portalId);
-  }
-
-  private PortalLock lockWriting(Integer portalId) {
-    val lock = locks.writeLock(portalId);
-    lock.lock();
-    return lock;
-  }
-
-  private PortalLock lockReading(Integer portalId) {
-    val lock = locks.readLock(portalId);
-    lock.lock();
-    return lock;
   }
 
   private void updateTicket(Portal portal) {

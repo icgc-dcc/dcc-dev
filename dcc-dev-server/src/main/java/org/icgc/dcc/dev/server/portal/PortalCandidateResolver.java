@@ -35,6 +35,9 @@ import org.springframework.stereotype.Component;
 import lombok.NonNull;
 import lombok.val;
 
+/**
+ * Responsible for finding potential portal instances.
+ */
 @Component
 public class PortalCandidateResolver {
 

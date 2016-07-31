@@ -17,12 +17,16 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
-import org.springframework.http.HttpStatus;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import lombok.Getter;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+/**
+ * Exception for representing when a PR is not open / preset and thus not available.
+ */
+@ResponseStatus(BAD_REQUEST)
 public class PortalPrNotFoundException extends RuntimeException {
 
   @Getter

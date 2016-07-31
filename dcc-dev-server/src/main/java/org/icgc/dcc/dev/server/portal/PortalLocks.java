@@ -28,7 +28,11 @@ import com.google.common.util.concurrent.Striped;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 
+/**
+ * Provides fine grained locking semantics at the level of read / write per portal instance.
+ */
 @Component
 public class PortalLocks {
 
@@ -36,6 +40,20 @@ public class PortalLocks {
    * State.
    */
   private final Striped<ReadWriteLock> locks = Striped.lazyWeakReadWriteLock(10); // Suitable count for application
+
+  public PortalLock lockWriting(Integer portalId) {
+    val lock = writeLock(portalId);
+    lock.lock();
+    
+    return lock;
+  }
+
+  public PortalLock lockReading(Integer portalId) {
+    val lock = readLock(portalId);
+    lock.lock();
+    
+    return lock;
+  }
 
   public PortalLock readLock(@NonNull Integer portalId) {
     return new PortalLock(locks.get(portalId).readLock());
@@ -53,11 +71,14 @@ public class PortalLocks {
     return writeLock(portal.getId());
   }
 
+  /**
+   * {@link Lock} implementation for use with {@link @Cleanup}.
+   */
   @RequiredArgsConstructor
   public static class PortalLock implements Lock, AutoCloseable {
 
     private final Lock delegate;
-    
+
     public void lock() {
       delegate.lock();
     }

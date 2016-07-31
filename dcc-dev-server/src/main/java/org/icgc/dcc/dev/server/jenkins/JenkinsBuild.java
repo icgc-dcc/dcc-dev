@@ -20,6 +20,9 @@ package org.icgc.dcc.dev.server.jenkins;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+/**
+ * A digest of a Jenkins' build.
+ */
 @Data
 @Accessors(chain = true)
 public class JenkinsBuild {

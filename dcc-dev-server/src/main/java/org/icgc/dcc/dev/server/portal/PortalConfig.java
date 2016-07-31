@@ -38,6 +38,9 @@ import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Portal module configuration for portal infrastructure.
+ */
 @Slf4j
 @EnableAsync
 @Configuration

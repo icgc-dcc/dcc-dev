@@ -25,6 +25,9 @@ import in.ashwanthkumar.slack.webhook.SlackMessage;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 
+/**
+ * Slack façade service.
+ */
 @Service
 public class SlackService {
 
@@ -34,6 +37,11 @@ public class SlackService {
   @Autowired
   Slack slack;
 
+  /**
+   * Post a slack message for users to see.
+   * 
+   * @param message The message to broadcast.
+   */
   @SneakyThrows
   public void notify(@NonNull SlackMessage message) {
     slack.push(message);

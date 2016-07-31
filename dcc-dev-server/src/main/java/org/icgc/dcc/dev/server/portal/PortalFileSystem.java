@@ -24,6 +24,9 @@ import org.springframework.stereotype.Component;
 
 import lombok.NonNull;
 
+/**
+ * Abstraction that encapsulates the file layout of a portal instance.
+ */
 @Component
 public class PortalFileSystem {
 

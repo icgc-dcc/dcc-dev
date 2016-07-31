@@ -36,6 +36,9 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 
+/**
+ * Repository for persisting portal instance metadata.
+ */
 @Repository
 public class PortalRepository {
 

@@ -37,6 +37,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import lombok.SneakyThrows;
 
+/**
+ * HTTP bindings for interaction with portal instances.
+ */
 @CrossOrigin
 @RestController
 public class PortalController {

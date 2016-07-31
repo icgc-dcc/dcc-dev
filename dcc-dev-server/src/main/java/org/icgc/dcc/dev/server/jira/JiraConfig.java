@@ -28,6 +28,9 @@ import lombok.val;
 import net.rcarz.jiraclient.BasicCredentials;
 import net.rcarz.jiraclient.JiraClient;
 
+/**
+ * JIRA module configuration.
+ */
 @Service
 public class JiraConfig {
 

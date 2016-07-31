@@ -28,6 +28,9 @@ import com.offbytwo.jenkins.JenkinsServer;
 
 import lombok.SneakyThrows;
 
+/**
+ * Jenkins module configuration.
+ */
 @Configuration
 @EnableScheduling
 public class JenkinsConfig {

@@ -48,6 +48,9 @@ import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Responsible for executing commands against a portal instance.
+ */
 @Slf4j
 @Component
 public class PortalExecutor {
