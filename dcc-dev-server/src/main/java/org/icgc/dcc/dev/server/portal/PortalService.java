@@ -225,7 +225,6 @@ public class PortalService {
     val portal = get(portalId);
 
     executor.stop(portal);
-    logs.stopTailing(portalId);
 
     deployer.undeploy(portalId);
   }
@@ -238,7 +237,6 @@ public class PortalService {
     val portal = get(portalId);
 
     executor.start(portal);
-    logs.startTailing(portalId);
   }
 
   public void restart(@NonNull Integer portalId) {
@@ -249,7 +247,6 @@ public class PortalService {
     val portal = get(portalId);
 
     executor.restart(portal);
-    logs.startTailing(portalId);
   }
 
   public void stop(@NonNull Integer portalId) {
@@ -260,7 +257,6 @@ public class PortalService {
     val portal = get(portalId);
 
     executor.stop(portal);
-    logs.stopTailing(portalId);
   }
 
   public String status(@NonNull Integer portalId) {

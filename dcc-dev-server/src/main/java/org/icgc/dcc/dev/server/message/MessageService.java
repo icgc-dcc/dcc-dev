@@ -17,8 +17,12 @@
  */
 package org.icgc.dcc.dev.server.message;
 
+import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
+
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.server.message.Messages.ExecutionMessage;
+import org.icgc.dcc.dev.server.message.Messages.FirstSubscriberMessage;
+import org.icgc.dcc.dev.server.message.Messages.LastSubscriberMessage;
 import org.icgc.dcc.dev.server.message.Messages.LogMessage;
 import org.icgc.dcc.dev.server.message.Messages.StateMessage;
 import org.icgc.dcc.dev.server.slack.SlackService;
@@ -27,8 +31,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.messaging.AbstractSubProtocolEvent;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 
 import lombok.NonNull;
 import lombok.val;
@@ -76,13 +85,93 @@ public class MessageService {
     }
   }
 
-  @EventListener
-  public void onSessionEvent(AbstractSubProtocolEvent event) {
-    log.info("Session event: {}", event);
-  }
-
   private void sendWebSocketMessage(String destination, Object message) {
     messages.convertAndSend(topicPrefix + destination, message);
+  }
+
+  /**
+   * Listens for topic state transitions.
+   * <p>
+   * Adds higher level events.
+   */
+  @Component
+  class MessageTopicListener {
+
+    /**
+     * State.
+     */
+    final SetMultimap<String, String> topicSubscriptions = synchronizedSetMultimap(HashMultimap.create());
+
+    @EventListener
+    void handle(AbstractSubProtocolEvent event) {
+      val headers = StompHeaderAccessor.wrap(event.getMessage());
+      val topic = headers.getDestination();
+      val sessionId = headers.getSessionId();
+      val command = headers.getCommand();
+
+      if (command == null) return;
+
+      switch (command) {
+      case SUBSCRIBE:
+        subscribe(topic, sessionId);
+        break;
+      case UNSUBSCRIBE:
+        unsubscribe(topic, sessionId);
+        break;
+      case DISCONNECT:
+        disconnect(sessionId);
+        break;
+      default:
+        break;
+      }
+    }
+
+    private void subscribe(String topic, String sessionId) {
+      log.info("Session {} subscribed to: {}", sessionId, topic);
+      topicSubscriptions.put(topic, sessionId);
+
+      if (isFirst(topic)) {
+        publisher.publishEvent(new FirstSubscriberMessage(topic));
+      }
+    }
+
+    private void unsubscribe(String topic, String sessionId) {
+      log.info("Session {} unsubscribed from: {}", sessionId, topic);
+      topicSubscriptions.remove(topic, sessionId);
+
+      if (isLast(topic)) {
+        publisher.publishEvent(new LastSubscriberMessage(topic));
+      }
+    }
+
+    private void disconnect(String sessionId) {
+      val iterator = topicSubscriptions.entries().iterator();
+      while (iterator.hasNext()) {
+        val entry = iterator.next();
+        val topic = entry.getKey();
+        if (entry.getValue().equals(sessionId)) {
+          log.info("Session {} disconnected from: {}", sessionId, topic);
+          iterator.remove();
+
+          if (isLast(topic)) {
+            publisher.publishEvent(new LastSubscriberMessage(topic));
+          }
+        }
+      }
+    }
+
+    private boolean isFirst(String topic) {
+      return getSessionCount(topic) == 1;
+    }
+
+    private boolean isLast(String topic) {
+      return getSessionCount(topic) == 0;
+    }
+
+    private int getSessionCount(String topic) {
+      return topicSubscriptions.get(topic).size();
+    }
+
   }
 
 }

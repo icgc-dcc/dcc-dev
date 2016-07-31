@@ -83,4 +83,18 @@ public class Messages {
 
   }
 
+  @Value
+  public static class FirstSubscriberMessage {
+
+    String topic;
+
+  }
+
+  @Value
+  public static class LastSubscriberMessage {
+
+    String topic;
+
+  }
+
 }
