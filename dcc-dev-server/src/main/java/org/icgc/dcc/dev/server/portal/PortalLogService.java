@@ -74,15 +74,14 @@ public class PortalLogService {
 
   @Synchronized
   public void startTailing(@NonNull Integer portalId) {
-    if (!tailers.containsKey(portalId)) {
-      val logFile = fileSystem.getLogFile(portalId);
+    if (tailers.containsKey(portalId)) return;
 
-      val tailer = new Tailer(logFile, this.new PortalLogLineListener(portalId));
-      tailers.put(portalId, tailer);
+    val logFile = fileSystem.getLogFile(portalId);
+    val tailer = new Tailer(logFile, this.new PortalLogLineListener(portalId));
+    tailers.put(portalId, tailer);
 
-      log.info("Starting tailing of portal {}: {}...", portalId, logFile);
-      executor.execute(tailer);
-    }
+    log.info("Starting tailing of portal {}: {}...", portalId, logFile);
+    executor.execute(tailer);
   }
 
   @Synchronized
@@ -125,21 +124,19 @@ public class PortalLogService {
     @EventListener
     void handle(FirstSubscriberMessage message) {
       val topic = message.getTopic();
-      if (isLog(topic)) {
-        val portalId = resolvePortalId(topic);
+      if (!isLog(topic)) return;
 
-        startTailing(portalId);
-      }
+      val portalId = resolvePortalId(topic);
+      startTailing(portalId);
     }
 
     @EventListener
     void handle(LastSubscriberMessage message) {
       val topic = message.getTopic();
-      if (isLog(topic)) {
-        val portalId = resolvePortalId(topic);
+      if (!isLog(topic)) return;
 
-        stopTailing(portalId);
-      }
+      val portalId = resolvePortalId(topic);
+      stopTailing(portalId);
     }
 
     private Integer resolvePortalId(String topic) {

@@ -17,7 +17,6 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
-import static com.google.common.collect.Iterables.getLast;
 import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 import static org.springframework.util.SocketUtils.findAvailableTcpPort;
 
@@ -26,18 +25,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.icgc.dcc.dev.server.github.GithubPr;
-import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.server.jira.JiraService;
-import org.icgc.dcc.dev.server.message.Messages.GithubPrsMessage;
-import org.icgc.dcc.dev.server.message.Messages.JenkinsBuildsMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimaps;
 
 import lombok.Cleanup;
 import lombok.NonNull;
@@ -63,7 +54,7 @@ public class PortalService {
    * Dependencies.
    */
   @Autowired
-  PortalLocks locks;
+  PortalCandidateResolver candidates;
   @Autowired
   PortalRepository repository;
   @Autowired
@@ -71,49 +62,13 @@ public class PortalService {
   @Autowired
   PortalLogService logs;
   @Autowired
-  JiraService jira;
-  @Autowired
   PortalDeployer deployer;
   @Autowired
   PortalExecutor executor;
   @Autowired
-  PortalCandidateResolver candidates;
-
-  @EventListener
-  public void handle(JenkinsBuildsMessage message) {
-    val prBuilds = Multimaps.index(message.getBuilds(), JenkinsBuild::getPrNumber);
-
-    for (val portal : list()) {
-      val portalBuilds = prBuilds.get(portal.getTarget().getPr().getNumber());
-
-      val latestBuild = getLast(portalBuilds);
-      if (latestBuild.getNumber() <= portal.getTarget().getBuild().getNumber()) continue;
-
-      log.info("Build update found for portal {}:  {}", portal.getId(), latestBuild);
-      if (portal.isAutoDeploy()) {
-        log.info("Auto deploying portal {}: {}", portal.getId(), latestBuild);
-        portal.getTarget().setBuild(latestBuild);
-
-        update(portal);
-      }
-    }
-  }
-
-  @EventListener
-  public void handle(GithubPrsMessage message) {
-    val openPrNumbers = Maps.uniqueIndex(message.getPrs(), GithubPr::getNumber);
-
-    for (val portal : list()) {
-      boolean prOpen = openPrNumbers.containsKey(portal.getTarget().getPr().getNumber());
-      if (prOpen) continue;
-
-      log.info("Closed PR found for portal {}", portal.getId());
-      if (portal.isAutoRemove()) {
-        log.info("Auto removing portal {}", portal.getId());
-        remove(portal.getId());
-      }
-    }
-  }
+  PortalLocks locks;
+  @Autowired
+  JiraService jira;
 
   public List<Portal.Candidate> getCandidates() {
     return candidates.resolve();
@@ -134,7 +89,7 @@ public class PortalService {
   public Optional<Portal> find(@NonNull Integer portalId) {
     @Cleanup
     val lock = locks.lockReading(portalId);
-    return repository.get(portalId);
+    return repository.find(portalId);
   }
 
   public Portal create(@NonNull Integer prNumber, String name, String title, String description, String ticket,

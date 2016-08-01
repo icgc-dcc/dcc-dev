@@ -62,13 +62,13 @@ public class PortalRepository {
 
   public List<Portal> list() {
     return getIds().stream()
-        .map(this::get)
+        .map(this::find)
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(toList());
   }
 
-  public Optional<Portal> get(@NonNull Integer portalId) {
+  public Optional<Portal> find(@NonNull Integer portalId) {
     val metadataFile = getMetadataFile(portalId);
     if (!metadataFile.exists()) {
       return Optional.empty();
