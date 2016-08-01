@@ -46,7 +46,7 @@ import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Slack façade service.
+ * Jenkins façade service.
  */
 @Slf4j
 @Service

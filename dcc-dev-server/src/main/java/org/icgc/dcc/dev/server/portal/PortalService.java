@@ -146,7 +146,7 @@ public class PortalService {
 
     executor.stop(portal);
     deployer.deploy(portal);
-    executor.start(portal);
+    executor.startAsync(portal);
 
     repository.update(portal);
   }
@@ -168,9 +168,16 @@ public class PortalService {
 
     executor.stop(portal);
     deployer.deploy(portal);
-    executor.start(portal);
+    executor.startAsync(portal);
 
     return portal;
+  }
+  
+  public void remove() {
+    log.info("**** Removing all portals!");
+    for (val portal : list()) {
+      remove(portal.getId());
+    }
   }
 
   public void remove(@NonNull Integer portalId) {
@@ -180,6 +187,7 @@ public class PortalService {
     val lock = locks.lockWriting(portalId);
     val portal = get(portalId);
 
+    // Wait for the instance to stop (synchronous)
     executor.stop(portal);
 
     deployer.undeploy(portalId);
@@ -192,7 +200,7 @@ public class PortalService {
     val lock = locks.lockWriting(portalId);
     val portal = get(portalId);
 
-    executor.start(portal);
+    executor.startAsync(portal);
   }
 
   public void restart(@NonNull Integer portalId) {
@@ -202,7 +210,7 @@ public class PortalService {
     val lock = locks.lockWriting(portalId);
     val portal = get(portalId);
 
-    executor.restart(portal);
+    executor.restartAsync(portal);
   }
 
   public void stop(@NonNull Integer portalId) {
@@ -212,7 +220,7 @@ public class PortalService {
     val lock = locks.lockWriting(portalId);
     val portal = get(portalId);
 
-    executor.stop(portal);
+    executor.stopAsync(portal);
   }
 
   public PortalStatus status(@NonNull Integer portalId) {

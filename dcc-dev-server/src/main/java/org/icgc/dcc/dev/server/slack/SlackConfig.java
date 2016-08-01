@@ -23,6 +23,9 @@ import org.springframework.context.annotation.Configuration;
 
 import in.ashwanthkumar.slack.webhook.Slack;
 
+/**
+ * Slack module configuration.
+ */
 @Configuration
 public class SlackConfig {
 

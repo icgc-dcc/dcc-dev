@@ -37,6 +37,9 @@ import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * GitHub module configuration.
+ */
 @Slf4j
 @Configuration
 public class GithubConfig {

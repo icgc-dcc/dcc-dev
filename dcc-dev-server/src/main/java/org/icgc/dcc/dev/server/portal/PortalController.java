@@ -18,6 +18,7 @@
 package org.icgc.dcc.dev.server.portal;
 
 import static org.icgc.dcc.common.core.json.Jackson.DEFAULT;
+import static org.springframework.http.HttpStatus.ACCEPTED;
 
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -61,32 +63,6 @@ public class PortalController {
     return service.list();
   }
 
-  @PostMapping("/portals")
-  public Portal create(
-      @RequestParam(value = "prNumber", required = true) Integer prNumber,
-
-      @RequestParam(value = "name", required = false) String name,
-      @RequestParam(value = "title", required = false) String title,
-      @RequestParam(value = "description", required = false) String description,
-      @RequestParam(value = "ticket", required = false) String ticket,
-      @RequestParam(value = "config", required = false) Map<String, String>  config,
-      
-      @RequestParam(value = "start", required = false, defaultValue = "true") boolean start) {
-    return service.create(prNumber, name, title, description, ticket, config, start);
-  }
-
-  @PutMapping("/portals/{portalId}")
-  public Portal update(
-      @PathVariable("portalId") Integer portalId,
-
-      @RequestParam(value = "name", required = false) String name,
-      @RequestParam(value = "title", required = false) String title,
-      @RequestParam(value = "description", required = false) String description,
-      @RequestParam(value = "ticket", required = false) String ticket,
-      @RequestParam(value = "config", required = false) Map<String, String>  config) {
-    return service.update(portalId, name, title, description, ticket, config);
-  }
-
   @GetMapping("/portals/{portalId}")
   public Portal get(@PathVariable("portalId") Integer portalId) {
     return service.get(portalId);
@@ -97,29 +73,67 @@ public class PortalController {
     return service.getLog(portalId);
   }
 
+  @PostMapping("/portals")
+  @ResponseStatus(ACCEPTED)
+  public Portal create(
+      @RequestParam(value = "prNumber", required = true) Integer prNumber,
+
+      @RequestParam(value = "name", required = false) String name,
+      @RequestParam(value = "title", required = false) String title,
+      @RequestParam(value = "description", required = false) String description,
+      @RequestParam(value = "ticket", required = false) String ticket,
+      @RequestParam(value = "config", required = false) Map<String, String> config,
+
+      @RequestParam(value = "start", required = false, defaultValue = "true") boolean start) {
+    return service.create(prNumber, name, title, description, ticket, config, start);
+  }
+
+  @PutMapping("/portals/{portalId}")
+  @ResponseStatus(ACCEPTED)
+  public Portal update(
+      @PathVariable("portalId") Integer portalId,
+
+      @RequestParam(value = "name", required = false) String name,
+      @RequestParam(value = "title", required = false) String title,
+      @RequestParam(value = "description", required = false) String description,
+      @RequestParam(value = "ticket", required = false) String ticket,
+      @RequestParam(value = "config", required = false) Map<String, String> config) {
+    return service.update(portalId, name, title, description, ticket, config);
+  }
+
   @GetMapping("/portals/{portalId}/status")
   public PortalStatus status(@PathVariable("portalId") Integer portalId) {
     return service.status(portalId);
   }
 
-  @DeleteMapping("/portals/{portalId}")
-  public void remove(@PathVariable("portalId") Integer portalId) {
-    service.remove(portalId);
-  }
-
   @PostMapping("/portals/{portalId}/start")
+  @ResponseStatus(ACCEPTED)
   public void start(@PathVariable("portalId") Integer portalId) {
     service.start(portalId);
   }
 
   @PostMapping("/portals/{portalId}/stop")
+  @ResponseStatus(ACCEPTED)
   public void stop(@PathVariable("portalId") Integer portalId) {
     service.stop(portalId);
   }
 
   @PostMapping("/portals/{portalId}/restart")
+  @ResponseStatus(ACCEPTED)
   public void restart(@PathVariable("portalId") Integer portalId) {
     service.restart(portalId);
+  }
+
+  @DeleteMapping("/portals/{portalId}")
+  @ResponseStatus(ACCEPTED)
+  public void remove(@PathVariable("portalId") Integer portalId) {
+    service.remove(portalId);
+  }
+
+  @DeleteMapping("/portals")
+  @ResponseStatus(ACCEPTED)
+  public void remove() {
+    service.remove();
   }
 
   @SneakyThrows

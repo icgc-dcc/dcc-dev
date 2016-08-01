@@ -33,6 +33,9 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 
+/**
+ * Abstraction for interacting with the artifact store.
+ */
 @Service
 public class ArtifactoryService {
 

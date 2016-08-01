@@ -22,6 +22,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import lombok.Getter;
+import lombok.NonNull;
 
 /**
  * Exception for representing when a portal instance is not available.
@@ -32,7 +33,7 @@ public class PortalNotFoundException extends RuntimeException {
   @Getter
   private final Integer portalId;
 
-  public PortalNotFoundException(Integer portalId) {
+  public PortalNotFoundException(@NonNull Integer portalId) {
     super("Portal " + portalId + " not found");
     this.portalId = portalId;
   }

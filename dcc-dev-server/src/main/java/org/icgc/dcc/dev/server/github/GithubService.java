@@ -40,6 +40,9 @@ import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Abstraction for interacting with GitHub pull requests.
+ */
 @Slf4j
 @Service
 public class GithubService {

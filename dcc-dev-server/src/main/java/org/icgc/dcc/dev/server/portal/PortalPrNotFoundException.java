@@ -22,6 +22,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import lombok.Getter;
+import lombok.NonNull;
 
 /**
  * Exception for representing when a PR is not open / preset and thus not available.
@@ -32,7 +33,7 @@ public class PortalPrNotFoundException extends RuntimeException {
   @Getter
   private final Integer prNumber;
 
-  public PortalPrNotFoundException(Integer prNumber) {
+  public PortalPrNotFoundException(@NonNull Integer prNumber) {
     super("PR " + prNumber + " not found or no build available");
     this.prNumber = prNumber;
   }

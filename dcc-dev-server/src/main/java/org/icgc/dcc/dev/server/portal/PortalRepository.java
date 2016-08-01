@@ -63,7 +63,7 @@ public class PortalRepository {
     return Stream.of(portalIds).map(Integer::parseInt).collect(toImmutableList());
   }
 
-  public boolean exists(Integer portalId) {
+  public boolean exists(@NonNull Integer portalId) {
     val metadataFile = getMetadataFile(portalId);
     return metadataFile.exists();
   }

@@ -90,25 +90,37 @@ public class PortalExecutor {
     return parseStatus(statusOutput);
   }
 
-  @Async
   public void start(@NonNull Portal portal) {
     updateState(portal, STARTING);
     executeScript(portal.getId(), "start", resolveArguments(portal));
     updateState(portal, RUNNING);
   }
-
+  
   @Async
+  public void startAsync(@NonNull Portal portal) {
+    start(portal);
+  }
+
   public void restart(@NonNull Portal portal) {
     updateState(portal, RESTARTING);
     executeScript(portal.getId(), "restart", resolveArguments(portal));
     updateState(portal, RUNNING);
   }
-
+  
   @Async
+  public void restartAsync(@NonNull Portal portal) {
+    restart(portal);
+  }
+
   public void stop(@NonNull Portal portal) {
     updateState(portal, STOPPING);
     executeScript(portal.getId(), "stop", null);
     updateState(portal, STOPPED);
+  }
+  
+  @Async
+  public void stopAsync(@NonNull Portal portal) {
+    stop(portal);
   }
 
   private void updateState(Portal portal, State state) {

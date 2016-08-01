@@ -67,7 +67,7 @@ public class PortalLogService {
   final ExecutorService executor = Executors.newCachedThreadPool();
 
   @SneakyThrows
-  public String cat(Integer portalId) {
+  public String cat(@NonNull Integer portalId) {
     val logFile = fileSystem.getLogFile(portalId);
     return Files.toString(logFile, StandardCharsets.UTF_8);
   }
