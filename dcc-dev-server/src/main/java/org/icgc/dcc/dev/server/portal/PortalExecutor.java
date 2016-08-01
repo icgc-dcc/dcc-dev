@@ -39,12 +39,14 @@ import org.icgc.dcc.dev.server.message.Messages.StateMessage;
 import org.icgc.dcc.dev.server.portal.Portal.State;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.zeroturnaround.exec.ProcessExecutor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
+import lombok.Cleanup;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.Value;
@@ -79,41 +81,45 @@ public class PortalExecutor {
   @Autowired
   PortalRepository repository;
   @Autowired
+  PortalLocks locks;  
+  @Autowired
   MessageService messages;
 
+  public PortalStatus status(@NonNull Integer portalId) {
+    val statusOutput = executeScript(portalId, "status", null);
+    return parseStatus(statusOutput);
+  }
+
+  @Async
   public void start(@NonNull Portal portal) {
     updateState(portal, STARTING);
     executeScript(portal.getId(), "start", resolveArguments(portal));
     updateState(portal, RUNNING);
   }
 
+  @Async
   public void restart(@NonNull Portal portal) {
     updateState(portal, RESTARTING);
     executeScript(portal.getId(), "restart", resolveArguments(portal));
     updateState(portal, RUNNING);
   }
 
+  @Async
   public void stop(@NonNull Portal portal) {
     updateState(portal, STOPPING);
     executeScript(portal.getId(), "stop", null);
     updateState(portal, STOPPED);
   }
 
-  public PortalStatus status(@NonNull Integer portalId) {
-    val statusOutput = executeScript(portalId, "status", null);
-    val status = parseStatus(statusOutput);
-    log.info("Status: {}", status);
-
-    return status;
-  }
-
   private void updateState(Portal portal, State state) {
-    repository.update(portal.setState(state));
     messages.sendMessage(new StateMessage().setState(state).setPortalId(portal.getId()));
   }
 
   @SneakyThrows
   private String executeScript(Integer portalId, String action, Map<String, String> arguments) {
+    @Cleanup
+    val lock = locks.lockReading(portalId);
+    
     val scriptFile = fileSystem.getScriptFile(portalId);
     val command = createCommand(scriptFile, action, arguments);
 
@@ -158,14 +164,14 @@ public class PortalExecutor {
   private static PortalStatus parseStatus(String statusOutput) {
     val matcher = STATUS_PATTERN.matcher(statusOutput);
     checkState(matcher.matches(), "Expected '%s' to match pattern: %s", statusOutput, STATUS_PATTERN);
-  
+
     // Parse
     int i = 1;
     val state = matcher.group(i++);
     val pid = matcher.group(i++);
     val wrapper = matcher.group(i++);
     val java = matcher.group(i++);
-  
+
     return new PortalStatus(
         state.equals("running"),
         pid == null ? null : Integer.valueOf(pid),

@@ -41,17 +41,25 @@ public class PortalLocks {
    */
   private final Striped<ReadWriteLock> locks = Striped.lazyWeakReadWriteLock(10); // Suitable count for application
 
-  public PortalLock lockWriting(Integer portalId) {
+  public PortalLock lockWriting(@NonNull Portal portal) {
+    return lockWriting(portal.getId());
+  }
+
+  public PortalLock lockWriting(@NonNull Integer portalId) {
     val lock = writeLock(portalId);
     lock.lock();
-    
+
     return lock;
   }
 
-  public PortalLock lockReading(Integer portalId) {
+  public PortalLock lockReading(@NonNull Portal portal) {
+    return lockReading(portal.getId());
+  }
+
+  public PortalLock lockReading(@NonNull Integer portalId) {
     val lock = readLock(portalId);
     lock.lock();
-    
+
     return lock;
   }
 

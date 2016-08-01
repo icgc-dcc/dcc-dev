@@ -252,7 +252,7 @@ public class PortalService {
   }
 
   private static void assignPorts(Portal portal) {
-    val systemConfig = portal.getConfig();
+    val systemConfig = portal.getSystemConfig();
     systemConfig.put("server.port", findFreePort());
     systemConfig.put("management.port", findFreePort());
     log.info("systemConfig: {}", systemConfig);

@@ -78,11 +78,6 @@ public class Portal {
   String url;
 
   /**
-   * The execution state of the portal instance.
-   */
-  State state = State.NEW;
-
-  /**
    * Whether or not to automatically deploy a new build when available.
    */
   boolean autoDeploy;
