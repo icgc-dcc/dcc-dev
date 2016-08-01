@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
+import org.icgc.dcc.dev.server.portal.PortalExecutor.PortalStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -97,7 +98,7 @@ public class PortalController {
   }
 
   @GetMapping("/portals/{portalId}/status")
-  public String status(@PathVariable("portalId") Integer portalId) {
+  public PortalStatus status(@PathVariable("portalId") Integer portalId) {
     return service.status(portalId);
   }
 

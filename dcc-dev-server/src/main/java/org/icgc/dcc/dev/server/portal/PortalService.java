@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.icgc.dcc.dev.server.jira.JiraService;
+import org.icgc.dcc.dev.server.portal.PortalExecutor.PortalStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -214,11 +215,13 @@ public class PortalService {
     executor.stop(portal);
   }
 
-  public String status(@NonNull Integer portalId) {
+  public PortalStatus status(@NonNull Integer portalId) {
     log.info("Getting status of portal {}...", portalId);
 
     @Cleanup
     val lock = locks.lockReading(portalId);
+    if (!repository.exists(portalId)) throw new PortalNotFoundException(portalId);
+
     return executor.status(portalId);
   }
 

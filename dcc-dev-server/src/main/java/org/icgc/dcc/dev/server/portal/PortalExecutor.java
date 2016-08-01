@@ -17,6 +17,7 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
+import static com.google.common.base.Preconditions.checkState;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
@@ -30,6 +31,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 import org.icgc.dcc.dev.server.message.MessageService;
 import org.icgc.dcc.dev.server.message.Messages.ExecutionMessage;
@@ -45,6 +47,7 @@ import com.google.common.collect.Maps;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import lombok.Value;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,6 +57,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 public class PortalExecutor {
+
+  /**
+   * Constants.
+   */
+  private static final Pattern STATUS_PATTERN =
+      Pattern.compile("DCC Portal Server is ([^:.]+)[:.](?: PID:(\\d+), Wrapper:(\\w+), Java:(\\w+))?\n");
 
   /**
    * Configuration.
@@ -90,10 +99,14 @@ public class PortalExecutor {
     updateState(portal, STOPPED);
   }
 
-  public String status(@NonNull Integer portalId) {
-    return executeScript(portalId, "status", null);
+  public PortalStatus status(@NonNull Integer portalId) {
+    val statusOutput = executeScript(portalId, "status", null);
+    val status = parseStatus(statusOutput);
+    log.info("Status: {}", status);
+
+    return status;
   }
-  
+
   private void updateState(Portal portal, State state) {
     repository.update(portal.setState(state));
     messages.sendMessage(new StateMessage().setState(state).setPortalId(portal.getId()));
@@ -140,6 +153,35 @@ public class PortalExecutor {
     return arguments.entrySet().stream()
         .map(e -> "--" + e.getKey() + "=" + e.getValue())
         .collect(toList());
+  }
+
+  private static PortalStatus parseStatus(String statusOutput) {
+    val matcher = STATUS_PATTERN.matcher(statusOutput);
+    checkState(matcher.matches(), "Expected '%s' to match pattern: %s", statusOutput, STATUS_PATTERN);
+  
+    // Parse
+    int i = 1;
+    val state = matcher.group(i++);
+    val pid = matcher.group(i++);
+    val wrapper = matcher.group(i++);
+    val java = matcher.group(i++);
+  
+    return new PortalStatus(
+        state.equals("running"),
+        pid == null ? null : Integer.valueOf(pid),
+        wrapper,
+        java);
+  }
+
+  @Value
+  public static class PortalStatus {
+
+    boolean running;
+
+    Integer pid;
+    String wrapper;
+    String java;
+
   }
 
 }
