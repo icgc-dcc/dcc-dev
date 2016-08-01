@@ -17,6 +17,7 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -45,7 +46,9 @@ public class PortalRepository {
   /**
    * Constants.
    */
-  private static final ObjectMapper MAPPER = new ObjectMapper().enable(INDENT_OUTPUT);
+  private static final ObjectMapper MAPPER = new ObjectMapper()
+      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false) // For schema evolution
+      .enable(INDENT_OUTPUT); // For humans
 
   /**
    * Dependencies.

@@ -59,7 +59,7 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
 
   <properties>
     <!-- Plugins  -->
-    <spring-maven-plugin.version>1.4.0.BUILD-SNAPSHOT</spring-maven-plugin.version>
+    <spring-maven-plugin.version>1.4.0.RELEASE</spring-maven-plugin.version>
   </properties>
 
 </project>
