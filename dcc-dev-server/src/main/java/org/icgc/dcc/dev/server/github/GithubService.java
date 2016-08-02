@@ -77,7 +77,6 @@ public class GithubService {
   @SneakyThrows
   public List<GithubPr> getPrs() {
     val prs = repo.queryPullRequests().state(OPEN).list();
-
     return stream(prs).map(this::convert).collect(toImmutableList());
   }
 

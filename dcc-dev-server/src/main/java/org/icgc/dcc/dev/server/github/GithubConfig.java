@@ -68,7 +68,7 @@ public class GithubConfig {
         .withOAuthToken(token, user)
         .withConnector(connector())
         .build();
-    log.info("Connected: {}", github);
+    log.info("Connected with rate limit: {}", github.getRateLimit());
 
     return github;
   }
