@@ -20,8 +20,11 @@ package org.icgc.dcc.dev.server.portal;
 import static org.icgc.dcc.common.core.json.Jackson.DEFAULT;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.icgc.dcc.dev.server.portal.PortalExecutor.PortalStatus;
@@ -39,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import lombok.SneakyThrows;
+import lombok.val;
 
 /**
  * HTTP bindings for interaction with portal instances.
@@ -53,27 +57,62 @@ public class PortalController {
   @Autowired
   PortalService service;
 
-  @GetMapping("/candidates")
+  /**
+   * Redirects by {@code slug} to the associated portal's {@code url}. <br>
+   * Useful as a mnemonic URL for users.
+   */
+  @GetMapping("/portals/{slug:\\w.+}")
+  public void redirect(@PathVariable("slug") String slug, HttpServletResponse response) throws IOException {
+    val portal = service.getBySlug(slug);
+    response.sendRedirect(portal.getUrl());
+  }
+  
+  /**
+   * Redirects by {@code id} to the associated portal's {@code url}. <br>
+   * Useful as a mnemonic URL for users.
+   */
+  @GetMapping("/portals/{portalId:\\d+}")
+  public void redirect(@PathVariable("portalId") Integer portalId, HttpServletResponse response) throws IOException {
+    val portal = service.get(portalId);
+    response.sendRedirect(portal.getUrl());
+  }
+
+  /**
+   * Lists the candidates for deployment.
+   */
+  @GetMapping("/api/candidates")
   public List<Candidate> getCandidates() {
     return service.getCandidates();
   }
 
-  @GetMapping("/portals")
+  /**
+   * Lists the currently deployed portals.
+   */
+  @GetMapping("/api/portals")
   public List<Portal> list() {
     return service.list();
   }
 
-  @GetMapping("/portals/{portalId}")
+  /**
+   * Gets the portal with the supplied {@code portalId}.
+   */
+  @GetMapping("/api/portals/{portalId}")
   public Portal get(@PathVariable("portalId") Integer portalId) {
     return service.get(portalId);
   }
 
-  @GetMapping("/portals/{portalId}/log")
+  /**
+   * Gets the full content of portal log with the supplied {@code portalId}.
+   */
+  @GetMapping("/api/portals/{portalId}/log")
   public String getLog(@PathVariable("portalId") Integer portalId) {
     return service.getLog(portalId);
   }
 
-  @PostMapping("/portals")
+  /**
+   * Lists all of the currently deployed portals.
+   */
+  @PostMapping("/api/portals")
   @ResponseStatus(ACCEPTED)
   public Portal create(
       @RequestParam(value = "prNumber", required = true) Integer prNumber,
@@ -88,7 +127,10 @@ public class PortalController {
     return service.create(prNumber, slug, title, description, ticket, config, start);
   }
 
-  @PutMapping("/portals/{portalId}")
+  /**
+   * Updates the portal with the specified {@code portalId}.
+   */
+  @PutMapping("/api/portals/{portalId}")
   @ResponseStatus(ACCEPTED)
   public Portal update(
       @PathVariable("portalId") Integer portalId,
@@ -101,36 +143,54 @@ public class PortalController {
     return service.update(portalId, slug, title, description, ticket, config);
   }
 
-  @GetMapping("/portals/{portalId}/status")
+  /**
+   * Gets the portal execution status with the specified {@code portalId}.
+   */
+  @GetMapping("/api/portals/{portalId}/status")
   public PortalStatus status(@PathVariable("portalId") Integer portalId) {
     return service.status(portalId);
   }
 
-  @PostMapping("/portals/{portalId}/start")
+  /**
+   * Starts the portal the specified {@code portalId}.
+   */
+  @PostMapping("/api/portals/{portalId}/start")
   @ResponseStatus(ACCEPTED)
   public void start(@PathVariable("portalId") Integer portalId) {
     service.start(portalId);
   }
 
-  @PostMapping("/portals/{portalId}/stop")
+  /**
+   * Stops the portal the specified {@code portalId}.
+   */
+  @PostMapping("/api/portals/{portalId}/stop")
   @ResponseStatus(ACCEPTED)
   public void stop(@PathVariable("portalId") Integer portalId) {
     service.stop(portalId);
   }
 
-  @PostMapping("/portals/{portalId}/restart")
+  /**
+   * Restarts the portal the specified {@code portalId}.
+   */
+  @PostMapping("/api/portals/{portalId}/restart")
   @ResponseStatus(ACCEPTED)
   public void restart(@PathVariable("portalId") Integer portalId) {
     service.restart(portalId);
   }
 
-  @DeleteMapping("/portals/{portalId}")
+  /**
+   * Removes the portal the specified {@code portalId}.
+   */
+  @DeleteMapping("/api/portals/{portalId}")
   @ResponseStatus(ACCEPTED)
   public void remove(@PathVariable("portalId") Integer portalId) {
     service.remove(portalId);
   }
 
-  @DeleteMapping("/portals")
+  /**
+   * Removes all deployed portals.
+   */
+  @DeleteMapping("/api/portals")
   @ResponseStatus(ACCEPTED)
   public void remove() {
     service.remove();

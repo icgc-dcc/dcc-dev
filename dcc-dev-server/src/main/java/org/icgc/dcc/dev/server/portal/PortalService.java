@@ -17,7 +17,6 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
-import static com.google.common.base.Objects.firstNonNull;
 import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 import static org.springframework.util.SocketUtils.findAvailableTcpPort;
 
@@ -95,6 +94,14 @@ public class PortalService {
     @Cleanup
     val lock = locks.lockReading(portalId);
     return repository.find(portalId);
+  }
+
+  public Portal getBySlug(@NonNull String slug) {
+    return findBySlug(slug).orElseThrow(() -> new PortalNotFoundException(slug));
+  }
+  
+  public Optional<Portal> findBySlug(@NonNull String slug) {
+    return list().stream().filter(p -> p.getSlug().equals(slug)).findFirst();
   }
 
   public Portal create(@NonNull Integer prNumber, String slug, String title, String description, String ticket,
@@ -247,12 +254,12 @@ public class PortalService {
   }
 
   private String resolveTitle(String newTitle, String currentTitle, String prTitle) {
-    return firstNonNull(firstNonNull(newTitle, currentTitle), prTitle);
+    return newTitle != null ? newTitle : currentTitle != null ? currentTitle : prTitle;
   }
 
   @SneakyThrows
   private String resolveSlug(String newSlug, String currentSlug, String newTitle, String currentTitle, String prTitle) {
-    val value = firstNonNull(firstNonNull(newSlug, currentSlug), prTitle);
+    val value = newSlug != null ? newSlug : currentSlug != null ? currentSlug : prTitle;
     return new Slugify().slugify(value);
   }
 
@@ -261,17 +268,17 @@ public class PortalService {
     return publicUrl.toString().replaceFirst(":\\d+", "") + ":" + portal.getSystemConfig().get("server.port");
   }
 
+  private String resolveTicketKey(Portal portal) {
+    val ticket = portal.getTarget().getTicket();
+    return portal.getTicket() != null ? portal.getTicket() : ticket != null ? ticket.getKey() : null;
+  }
+
   private void updateTicket(Portal portal) {
     val ticketKey = resolveTicketKey(portal);
     if (ticketKey == null) return;
 
     val iframeUrl = publicUrl + "/" + portal.getId();
     jira.updateTicket(ticketKey, "Deployed to " + iframeUrl + " for testing");
-  }
-
-  private String resolveTicketKey(Portal portal) {
-    val ticket = portal.getTarget().getTicket();
-    return portal.getTicket() != null ? portal.getTicket() : ticket != null ? ticket.getKey() : null;
   }
 
   private static void assignPorts(Portal portal) {
