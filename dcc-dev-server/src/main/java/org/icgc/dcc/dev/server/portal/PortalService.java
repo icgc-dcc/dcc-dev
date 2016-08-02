@@ -17,6 +17,7 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
+import static com.google.common.base.Objects.firstNonNull;
 import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 import static org.springframework.util.SocketUtils.findAvailableTcpPort;
 
@@ -26,7 +27,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.icgc.dcc.dev.server.jira.JiraService;
-import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.icgc.dcc.dev.server.portal.PortalExecutor.PortalStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -112,8 +112,8 @@ public class PortalService {
     // Collect metadata in a single object
     val portal = new Portal()
         .setId(portalId)
-        .setTitle(resolveTitle(title, candidate))
-        .setSlug(resolveSlug(slug, title, candidate))
+        .setTitle(resolveTitle(title, null, candidate.getPr().getTitle()))
+        .setSlug(resolveSlug(slug, null, title, null, candidate.getPr().getTitle()))
         .setDescription(description)
         .setTicket(ticket)
         .setConfig(config)
@@ -163,9 +163,10 @@ public class PortalService {
     val lock = locks.lockWriting(portalId);
     val portal = get(portalId);
 
+    val candidate = portal.getTarget();
     repository.update(portal
-        .setSlug(slug)
-        .setTitle(title)
+        .setTitle(resolveTitle(title, portal.getTitle(), candidate.getPr().getTitle()))
+        .setSlug(resolveSlug(slug, portal.getSlug(), title, portal.getTitle(), candidate.getPr().getTitle()))
         .setDescription(description)
         .setTicket(ticket)
         .setConfig(config));
@@ -245,13 +246,14 @@ public class PortalService {
     return logs.cat(portalId);
   }
 
-  private String resolveTitle(String title, Candidate candidate) {
-    return title != null ? title : candidate.getPr().getTitle();
+  private String resolveTitle(String newTitle, String currentTitle, String prTitle) {
+    return firstNonNull(firstNonNull(newTitle, currentTitle), prTitle);
   }
 
   @SneakyThrows
-  private String resolveSlug(String slug, String title, Candidate candidate) {
-    return new Slugify().slugify(slug != null ? slug : resolveTitle(title, candidate));
+  private String resolveSlug(String newSlug, String currentSlug, String newTitle, String currentTitle, String prTitle) {
+    val value = firstNonNull(firstNonNull(newSlug, currentSlug), prTitle);
+    return new Slugify().slugify(value);
   }
 
   private String resolveUrl(Portal portal) {
@@ -262,7 +264,7 @@ public class PortalService {
   private void updateTicket(Portal portal) {
     val ticketKey = resolveTicketKey(portal);
     if (ticketKey == null) return;
-  
+
     val iframeUrl = publicUrl + "/" + portal.getId();
     jira.updateTicket(ticketKey, "Deployed to " + iframeUrl + " for testing");
   }
