@@ -78,14 +78,14 @@ public class PortalController {
   public Portal create(
       @RequestParam(value = "prNumber", required = true) Integer prNumber,
 
-      @RequestParam(value = "name", required = false) String name,
+      @RequestParam(value = "slug", required = false) String slug,
       @RequestParam(value = "title", required = false) String title,
       @RequestParam(value = "description", required = false) String description,
       @RequestParam(value = "ticket", required = false) String ticket,
       @RequestParam(value = "config", required = false) Map<String, String> config,
 
       @RequestParam(value = "start", required = false, defaultValue = "true") boolean start) {
-    return service.create(prNumber, name, title, description, ticket, config, start);
+    return service.create(prNumber, slug, title, description, ticket, config, start);
   }
 
   @PutMapping("/portals/{portalId}")
@@ -93,12 +93,12 @@ public class PortalController {
   public Portal update(
       @PathVariable("portalId") Integer portalId,
 
-      @RequestParam(value = "name", required = false) String name,
+      @RequestParam(value = "slug", required = false) String slug,
       @RequestParam(value = "title", required = false) String title,
       @RequestParam(value = "description", required = false) String description,
       @RequestParam(value = "ticket", required = false) String ticket,
       @RequestParam(value = "config", required = false) Map<String, String> config) {
-    return service.update(portalId, name, title, description, ticket, config);
+    return service.update(portalId, slug, title, description, ticket, config);
   }
 
   @GetMapping("/portals/{portalId}/status")

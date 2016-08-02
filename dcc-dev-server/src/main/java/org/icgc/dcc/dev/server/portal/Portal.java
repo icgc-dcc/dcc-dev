@@ -43,9 +43,9 @@ public class Portal {
   Integer id;
 
   /**
-   * A symbolic name for the portal instance.
+   * A symbolic addressable URL slug for the portal instance.
    */
-  String name;
+  String slug;
 
   /**
    * A short title for the portal instance.
@@ -88,7 +88,7 @@ public class Portal {
   boolean autoRemove;
   
   /**
-   * The upstream canidate information about the running portal instance.
+   * The upstream candidate information about the running portal instance.
    */
   Candidate target;
 

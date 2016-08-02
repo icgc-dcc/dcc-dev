@@ -145,6 +145,13 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
       <version>1.12</version>
     </dependency>
 
+    <!-- Slugs -->
+    <dependency>
+      <groupId>com.github.slugify</groupId>
+      <artifactId>slugify</artifactId>
+      <version>2.1.5</version>
+    </dependency>
+
     <!-- Utilities -->
     <dependency>
       <groupId>com.google.guava</groupId>

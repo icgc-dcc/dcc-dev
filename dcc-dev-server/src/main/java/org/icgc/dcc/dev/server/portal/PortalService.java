@@ -26,13 +26,17 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.icgc.dcc.dev.server.jira.JiraService;
+import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.icgc.dcc.dev.server.portal.PortalExecutor.PortalStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.github.slugify.Slugify;
+
 import lombok.Cleanup;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
@@ -93,7 +97,7 @@ public class PortalService {
     return repository.find(portalId);
   }
 
-  public Portal create(@NonNull Integer prNumber, String name, String title, String description, String ticket,
+  public Portal create(@NonNull Integer prNumber, String slug, String title, String description, String ticket,
       Map<String, String> config, boolean start) {
     log.info("Creating portal for PR {}...", prNumber);
 
@@ -108,8 +112,8 @@ public class PortalService {
     // Collect metadata in a single object
     val portal = new Portal()
         .setId(portalId)
-        .setName(name)
-        .setTitle(title)
+        .setTitle(resolveTitle(title, candidate))
+        .setSlug(resolveSlug(slug, title, candidate))
         .setDescription(description)
         .setTicket(ticket)
         .setConfig(config)
@@ -151,7 +155,7 @@ public class PortalService {
     repository.update(portal);
   }
 
-  public Portal update(@NonNull Integer portalId, String name, String title, String description, String ticket,
+  public Portal update(@NonNull Integer portalId, String slug, String title, String description, String ticket,
       Map<String, String> config) {
     log.info("Updating portal {}...", portalId);
 
@@ -160,7 +164,7 @@ public class PortalService {
     val portal = get(portalId);
 
     repository.update(portal
-        .setName(name)
+        .setSlug(slug)
         .setTitle(title)
         .setDescription(description)
         .setTicket(ticket)
@@ -172,7 +176,7 @@ public class PortalService {
 
     return portal;
   }
-  
+
   public void remove() {
     log.info("**** Removing all portals!");
     for (val portal : list()) {
@@ -241,10 +245,24 @@ public class PortalService {
     return logs.cat(portalId);
   }
 
+  private String resolveTitle(String title, Candidate candidate) {
+    return title != null ? title : candidate.getPr().getTitle();
+  }
+
+  @SneakyThrows
+  private String resolveSlug(String slug, String title, Candidate candidate) {
+    return new Slugify().slugify(slug != null ? slug : resolveTitle(title, candidate));
+  }
+
+  private String resolveUrl(Portal portal) {
+    // Strip this port and add portal port
+    return publicUrl.toString().replaceFirst(":\\d+", "") + ":" + portal.getSystemConfig().get("server.port");
+  }
+
   private void updateTicket(Portal portal) {
     val ticketKey = resolveTicketKey(portal);
     if (ticketKey == null) return;
-
+  
     val iframeUrl = publicUrl + "/" + portal.getId();
     jira.updateTicket(ticketKey, "Deployed to " + iframeUrl + " for testing");
   }
@@ -252,11 +270,6 @@ public class PortalService {
   private String resolveTicketKey(Portal portal) {
     val ticket = portal.getTarget().getTicket();
     return portal.getTicket() != null ? portal.getTicket() : ticket != null ? ticket.getKey() : null;
-  }
-
-  private String resolveUrl(Portal portal) {
-    // Strip this port and add portal port
-    return publicUrl.toString().replaceFirst(":\\d+", "") + ":" + portal.getSystemConfig().get("server.port");
   }
 
   private static void assignPorts(Portal portal) {
