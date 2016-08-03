@@ -15,7 +15,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.portal;
+package org.icgc.dcc.dev.server.portal.candidate;
 
 import static java.util.stream.Collectors.toList;
 
@@ -28,6 +28,7 @@ import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.github.GithubService;
 import org.icgc.dcc.dev.server.jenkins.JenkinsService;
 import org.icgc.dcc.dev.server.jira.JiraService;
+import org.icgc.dcc.dev.server.portal.Portal;
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -77,7 +78,7 @@ public class PortalCandidateResolver {
     val buildNumber = github.getBuildNumber(pr.getHead());
     if (buildNumber == null) return Optional.empty();
 
-    val build = jenkins.getBuild(buildNumber);
+    val build = jenkins.getSuccessfulBuild(buildNumber);
     val artifact = artifactory.getArtifact(buildNumber);
     val ticketKey = parseTicketKey(pr.getBranch());
     val ticket = ticketKey == null ? null : jira.getTicket(ticketKey);

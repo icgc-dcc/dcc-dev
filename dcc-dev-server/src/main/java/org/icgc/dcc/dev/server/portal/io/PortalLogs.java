@@ -15,7 +15,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.portal;
+package org.icgc.dcc.dev.server.portal.io;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -33,7 +33,6 @@ import org.icgc.dcc.dev.server.message.Messages.LogMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
@@ -49,8 +48,8 @@ import lombok.extern.slf4j.Slf4j;
  * Service for reporting and streaming log contents to interested parties.
  */
 @Slf4j
-@Service
-public class PortalLogService {
+@Component
+public class PortalLogs {
 
   /**
    * Dependencies.

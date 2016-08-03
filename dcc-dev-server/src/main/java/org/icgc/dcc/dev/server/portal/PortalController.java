@@ -27,7 +27,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
-import org.icgc.dcc.dev.server.portal.PortalExecutor.PortalStatus;
+import org.icgc.dcc.dev.server.portal.io.PortalExecutor.PortalStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;

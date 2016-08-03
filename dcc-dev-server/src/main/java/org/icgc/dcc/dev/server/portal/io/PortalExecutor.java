@@ -15,7 +15,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.portal;
+package org.icgc.dcc.dev.server.portal.io;
 
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Collections.emptyList;
@@ -36,7 +36,10 @@ import java.util.regex.Pattern;
 import org.icgc.dcc.dev.server.message.MessageService;
 import org.icgc.dcc.dev.server.message.Messages.ExecutionMessage;
 import org.icgc.dcc.dev.server.message.Messages.StateMessage;
+import org.icgc.dcc.dev.server.portal.Portal;
+import org.icgc.dcc.dev.server.portal.PortalRepository;
 import org.icgc.dcc.dev.server.portal.Portal.State;
+import org.icgc.dcc.dev.server.portal.util.PortalLocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;

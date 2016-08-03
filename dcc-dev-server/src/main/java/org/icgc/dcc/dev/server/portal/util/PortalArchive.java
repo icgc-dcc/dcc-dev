@@ -15,7 +15,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.portal;
+package org.icgc.dcc.dev.server.portal.util;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.apache.commons.io.IOUtils.copy;

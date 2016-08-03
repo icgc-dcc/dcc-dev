@@ -15,7 +15,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.portal;
+package org.icgc.dcc.dev.server.portal.io;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.io.Files.write;
@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.icgc.dcc.dev.server.portal.Portal;
+import org.icgc.dcc.dev.server.portal.util.PortalArchive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

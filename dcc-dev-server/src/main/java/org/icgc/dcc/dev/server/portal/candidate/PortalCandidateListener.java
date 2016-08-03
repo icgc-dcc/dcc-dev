@@ -15,7 +15,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.portal;
+package org.icgc.dcc.dev.server.portal.candidate;
 
 import static com.google.common.collect.Iterables.getLast;
 
@@ -23,6 +23,7 @@ import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.server.message.Messages.GithubPrsMessage;
 import org.icgc.dcc.dev.server.message.Messages.JenkinsBuildsMessage;
+import org.icgc.dcc.dev.server.portal.PortalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 
+import lombok.NonNull;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,7 +46,7 @@ public class PortalCandidateListener {
   PortalService portals;
 
   @EventListener
-  public void handle(JenkinsBuildsMessage message) {
+  public void handle(@NonNull JenkinsBuildsMessage message) {
     val prBuilds = Multimaps.index(message.getBuilds(), JenkinsBuild::getPrNumber);
 
     for (val portal : portals.list()) {
@@ -52,20 +54,28 @@ public class PortalCandidateListener {
       val portalBuilds = prBuilds.get(prNumber);
       val latestBuild = getLast(portalBuilds);
 
-      val buildNumber = portal.getTarget().getBuild().getNumber();
-      if (latestBuild.getNumber() <= buildNumber) continue;
+      val deployed = portal.getTarget().getBuild() != null;
+      if (deployed) {
+        val buildNumber = portal.getTarget().getBuild().getNumber();
+        val deployedBuild = latestBuild.getNumber() <= buildNumber;
+        if (deployedBuild) continue;
+        
+        log.info("Build update found for portal {}:  {}", portal.getId(), latestBuild);
+        if (!portal.isAutoDeploy()) continue;
+        
+        log.info("Auto deploying portal {}: {}", portal.getId(), latestBuild);
+        portal.getTarget().setBuild(latestBuild);
+      } else {
+        log.info("First build found for portal {}:  {}", portal.getId(), latestBuild);
+        portal.getTarget().setBuild(latestBuild);
+      }
 
-      log.info("Build update found for portal {}:  {}", portal.getId(), latestBuild);
-      if (!portal.isAutoDeploy()) continue;
-
-      log.info("Auto deploying portal {}: {}", portal.getId(), latestBuild);
-      portal.getTarget().setBuild(latestBuild);
       portals.update(portal);
     }
   }
 
   @EventListener
-  public void handle(GithubPrsMessage message) {
+  public void handle(@NonNull GithubPrsMessage message) {
     val openPrNumbers = Maps.uniqueIndex(message.getPrs(), GithubPr::getNumber);
 
     for (val portal : portals.list()) {

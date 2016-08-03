@@ -25,6 +25,7 @@ import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
+import org.icgc.dcc.dev.server.portal.io.PortalDeployer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;

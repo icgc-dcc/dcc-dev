@@ -27,7 +27,13 @@ import java.util.Optional;
 
 import org.icgc.dcc.dev.server.jira.JiraService;
 import org.icgc.dcc.dev.server.jira.JiraTicket;
-import org.icgc.dcc.dev.server.portal.PortalExecutor.PortalStatus;
+import org.icgc.dcc.dev.server.portal.candidate.PortalCandidateResolver;
+import org.icgc.dcc.dev.server.portal.io.PortalDeployer;
+import org.icgc.dcc.dev.server.portal.io.PortalExecutor;
+import org.icgc.dcc.dev.server.portal.io.PortalFileSystem;
+import org.icgc.dcc.dev.server.portal.io.PortalLogs;
+import org.icgc.dcc.dev.server.portal.io.PortalExecutor.PortalStatus;
+import org.icgc.dcc.dev.server.portal.util.PortalLocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -65,7 +71,7 @@ public class PortalService {
   @Autowired
   PortalFileSystem fileSystem;
   @Autowired
-  PortalLogService logs;
+  PortalLogs logs;
   @Autowired
   PortalDeployer deployer;
   @Autowired
@@ -159,12 +165,15 @@ public class PortalService {
   public void update(Portal portal) {
     @Cleanup
     val lock = locks.lockWriting(portal.getId());
+    repository.update(portal);
 
-    executor.stop(portal);
+    val status = status(portal.getId());
+    if (status.isRunning()) {
+      executor.stop(portal);
+    }
+
     deployer.deploy(portal);
     executor.startAsync(portal);
-
-    repository.update(portal);
   }
 
   public Portal update(@NonNull Integer portalId, String slug, String title, String description, String ticket,
