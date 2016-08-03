@@ -70,14 +70,18 @@ public class GithubService {
     messages.sendMessage(new GithubPrsMessage(getPrs()));
   }
 
-  public Optional<GithubPr> getPr(@NonNull Integer number) {
-    return getPrs().stream().filter(pr -> number.equals(pr.getNumber())).findFirst();
+  public Optional<GithubPr> getPr(@NonNull Integer prNumber) {
+    return getPrs().stream()
+        .filter(pr -> prNumber.equals(pr.getNumber()))
+        .findFirst();
   }
 
   @SneakyThrows
   public List<GithubPr> getPrs() {
     val prs = repo.queryPullRequests().state(OPEN).list();
-    return stream(prs).map(this::convert).collect(toImmutableList());
+    return stream(prs)
+        .map(this::convert)
+        .collect(toImmutableList());
   }
 
   @SneakyThrows

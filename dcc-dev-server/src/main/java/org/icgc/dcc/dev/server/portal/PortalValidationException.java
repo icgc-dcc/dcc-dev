@@ -25,9 +25,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * Exception for representing when a portal field is invalid.
  */
 @ResponseStatus(BAD_REQUEST)
-public class PortaValidationException extends RuntimeException {
+public class PortalValidationException extends RuntimeException {
 
-  public PortaValidationException(String format, Object... args) {
+  public PortalValidationException(String format, Object... args) {
     super(String.format(format, args));
   }
 

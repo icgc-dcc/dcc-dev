@@ -45,7 +45,7 @@ import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Service for reporting and streaming log contents to interested parties.
+ * Responsible for reporting and streaming log contents to interested parties.
  */
 @Slf4j
 @Component

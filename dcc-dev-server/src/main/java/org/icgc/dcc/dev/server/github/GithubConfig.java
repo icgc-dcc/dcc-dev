@@ -28,6 +28,7 @@ import org.kohsuke.github.extras.OkHttpConnector;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.squareup.okhttp.Cache;
 import com.squareup.okhttp.OkHttpClient;
@@ -41,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
  * GitHub module configuration.
  */
 @Slf4j
+@EnableScheduling
 @Configuration
 public class GithubConfig {
 
@@ -75,7 +77,7 @@ public class GithubConfig {
 
   @Bean
   public HttpConnector connector() throws IOException {
-    val maxSize = 10 * 1024 * 1024;  // 10MB cache
+    val maxSize = 10 * 1024 * 1024; // 10MB cache
     val cache = new Cache(cacheDir, maxSize);
 
     return new OkHttpConnector(new OkUrlFactory(new OkHttpClient().setCache(cache)));

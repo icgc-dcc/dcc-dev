@@ -148,7 +148,7 @@ public class PortalService {
 
     // Assign ports and URL
     assignPorts(portal);
-    portal.setUrl(resolveUrl(portal));
+    portal.setUrl(resolveUrl(publicUrl, portal));
     repository.update(portal);
 
     if (start) {
@@ -164,7 +164,7 @@ public class PortalService {
 
   public void update(Portal portal) {
     @Cleanup
-    val lock = locks.lockWriting(portal.getId());
+    val lock = locks.lockWriting(portal);
     repository.update(portal);
 
     val status = status(portal.getId());
@@ -271,62 +271,63 @@ public class PortalService {
     return logs.cat(portalId);
   }
 
-  @SneakyThrows
-  private void validateSlug(String slug) {
-    if (slug == null) return;
-
-    if (slug.trim().equals("")) {
-      throw new PortaValidationException("Portal slug '%s' cannot be blank", slug);
-    }
-
-    val slugifiedSlug = new Slugify().slugify(slug);
-    if (!slug.equals(slugifiedSlug)) {
-      throw new PortaValidationException("Portal slug '%s' is not slugified. Should be '%s'", slug, slugifiedSlug);
-    }
-  }
-
-  private void validateSlugUniqueness(Portal portal) {
-    val existingPortal = findBySlug(portal.getSlug());
-    if (existingPortal.isPresent() && !portal.getId().equals(existingPortal.get().getId())) {
-      throw new PortaValidationException("Portal %s already exists with slug '%s'", existingPortal.get().getId(),
-          portal.getSlug());
-    }
-  }
-
-  private String resolveTitle(String newTitle, String currentTitle, String prTitle) {
-    return newTitle != null ? newTitle : currentTitle != null ? currentTitle : prTitle;
-  }
-
-  private String resolveDescription(String newDescription, String currentDescription, String prDescription) {
-    return newDescription != null ? newDescription : currentDescription != null ? currentDescription : prDescription;
-  }
-
-  @SneakyThrows
-  private String resolveSlug(String newSlug, String currentSlug, String newTitle, String currentTitle, String prTitle) {
-    val value = newSlug != null ? newSlug : currentSlug != null ? currentSlug : prTitle;
-    return new Slugify().slugify(value);
-  }
-
-  private String resolveUrl(Portal portal) {
-    // Strip this port and add portal port
-    return publicUrl.toString().replaceFirst(":\\d+", "") + ":" + portal.getSystemConfig().get("server.port");
-  }
-
-  private String resolveTicketKey(String newTicketKey, String currentTicketKey, JiraTicket currentTicket) {
-    return newTicketKey != null ? newTicketKey : currentTicketKey != null ? currentTicketKey : currentTicket != null ? currentTicket
-        .getKey() : null;
-  }
-
-  private Map<String, String> resolveConfig(Map<String, String> newConfig, Map<String, String> currentConfig) {
-    return newConfig != null ? newConfig : currentConfig;
-  }
-
   private void updateTicket(Portal portal) {
     val ticketKey = portal.getTicketKey();
     if (ticketKey == null) return;
 
     val iframeUrl = publicUrl + "/" + portal.getId();
     jira.updateTicket(ticketKey, "Deployed to " + iframeUrl + " for testing");
+  }
+
+  @SneakyThrows
+  private void validateSlug(String slug) {
+    if (slug == null) return;
+
+    if (slug.trim().equals("")) {
+      throw new PortalValidationException("Portal slug '%s' cannot be blank", slug);
+    }
+
+    val slugifiedSlug = new Slugify().slugify(slug);
+    if (!slug.equals(slugifiedSlug)) {
+      throw new PortalValidationException("Portal slug '%s' is not slugified. Should be '%s'", slug, slugifiedSlug);
+    }
+  }
+
+  private void validateSlugUniqueness(Portal portal) {
+    val existingPortal = findBySlug(portal.getSlug());
+    if (existingPortal.isPresent() && !portal.getId().equals(existingPortal.get().getId())) {
+      throw new PortalValidationException("Portal %s already exists with slug '%s'", existingPortal.get().getId(),
+          portal.getSlug());
+    }
+  }
+
+  @SneakyThrows
+  private static String resolveSlug(String newSlug, String currentSlug, String newTitle, String currentTitle,
+      String prTitle) {
+    val value = newSlug != null ? newSlug : currentSlug != null ? currentSlug : prTitle;
+    return new Slugify().slugify(value);
+  }
+
+  private static String resolveTitle(String newTitle, String currentTitle, String prTitle) {
+    return newTitle != null ? newTitle : currentTitle != null ? currentTitle : prTitle;
+  }
+
+  private static String resolveDescription(String newDescription, String currentDescription, String prDescription) {
+    return newDescription != null ? newDescription : currentDescription != null ? currentDescription : prDescription;
+  }
+
+  private static String resolveUrl(URL publicUrl, Portal portal) {
+    // Strip this port and add portal port
+    return publicUrl.toString().replaceFirst(":\\d+", "") + ":" + portal.getSystemConfig().get("server.port");
+  }
+
+  private static String resolveTicketKey(String newTicketKey, String currentTicketKey, JiraTicket currentTicket) {
+    return newTicketKey != null ? newTicketKey : currentTicketKey != null ? currentTicketKey : currentTicket != null ? currentTicket
+        .getKey() : null;
+  }
+
+  private static Map<String, String> resolveConfig(Map<String, String> newConfig, Map<String, String> currentConfig) {
+    return newConfig != null ? newConfig : currentConfig;
   }
 
   private static void assignPorts(Portal portal) {

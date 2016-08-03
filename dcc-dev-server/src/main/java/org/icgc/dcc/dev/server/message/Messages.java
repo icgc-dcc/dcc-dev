@@ -17,6 +17,8 @@
  */
 package org.icgc.dcc.dev.server.message;
 
+import static lombok.AccessLevel.PRIVATE;
+
 import java.util.List;
 
 import org.icgc.dcc.dev.server.github.GithubPr;
@@ -25,13 +27,15 @@ import org.icgc.dcc.dev.server.portal.Portal.State;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.Value;
 import lombok.experimental.Accessors;
 
 /**
  * Catalog of messages to be sent from publishers to subscribers.
  */
-public class Messages {
+@NoArgsConstructor(access = PRIVATE)
+public final class Messages {
 
   @Value
   public static class JenkinsBuildsMessage {

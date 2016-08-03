@@ -29,7 +29,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
- * Represents a portal instance.
+ * Collection of metadata that represents a portal instance.<p>
+ * Main user facing system entity.
  */
 @Data
 @Accessors(chain = true)
@@ -92,6 +93,9 @@ public class Portal {
    */
   Candidate target;
 
+  /**
+   * A candidate for portal instance deployment.
+   */
   @Data
   @Accessors(chain = true)
   public static class Candidate {
@@ -103,6 +107,9 @@ public class Portal {
 
   }
 
+  /**
+   * Represents the state of a portal instance.
+   */
   public static enum State {
 
     NEW, STARTING, RUNNING, STOPPING, STOPPED, RESTARTING, FAILED;
