@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.icgc.dcc.dev.server.jira.JiraService;
+import org.icgc.dcc.dev.server.jira.JiraTicket;
 import org.icgc.dcc.dev.server.portal.PortalExecutor.PortalStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -99,7 +100,7 @@ public class PortalService {
   public Portal getBySlug(@NonNull String slug) {
     return findBySlug(slug).orElseThrow(() -> new PortalNotFoundException(slug));
   }
-  
+
   public Optional<Portal> findBySlug(@NonNull String slug) {
     return list().stream().filter(p -> p.getSlug().equals(slug)).findFirst();
   }
@@ -121,10 +122,14 @@ public class PortalService {
         .setId(portalId)
         .setTitle(resolveTitle(title, null, candidate.getPr().getTitle()))
         .setSlug(resolveSlug(slug, null, title, null, candidate.getPr().getTitle()))
-        .setDescription(description)
-        .setTicket(ticket)
-        .setConfig(config)
+        .setDescription(resolveDescription(description, null, candidate.getPr().getDescription()))
+        .setTicketKey(resolveTicketKey(ticket, null, candidate.getTicket()))
+        .setConfig(resolveConfig(config, null))
         .setTarget(candidate);
+
+    // Validate
+    validateSlug(slug);
+    validateSlugUniqueness(portal);
 
     // Create directory
     deployer.init(portal);
@@ -174,9 +179,13 @@ public class PortalService {
     repository.update(portal
         .setTitle(resolveTitle(title, portal.getTitle(), candidate.getPr().getTitle()))
         .setSlug(resolveSlug(slug, portal.getSlug(), title, portal.getTitle(), candidate.getPr().getTitle()))
-        .setDescription(description)
-        .setTicket(ticket)
-        .setConfig(config));
+        .setDescription(resolveDescription(description, portal.getDescription(), candidate.getPr().getDescription()))
+        .setTicketKey(resolveTicketKey(ticket, portal.getTicketKey(), candidate.getTicket()))
+        .setConfig(resolveConfig(config, portal.getConfig())));
+
+    // Ensure slug is unique
+    validateSlug(slug);
+    validateSlugUniqueness(portal);
 
     executor.stop(portal);
     deployer.deploy(portal);
@@ -253,8 +262,34 @@ public class PortalService {
     return logs.cat(portalId);
   }
 
+  @SneakyThrows
+  private void validateSlug(String slug) {
+    if (slug == null) return;
+
+    if (slug.trim().equals("")) {
+      throw new PortaValidationException("Portal slug '%s' cannot be blank", slug);
+    }
+
+    val slugifiedSlug = new Slugify().slugify(slug);
+    if (!slug.equals(slugifiedSlug)) {
+      throw new PortaValidationException("Portal slug '%s' is not slugified. Should be '%s'", slug, slugifiedSlug);
+    }
+  }
+
+  private void validateSlugUniqueness(Portal portal) {
+    val existingPortal = findBySlug(portal.getSlug());
+    if (existingPortal.isPresent() && !portal.getId().equals(existingPortal.get().getId())) {
+      throw new PortaValidationException("Portal %s already exists with slug '%s'", existingPortal.get().getId(),
+          portal.getSlug());
+    }
+  }
+
   private String resolveTitle(String newTitle, String currentTitle, String prTitle) {
     return newTitle != null ? newTitle : currentTitle != null ? currentTitle : prTitle;
+  }
+
+  private String resolveDescription(String newDescription, String currentDescription, String prDescription) {
+    return newDescription != null ? newDescription : currentDescription != null ? currentDescription : prDescription;
   }
 
   @SneakyThrows
@@ -268,13 +303,17 @@ public class PortalService {
     return publicUrl.toString().replaceFirst(":\\d+", "") + ":" + portal.getSystemConfig().get("server.port");
   }
 
-  private String resolveTicketKey(Portal portal) {
-    val ticket = portal.getTarget().getTicket();
-    return portal.getTicket() != null ? portal.getTicket() : ticket != null ? ticket.getKey() : null;
+  private String resolveTicketKey(String newTicketKey, String currentTicketKey, JiraTicket currentTicket) {
+    return newTicketKey != null ? newTicketKey : currentTicketKey != null ? currentTicketKey : currentTicket != null ? currentTicket
+        .getKey() : null;
+  }
+
+  private Map<String, String> resolveConfig(Map<String, String> newConfig, Map<String, String> currentConfig) {
+    return newConfig != null ? newConfig : currentConfig;
   }
 
   private void updateTicket(Portal portal) {
-    val ticketKey = resolveTicketKey(portal);
+    val ticketKey = portal.getTicketKey();
     if (ticketKey == null) return;
 
     val iframeUrl = publicUrl + "/" + portal.getId();

@@ -17,96 +17,18 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
-import static com.google.common.collect.Maps.newHashMap;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
-import java.util.Map;
-
-import org.icgc.dcc.dev.server.github.GithubPr;
-import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
-import org.icgc.dcc.dev.server.jira.JiraTicket;
-
-import lombok.Data;
-import lombok.experimental.Accessors;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Represents a portal instance.
+ * Exception for representing when a portal field is invalid.
  */
-@Data
-@Accessors(chain = true)
-public class Portal {
+@ResponseStatus(BAD_REQUEST)
+public class PortaValidationException extends RuntimeException {
 
-  /**
-   * The unique identifier for the portal instance.
-   * <p>
-   * Primary key.
-   */
-  Integer id;
-
-  /**
-   * A symbolic addressable URL slug for the portal instance.
-   */
-  String slug;
-
-  /**
-   * A short title for the portal instance.
-   */
-  String title;
-
-  /**
-   * A longer description for the portal instance.
-   */
-  String description;
-
-  /**
-   * The JIRA ticket (issue) key for the portal instance.
-   */
-  String ticketKey;
-
-  /**
-   * User supplied configuration.
-   */
-  Map<String, String> config = newHashMap();
-
-  /**
-   * System supplied configuration.
-   */
-  Map<String, String> systemConfig = newHashMap();
-
-  /**
-   * The absolute URL of the running portal instance.
-   */
-  String url;
-
-  /**
-   * Whether or not to automatically deploy a new build when available.
-   */
-  boolean autoDeploy;
-  
-  /**
-   * Whether or not to automatically destroy when a PR is merged.
-   */
-  boolean autoRemove;
-  
-  /**
-   * The upstream candidate information about the running portal instance.
-   */
-  Candidate target;
-
-  @Data
-  @Accessors(chain = true)
-  public static class Candidate {
-
-    GithubPr pr;
-    JenkinsBuild build;
-    String artifact;
-    JiraTicket ticket;
-
-  }
-
-  public static enum State {
-
-    NEW, STARTING, RUNNING, STOPPING, STOPPED, RESTARTING, FAILED;
-
+  public PortaValidationException(String format, Object... args) {
+    super(String.format(format, args));
   }
 
 }
