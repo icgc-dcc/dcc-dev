@@ -27,11 +27,13 @@ import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
 import static org.apache.commons.io.FileUtils.copyDirectory;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
+import static org.springframework.util.SocketUtils.findAvailableTcpPort;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 
 import org.icgc.dcc.dev.server.portal.Portal;
 import org.icgc.dcc.dev.server.portal.util.PortalArchive;
@@ -114,6 +116,7 @@ public class PortalDeployer {
   @SneakyThrows
   public void deploy(@NonNull Portal portal) {
     downloadJar(portal);
+    assignPorts(portal);
   }
 
   @SneakyThrows
@@ -139,6 +142,22 @@ public class PortalDeployer {
 
     log.info("Downloading {} to {}", artifactUrl, jarFile);
     copy(artifactUrl.openStream(), jarFile.toPath(), REPLACE_EXISTING);
+  }
+  
+  private static void assignPorts(Portal portal) {
+    val systemConfig = portal.getSystemConfig();
+    assignPort(systemConfig, "server.port");
+    assignPort(systemConfig, "management.port");
+    log.info("Ports: {}", systemConfig);
+  }
+
+  private static void assignPort(Map<String, String> systemConfig, String portProperty) {
+    // Give preference to the current value, if any
+    val portStart = Integer.valueOf(systemConfig.getOrDefault(portProperty, "8000"));
+    val portEnd = 9000;
+    val port = findAvailableTcpPort(portStart, portEnd);
+    
+    systemConfig.put(portProperty, String.valueOf(port));
   }
 
 }

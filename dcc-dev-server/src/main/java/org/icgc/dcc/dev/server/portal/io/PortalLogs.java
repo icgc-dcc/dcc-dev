@@ -31,6 +31,7 @@ import org.icgc.dcc.dev.server.message.Messages.FirstSubscriberMessage;
 import org.icgc.dcc.dev.server.message.Messages.LastSubscriberMessage;
 import org.icgc.dcc.dev.server.message.Messages.LogMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -119,6 +120,12 @@ public class PortalLogs {
    */
   @Component
   class PortalLogTopicListener {
+    
+    /**
+     * Configuration.
+     */
+    @Value("${message.topicPrefix}")
+    String topicPrefix;
 
     @EventListener
     void handle(FirstSubscriberMessage message) {
@@ -145,7 +152,7 @@ public class PortalLogs {
     }
 
     private boolean isLog(String topic) {
-      return topic.startsWith("/topic/log");
+      return topic.startsWith(topicPrefix + "/log");
     }
 
   }

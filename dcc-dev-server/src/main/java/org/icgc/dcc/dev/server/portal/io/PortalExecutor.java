@@ -34,11 +34,11 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 import org.icgc.dcc.dev.server.message.MessageService;
-import org.icgc.dcc.dev.server.message.Messages.ExecutionMessage;
-import org.icgc.dcc.dev.server.message.Messages.StateMessage;
+import org.icgc.dcc.dev.server.message.Messages.PortalMessage;
+import org.icgc.dcc.dev.server.message.Messages.PortalMessage.Type;
 import org.icgc.dcc.dev.server.portal.Portal;
-import org.icgc.dcc.dev.server.portal.PortalRepository;
 import org.icgc.dcc.dev.server.portal.Portal.State;
+import org.icgc.dcc.dev.server.portal.Portal.Status;
 import org.icgc.dcc.dev.server.portal.util.PortalLocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -52,7 +52,6 @@ import com.google.common.collect.Maps;
 import lombok.Cleanup;
 import lombok.NonNull;
 import lombok.SneakyThrows;
-import lombok.Value;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,6 +65,7 @@ public class PortalExecutor {
   /**
    * Constants.
    */
+  private static final String STATUS_RUNNING_VALUE = "running";
   private static final Pattern STATUS_PATTERN =
       Pattern.compile("DCC Portal Server is ([^:.]+)[:.](?: PID:(\\d+), Wrapper:(\\w+), Java:(\\w+))?\n");
 
@@ -82,59 +82,58 @@ public class PortalExecutor {
   @Autowired
   PortalFileSystem fileSystem;
   @Autowired
-  PortalRepository repository;
-  @Autowired
-  PortalLocks locks;  
+  PortalLocks locks;
   @Autowired
   MessageService messages;
 
-  public PortalStatus status(@NonNull Integer portalId) {
+  public Status getStatus(@NonNull Integer portalId) {
     val statusOutput = executeScript(portalId, "status", null);
     return parseStatus(statusOutput);
   }
 
   public void start(@NonNull Portal portal) {
-    updateState(portal, STARTING);
+    update(portal, STARTING);
     executeScript(portal.getId(), "start", resolveArguments(portal));
-    updateState(portal, RUNNING);
+    update(portal, RUNNING);
   }
-  
+
   @Async
   public void startAsync(@NonNull Portal portal) {
     start(portal);
   }
 
   public void restart(@NonNull Portal portal) {
-    updateState(portal, RESTARTING);
+    update(portal, RESTARTING);
     executeScript(portal.getId(), "restart", resolveArguments(portal));
-    updateState(portal, RUNNING);
+    update(portal, RUNNING);
   }
-  
+
   @Async
   public void restartAsync(@NonNull Portal portal) {
     restart(portal);
   }
 
   public void stop(@NonNull Portal portal) {
-    updateState(portal, STOPPING);
+    update(portal, STOPPING);
     executeScript(portal.getId(), "stop", null);
-    updateState(portal, STOPPED);
+    update(portal, STOPPED);
   }
-  
+
   @Async
   public void stopAsync(@NonNull Portal portal) {
     stop(portal);
   }
 
-  private void updateState(Portal portal, State state) {
-    messages.sendMessage(new StateMessage().setState(state).setPortalId(portal.getId()));
+  private void update(Portal portal, State state) {
+    // Notify
+    messages.sendMessage(new PortalMessage().setType(Type.UPDATED).setPortal(portal));
   }
 
   @SneakyThrows
   private String executeScript(Integer portalId, String action, Map<String, String> arguments) {
     @Cleanup
     val lock = locks.lockReading(portalId);
-    
+
     val scriptFile = fileSystem.getScriptFile(portalId);
     val command = createCommand(scriptFile, action, arguments);
 
@@ -146,8 +145,6 @@ public class PortalExecutor {
         .outputUTF8();
 
     log.info("Output: {}", output);
-    messages.sendMessage(new ExecutionMessage().setAction(action).setOutput(output).setPortalId(portalId));
-
     return output;
   }
 
@@ -172,11 +169,11 @@ public class PortalExecutor {
     if (arguments == null) return emptyList();
 
     return arguments.entrySet().stream()
-        .map(e -> "--" + e.getKey() + "=" + e.getValue())
+        .map(e -> "--" + e.getKey() + "=" + e.getValue()) // Format Spring Boot argument
         .collect(toList());
   }
 
-  private static PortalStatus parseStatus(String statusOutput) {
+  private static Status parseStatus(String statusOutput) {
     val matcher = STATUS_PATTERN.matcher(statusOutput);
     checkState(matcher.matches(), "Expected '%s' to match pattern: %s", statusOutput, STATUS_PATTERN);
 
@@ -187,22 +184,11 @@ public class PortalExecutor {
     val wrapper = matcher.group(i++);
     val java = matcher.group(i++);
 
-    return new PortalStatus(
-        state.equals("running"),
-        pid == null ? null : Integer.valueOf(pid),
-        wrapper,
-        java);
-  }
-
-  @Value
-  public static class PortalStatus {
-
-    boolean running;
-
-    Integer pid;
-    String wrapper;
-    String java;
-
+    return new Status()
+        .setRunning(state.equals(STATUS_RUNNING_VALUE))
+        .setPid(pid == null ? null : Integer.valueOf(pid))
+        .setWrapper(wrapper)
+        .setJava(java);
   }
 
 }
