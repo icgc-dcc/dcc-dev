@@ -23,10 +23,9 @@ import java.util.List;
 
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
-import org.icgc.dcc.dev.server.portal.Portal.State;
+import org.icgc.dcc.dev.server.portal.Portal;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Value;
 import lombok.experimental.Accessors;
@@ -53,37 +52,25 @@ public final class Messages {
 
   @Data
   @Accessors(chain = true)
-  public static abstract class PortalMessage {
+  public static class PortalMessage {
+
+    public enum Type {
+      CREATED,
+      REMOVED,
+      UPDATED
+    }
+
+    Type type;
+    Portal portal;
+
+  }
+
+  @Data
+  @Accessors(chain = true)
+  public static class LogMessage {
 
     Integer portalId;
-
-  }
-
-  @Data
-  @Accessors(chain = true)
-  @EqualsAndHashCode(callSuper = true)
-  public static class LogMessage extends PortalMessage {
-
     String line;
-
-  }
-
-  @Data
-  @Accessors(chain = true)
-  @EqualsAndHashCode(callSuper = true)
-  public static class ExecutionMessage extends PortalMessage {
-
-    String action;
-    String output;
-
-  }
-
-  @Data
-  @Accessors(chain = true)
-  @EqualsAndHashCode(callSuper = true)
-  public static class StateMessage extends PortalMessage {
-
-    State state;
 
   }
 

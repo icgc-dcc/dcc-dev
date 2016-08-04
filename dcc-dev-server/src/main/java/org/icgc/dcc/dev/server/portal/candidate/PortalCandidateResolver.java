@@ -17,6 +17,7 @@
  */
 package org.icgc.dcc.dev.server.portal.candidate;
 
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
@@ -45,7 +46,7 @@ public class PortalCandidateResolver {
   /**
    * Constants.
    */
-  private static final Pattern PR_PATTERN = Pattern.compile("^(DCC-\\d+)/.*$");
+  private static final Pattern PR_TICKET_PATTERN = Pattern.compile("(DCC-\\d+)", CASE_INSENSITIVE);
 
   /**
    * Dependencies.
@@ -68,30 +69,30 @@ public class PortalCandidateResolver {
   }
 
   public Optional<Candidate> resolve(@NonNull Integer prNumber) {
-    val pr = github.getPr(prNumber);
-    if (!pr.isPresent()) return Optional.empty();
-
-    return resolve(pr.get());
+    return github.getPr(prNumber)
+        .flatMap(this::resolve);
   }
 
   public Optional<Portal.Candidate> resolve(@NonNull GithubPr pr) {
-    val buildNumber = github.getBuildNumber(pr.getHead());
-    if (buildNumber == null) return Optional.empty();
+    return github.getBuildNumber(pr.getHead())
+        .map(buildNumber -> createCandidate(pr, buildNumber));
+  }
 
+  private Candidate createCandidate(GithubPr pr, String buildNumber) {
     val build = jenkins.getSuccessfulBuild(buildNumber);
     val artifact = artifactory.getArtifact(buildNumber);
     val ticketKey = parseTicketKey(pr.getBranch());
     val ticket = ticketKey == null ? null : jira.getTicket(ticketKey);
 
-    return Optional.of(new Portal.Candidate()
+    return new Portal.Candidate()
         .setPr(pr)
         .setBuild(build)
         .setArtifact(artifact.orElse(null))
-        .setTicket(ticket));
+        .setTicket(ticket);
   }
 
   private static String parseTicketKey(String branch) {
-    val matcher = PR_PATTERN.matcher(branch);
+    val matcher = PR_TICKET_PATTERN.matcher(branch);
 
     return matcher.find() ? matcher.group(1) : null;
   }

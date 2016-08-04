@@ -18,9 +18,8 @@
 package org.icgc.dcc.dev.server.message;
 
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
-import org.icgc.dcc.dev.server.message.Messages.ExecutionMessage;
 import org.icgc.dcc.dev.server.message.Messages.LogMessage;
-import org.icgc.dcc.dev.server.message.Messages.StateMessage;
+import org.icgc.dcc.dev.server.message.Messages.PortalMessage;
 import org.icgc.dcc.dev.server.slack.SlackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,12 +53,9 @@ public class MessageService {
   SlackService slack;
 
   public void sendMessage(@NonNull Object message) {
-    if (message instanceof StateMessage) {
-      val stateMessage = (StateMessage) message;
-      sendWebSocketMessage("/portal/state", stateMessage);
-    } else if (message instanceof ExecutionMessage) {
-      val executionMessage = (ExecutionMessage) message;
-      sendWebSocketMessage("/portal/execute", executionMessage);
+    if (message instanceof PortalMessage) {
+      val portalChangedMessage = (PortalMessage) message;
+      sendWebSocketMessage("/portal", portalChangedMessage.getPortal());
     } else if (message instanceof LogMessage) {
       val logMessage = (LogMessage) message;
       sendWebSocketMessage("/logs/" + logMessage.getPortalId(), logMessage);

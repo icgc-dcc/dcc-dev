@@ -50,24 +50,25 @@ public class PortalCandidateListener {
     val prBuilds = Multimaps.index(message.getBuilds(), JenkinsBuild::getPrNumber);
 
     for (val portal : portals.list()) {
-      val prNumber = portal.getTarget().getPr().getNumber();
+      val candidate = portal.getTarget();
+      val prNumber = candidate.getPr().getNumber();
       val portalBuilds = prBuilds.get(prNumber);
       val latestBuild = getLast(portalBuilds);
 
-      val deployed = portal.getTarget().getBuild() != null;
+      val deployed = candidate.getBuild() != null;
       if (deployed) {
-        val buildNumber = portal.getTarget().getBuild().getNumber();
-        val deployedBuild = latestBuild.getNumber() <= buildNumber;
-        if (deployedBuild) continue;
-        
+        val buildNumber = candidate.getBuild().getNumber();
+        val staleBuild = latestBuild.getNumber() <= buildNumber;
+        if (staleBuild) continue;
+
         log.info("Build update found for portal {}:  {}", portal.getId(), latestBuild);
         if (!portal.isAutoDeploy()) continue;
-        
+
         log.info("Auto deploying portal {}: {}", portal.getId(), latestBuild);
-        portal.getTarget().setBuild(latestBuild);
+        candidate.setBuild(latestBuild);
       } else {
         log.info("First build found for portal {}:  {}", portal.getId(), latestBuild);
-        portal.getTarget().setBuild(latestBuild);
+        candidate.setBuild(latestBuild);
       }
 
       portals.update(portal);

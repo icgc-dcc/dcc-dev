@@ -17,7 +17,6 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
-import static org.icgc.dcc.common.core.json.Jackson.DEFAULT;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 
 import java.io.IOException;
@@ -27,7 +26,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
-import org.icgc.dcc.dev.server.portal.io.PortalExecutor.PortalStatus;
+import org.icgc.dcc.dev.server.portal.Portal.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -39,9 +38,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-
-import lombok.SneakyThrows;
 import lombok.val;
 
 /**
@@ -66,7 +62,7 @@ public class PortalController {
     val portal = service.getBySlug(slug);
     response.sendRedirect(portal.getUrl());
   }
-  
+
   /**
    * Redirects by {@code id} to the associated portal's {@code url}. <br>
    * Useful as a mnemonic URL for users.
@@ -147,8 +143,8 @@ public class PortalController {
    * Gets the portal execution status with the specified {@code portalId}.
    */
   @GetMapping("/api/portals/{portalId}/status")
-  public PortalStatus status(@PathVariable("portalId") Integer portalId) {
-    return service.status(portalId);
+  public Status status(@PathVariable("portalId") Integer portalId) {
+    return service.getStatus(portalId);
   }
 
   /**
@@ -194,11 +190,6 @@ public class PortalController {
   @ResponseStatus(ACCEPTED)
   public void remove() {
     service.remove();
-  }
-
-  @SneakyThrows
-  private static Map<String, String> parseProperties(String config) {
-    return DEFAULT.readValue(config, new TypeReference<Map<String, String>>() {});
   }
 
 }

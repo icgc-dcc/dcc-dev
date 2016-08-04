@@ -29,7 +29,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
- * Collection of metadata that represents a portal instance.<p>
+ * Collection of metadata that represents a portal instance.
+ * <p>
  * Main user facing system entity.
  */
 @Data
@@ -82,16 +83,26 @@ public class Portal {
    * Whether or not to automatically deploy a new build when available.
    */
   boolean autoDeploy;
-  
+
   /**
    * Whether or not to automatically destroy when a PR is merged.
    */
   boolean autoRemove;
-  
+
   /**
    * The upstream candidate information about the running portal instance.
    */
   Candidate target;
+
+  /**
+   * Runtime status.
+   */
+  Status status = new Status().setRunning(false);
+  
+  /**
+   * Control state status.
+   */
+  State state = State.NEW;
 
   /**
    * A candidate for portal instance deployment.
@@ -108,7 +119,22 @@ public class Portal {
   }
 
   /**
-   * Represents the state of a portal instance.
+   * Runtime status of the executing portal instance.
+   */
+  @Data
+  @Accessors(chain = true)
+  public static class Status {
+
+    boolean running;
+
+    Integer pid;
+    String wrapper;
+    String java;
+
+  }
+
+  /**
+   * Represents the runtime state of a portal instance.
    */
   public static enum State {
 
