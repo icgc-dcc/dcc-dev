@@ -18,8 +18,8 @@
 package org.icgc.dcc.dev.server.message;
 
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
-import org.icgc.dcc.dev.server.message.Messages.LogMessage;
-import org.icgc.dcc.dev.server.message.Messages.PortalMessage;
+import org.icgc.dcc.dev.server.message.Messages.LogLineMessage;
+import org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage;
 import org.icgc.dcc.dev.server.slack.SlackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,13 +52,18 @@ public class MessageService {
   @Autowired
   SlackService slack;
 
+  /**
+   * Routes a message to the appropriate listeners.
+   * 
+   * @param message the message to send
+   */
   public void sendMessage(@NonNull Object message) {
-    if (message instanceof PortalMessage) {
-      val portalChangedMessage = (PortalMessage) message;
-      sendWebSocketMessage("/portal", portalChangedMessage.getPortal());
-    } else if (message instanceof LogMessage) {
-      val logMessage = (LogMessage) message;
-      sendWebSocketMessage("/logs/" + logMessage.getPortalId(), logMessage);
+    if (message instanceof PortalChangeMessage) {
+      val portalChange = (PortalChangeMessage) message;
+      sendWebSocketMessage("/portal", portalChange.getPortal());
+    } else if (message instanceof LogLineMessage) {
+      val logLine = (LogLineMessage) message;
+      sendWebSocketMessage("/logs/" + logLine.getPortalId(), logLine);
     } else if (message instanceof JenkinsBuild) {
       val build = (JenkinsBuild) message;
       publisher.publishEvent(build);

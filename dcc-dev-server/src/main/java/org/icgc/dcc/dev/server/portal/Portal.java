@@ -98,11 +98,11 @@ public class Portal {
    * Runtime status.
    */
   Status status = new Status().setRunning(false);
-  
+
   /**
-   * Control state status.
+   * Optimistic locking version.
    */
-  State state = State.NEW;
+  int version = 0;
 
   /**
    * A candidate for portal instance deployment.

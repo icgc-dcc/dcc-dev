@@ -38,7 +38,7 @@ public class JenkinsConfig {
   @Bean
   @SneakyThrows
   public JenkinsServer jenkins(
-      @Value("${jenkins.url}") URI url, 
+      @Value("${jenkins.url}") URI url,
       @Value("${jenkins.user}") String user,
       @Value("${jenkins.token}") String token) {
     return new JenkinsServer(url, user, token);

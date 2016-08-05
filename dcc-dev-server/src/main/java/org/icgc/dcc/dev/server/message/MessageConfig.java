@@ -36,7 +36,7 @@ public class MessageConfig extends AbstractWebSocketMessageBrokerConfigurer {
    */
   @Value("${message.topicPrefix}")
   String topicPrefix;
-  
+
   @Override
   public void configureMessageBroker(MessageBrokerRegistry config) {
     config.enableSimpleBroker(topicPrefix);

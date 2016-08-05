@@ -91,9 +91,7 @@ public class PortalConfig {
     log.info("**** Started!");
 
     val portals = service.list();
-    if (portals.isEmpty()) {
-      return;
-    }
+    if (portals.isEmpty()) return;
 
     log.info("Restarting portals...");
     for (val portal : portals) {

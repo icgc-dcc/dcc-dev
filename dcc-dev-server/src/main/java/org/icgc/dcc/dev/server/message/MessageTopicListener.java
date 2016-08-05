@@ -18,10 +18,9 @@
 package org.icgc.dcc.dev.server.message;
 
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
+import static org.icgc.dcc.dev.server.message.Messages.FirstSubscriberMessage.firstSubscriber;
+import static org.icgc.dcc.dev.server.message.Messages.LastSubscriberMessage.lastSubscriber;
 
-import org.icgc.dcc.dev.server.message.Messages.FirstSubscriberMessage;
-import org.icgc.dcc.dev.server.message.Messages.LastSubscriberMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
@@ -30,6 +29,7 @@ import org.springframework.web.socket.messaging.AbstractSubProtocolEvent;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 
+import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,13 +40,13 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 class MessageTopicListener {
 
   /**
    * Dependencies.
    */
-  @Autowired
-  MessageService messages;
+  final MessageService messages;
 
   /**
    * State.
@@ -58,7 +58,7 @@ class MessageTopicListener {
     val headers = StompHeaderAccessor.wrap(event.getMessage());
     val topic = headers.getDestination();
     val sessionId = headers.getSessionId();
-    
+
     val command = headers.getCommand();
     if (command == null) return;
 
@@ -82,8 +82,8 @@ class MessageTopicListener {
     topicSubscriptions.put(topic, sessionId);
 
     if (!isFirst(topic)) return;
-    
-    messages.sendMessage(new FirstSubscriberMessage(topic));
+
+    messages.sendMessage(firstSubscriber().topic(topic).build());
   }
 
   private void handleUnsubscribe(String topic, String sessionId) {
@@ -91,8 +91,8 @@ class MessageTopicListener {
     topicSubscriptions.remove(topic, sessionId);
 
     if (!isLast(topic)) return;
-    
-    messages.sendMessage(new LastSubscriberMessage(topic));
+
+    messages.sendMessage(lastSubscriber().topic(topic).build());
   }
 
   private void handleDisconnect(String sessionId) {
@@ -100,16 +100,16 @@ class MessageTopicListener {
     while (iterator.hasNext()) {
       val entry = iterator.next();
       val topic = entry.getKey();
-      
+
       val targetSessionId = entry.getValue();
       if (!targetSessionId.equals(sessionId)) continue;
-      
+
       log.info("Session {} disconnected from: {}", sessionId, topic);
       iterator.remove();
-      
+
       if (!isLast(topic)) continue;
-      
-      messages.sendMessage(new LastSubscriberMessage(topic));
+
+      messages.sendMessage(lastSubscriber().topic(topic).build());
     }
   }
 

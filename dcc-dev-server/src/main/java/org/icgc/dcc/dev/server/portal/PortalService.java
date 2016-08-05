@@ -18,6 +18,7 @@
 package org.icgc.dcc.dev.server.portal;
 
 import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
+import static org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage.portalChange;
 
 import java.net.URL;
 import java.util.List;
@@ -27,8 +28,8 @@ import java.util.Optional;
 import org.icgc.dcc.dev.server.jira.JiraService;
 import org.icgc.dcc.dev.server.jira.JiraTicket;
 import org.icgc.dcc.dev.server.message.MessageService;
-import org.icgc.dcc.dev.server.message.Messages.PortalMessage;
-import org.icgc.dcc.dev.server.message.Messages.PortalMessage.Type;
+import org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage;
+import org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage.Type;
 import org.icgc.dcc.dev.server.portal.candidate.PortalCandidateResolver;
 import org.icgc.dcc.dev.server.portal.io.PortalDeployer;
 import org.icgc.dcc.dev.server.portal.io.PortalExecutor;
@@ -38,6 +39,7 @@ import org.icgc.dcc.dev.server.portal.util.PortalLocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.github.slugify.Slugify;
 
@@ -116,6 +118,10 @@ public class PortalService {
       Map<String, String> config, boolean start) {
     log.info("Creating portal for PR {}...", prNumber);
 
+    // Validate
+    validateSlug(slug);
+    validateSlugUniqueness(slug, null);
+
     // Resolve portal candidate by PR
     val candidate = candidates.resolve(prNumber).orElseThrow(() -> new PortalPrNotFoundException(prNumber));
 
@@ -133,10 +139,6 @@ public class PortalService {
         .setTicketKey(resolveTicketKey(ticket, null, candidate.getTicket()))
         .setConfig(resolveConfig(config, null))
         .setTarget(candidate);
-
-    // Validate
-    validateSlug(slug);
-    validateSlugUniqueness(portal);
 
     // Create directory
     deployer.init(portal);
@@ -159,7 +161,7 @@ public class PortalService {
       updateTicket(portal);
     }
 
-    notify(portal, Type.CREATED);
+    notifyChange(portal, Type.CREATED);
 
     return portal;
   }
@@ -177,12 +179,16 @@ public class PortalService {
     deployer.deploy(portal);
     executor.startAsync(portal);
 
-    notify(portal, Type.UPDATED);
+    notifyChange(portal, Type.UPDATED);
   }
 
   public Portal update(@NonNull Integer portalId, String slug, String title, String description, String ticket,
       Map<String, String> config) {
     log.info("Updating portal {}...", portalId);
+
+    // Validate
+    validateSlug(slug);
+    validateSlugUniqueness(slug, portalId);
 
     @Cleanup
     val lock = locks.lockWriting(portalId);
@@ -196,15 +202,11 @@ public class PortalService {
         .setTicketKey(resolveTicketKey(ticket, portal.getTicketKey(), candidate.getTicket()))
         .setConfig(resolveConfig(config, portal.getConfig())));
 
-    // Ensure slug is unique
-    validateSlug(slug);
-    validateSlugUniqueness(portal);
-
     executor.stop(portal);
     deployer.deploy(portal);
     executor.startAsync(portal);
 
-    notify(portal, Type.UPDATED);
+    notifyChange(portal, Type.UPDATED);
 
     return portal;
   }
@@ -228,7 +230,7 @@ public class PortalService {
 
     deployer.undeploy(portalId);
 
-    notify(portal, Type.REMOVED);
+    notifyChange(portal, Type.REMOVED);
   }
 
   public void start(@NonNull Integer portalId) {
@@ -279,8 +281,8 @@ public class PortalService {
     return list().stream().filter(p -> p.getSlug().equals(slug)).findFirst();
   }
 
-  private void notify(Portal portal, PortalMessage.Type type) {
-    messages.sendMessage(new PortalMessage().setType(type).setPortal(portal));
+  private void notifyChange(Portal portal, PortalChangeMessage.Type type) {
+    messages.sendMessage(portalChange().type(type).portal(portal).build());
   }
 
   private void updateTicket(Portal portal) {
@@ -305,11 +307,11 @@ public class PortalService {
     }
   }
 
-  private void validateSlugUniqueness(Portal portal) {
-    val existingPortal = findBySlug(portal.getSlug());
-    if (existingPortal.isPresent() && !portal.getId().equals(existingPortal.get().getId())) {
+  private void validateSlugUniqueness(String slug, Integer portalId) {
+    val existingPortal = findBySlug(slug);
+    if (existingPortal.isPresent() && !existingPortal.get().getId().equals(portalId)) {
       throw new PortalValidationException("Portal %s already exists with slug '%s'", existingPortal.get().getId(),
-          portal.getSlug());
+          slug);
     }
   }
 
@@ -337,7 +339,10 @@ public class PortalService {
 
   private static String resolveUrl(URL publicUrl, Portal portal) {
     // Strip this port and add portal port
-    return publicUrl.toString().replaceFirst(":\\d+", "") + ":" + portal.getSystemConfig().get("server.port");
+    val url = publicUrl.toString();
+    val port = portal.getSystemConfig().get("server.port");
+
+    return UriComponentsBuilder.fromHttpUrl(url).port(port).toUriString();
   }
 
   @SafeVarargs

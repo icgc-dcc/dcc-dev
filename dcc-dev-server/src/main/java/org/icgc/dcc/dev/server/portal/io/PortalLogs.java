@@ -17,7 +17,9 @@
  */
 package org.icgc.dcc.dev.server.portal.io;
 
-import java.nio.charset.StandardCharsets;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.icgc.dcc.dev.server.message.Messages.LogLineMessage.logLine;
+
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,8 +31,6 @@ import org.apache.commons.io.input.TailerListenerAdapter;
 import org.icgc.dcc.dev.server.message.MessageService;
 import org.icgc.dcc.dev.server.message.Messages.FirstSubscriberMessage;
 import org.icgc.dcc.dev.server.message.Messages.LastSubscriberMessage;
-import org.icgc.dcc.dev.server.message.Messages.LogMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -50,15 +50,14 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class PortalLogs {
 
   /**
    * Dependencies.
    */
-  @Autowired
-  PortalFileSystem fileSystem;
-  @Autowired
-  MessageService messages;
+  final PortalFileSystem fileSystem;
+  final MessageService messages;
 
   /**
    * State.
@@ -69,7 +68,7 @@ public class PortalLogs {
   @SneakyThrows
   public String cat(@NonNull Integer portalId) {
     val logFile = fileSystem.getLogFile(portalId);
-    return Files.toString(logFile, StandardCharsets.UTF_8);
+    return Files.toString(logFile, UTF_8);
   }
 
   @Synchronized
@@ -109,7 +108,7 @@ public class PortalLogs {
     @Override
     public void handle(String line) {
       log.info("{}: {}", portalId, line);
-      val message = new LogMessage().setLine(line).setPortalId(portalId);
+      val message = logLine().portalId(portalId).line(line).build();
       messages.sendMessage(message);
     }
 
@@ -120,7 +119,7 @@ public class PortalLogs {
    */
   @Component
   class PortalLogTopicListener {
-    
+
     /**
      * Configuration.
      */

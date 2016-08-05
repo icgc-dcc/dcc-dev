@@ -19,6 +19,7 @@ package org.icgc.dcc.dev.server.github;
 
 import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 import static org.icgc.dcc.common.core.util.stream.Streams.stream;
+import static org.icgc.dcc.dev.server.message.Messages.GithubPrsMessage.githubPrs;
 import static org.kohsuke.github.GHCommitState.SUCCESS;
 import static org.kohsuke.github.GHIssueState.OPEN;
 
@@ -27,14 +28,13 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.icgc.dcc.dev.server.message.MessageService;
-import org.icgc.dcc.dev.server.message.Messages.GithubPrsMessage;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.val;
@@ -45,20 +45,19 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class GithubService {
 
   /**
    * Constants.
    */
-  private static final Pattern BUILD_NUMBER_PATTERN = Pattern.compile("/([^/]+)/?$");
+  static final Pattern BUILD_NUMBER_PATTERN = Pattern.compile("/([^/]+)/?$");
 
   /**
    * Dependencies.
    */
-  @Autowired
-  GHRepository repo;
-  @Autowired
-  MessageService messages;
+  final GHRepository repo;
+  final MessageService messages;
 
   /**
    * Poll at regular intervals for available PRs.
@@ -67,7 +66,7 @@ public class GithubService {
   @Synchronized
   public void poll() {
     log.debug("Polling...");
-    messages.sendMessage(new GithubPrsMessage(getPrs()));
+    messages.sendMessage(githubPrs().prs(getPrs()).build());
   }
 
   public Optional<GithubPr> getPr(@NonNull Integer prNumber) {
@@ -88,7 +87,7 @@ public class GithubService {
   public Optional<String> getBuildNumber(@NonNull String sha1) {
     val status = repo.getLastCommitStatus(sha1);
     val state = status.getState();
-    
+
     return Optional.ofNullable(state != SUCCESS ? null : parseBuildNumber(status.getTargetUrl()));
   }
 

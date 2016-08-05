@@ -87,8 +87,8 @@ public class ArtifactoryService {
     return artifactory.searches().repositories(repoName).artifactsByName(artifactId);
   }
 
-  private boolean isPrimaryArifact(RepoPath p){
-    return  p.getItemPath().contains(artifactId) && p.getItemPath().endsWith(".jar");
+  private boolean isPrimaryArifact(RepoPath p) {
+    return p.getItemPath().contains(artifactId) && p.getItemPath().endsWith(".jar");
   }
 
   private String resolveAbsolutePath(final java.lang.String path) {

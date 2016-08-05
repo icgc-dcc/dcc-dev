@@ -130,8 +130,8 @@ public class PortalDeployer {
     copyDirectory(templateDir, targetDir);
 
     // Make executable
-    val binaries = fileSystem.getBinDir(portalId).listFiles();
-    for (val binary : binaries) {
+    File[] binaries = fileSystem.getBinDir(portalId).listFiles();
+    for (File binary : binaries) {
       setPosixFilePermissions(binary.toPath(), ImmutableSet.of(OWNER_EXECUTE, OWNER_READ));
     }
   }
@@ -143,7 +143,7 @@ public class PortalDeployer {
     log.info("Downloading {} to {}", artifactUrl, jarFile);
     copy(artifactUrl.openStream(), jarFile.toPath(), REPLACE_EXISTING);
   }
-  
+
   private static void assignPorts(Portal portal) {
     val systemConfig = portal.getSystemConfig();
     assignPort(systemConfig, "server.port");
@@ -156,7 +156,7 @@ public class PortalDeployer {
     val portStart = Integer.valueOf(systemConfig.getOrDefault(portProperty, "8000"));
     val portEnd = 9000;
     val port = findAvailableTcpPort(portStart, portEnd);
-    
+
     systemConfig.put(portProperty, String.valueOf(port));
   }
 

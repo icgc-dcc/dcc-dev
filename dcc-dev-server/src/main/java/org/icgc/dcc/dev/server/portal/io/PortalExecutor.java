@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
+import static org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage.portalChange;
 import static org.icgc.dcc.dev.server.portal.Portal.State.RESTARTING;
 import static org.icgc.dcc.dev.server.portal.Portal.State.RUNNING;
 import static org.icgc.dcc.dev.server.portal.Portal.State.STARTING;
@@ -34,8 +35,7 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 import org.icgc.dcc.dev.server.message.MessageService;
-import org.icgc.dcc.dev.server.message.Messages.PortalMessage;
-import org.icgc.dcc.dev.server.message.Messages.PortalMessage.Type;
+import org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage.Type;
 import org.icgc.dcc.dev.server.portal.Portal;
 import org.icgc.dcc.dev.server.portal.Portal.State;
 import org.icgc.dcc.dev.server.portal.Portal.Status;
@@ -50,7 +50,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
 import lombok.Cleanup;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -87,13 +89,13 @@ public class PortalExecutor {
   MessageService messages;
 
   public Status getStatus(@NonNull Integer portalId) {
-    val statusOutput = executeScript(portalId, "status", null);
+    val statusOutput = executeScript(portalId, CommandName.STATUS, null);
     return parseStatus(statusOutput);
   }
 
   public void start(@NonNull Portal portal) {
     update(portal, STARTING);
-    executeScript(portal.getId(), "start", resolveArguments(portal));
+    executeScript(portal.getId(), CommandName.START, resolveArguments(portal));
     update(portal, RUNNING);
   }
 
@@ -104,7 +106,7 @@ public class PortalExecutor {
 
   public void restart(@NonNull Portal portal) {
     update(portal, RESTARTING);
-    executeScript(portal.getId(), "restart", resolveArguments(portal));
+    executeScript(portal.getId(), CommandName.RESTART, resolveArguments(portal));
     update(portal, RUNNING);
   }
 
@@ -115,7 +117,7 @@ public class PortalExecutor {
 
   public void stop(@NonNull Portal portal) {
     update(portal, STOPPING);
-    executeScript(portal.getId(), "stop", null);
+    executeScript(portal.getId(), CommandName.STOP, null);
     update(portal, STOPPED);
   }
 
@@ -126,16 +128,16 @@ public class PortalExecutor {
 
   private void update(Portal portal, State state) {
     // Notify
-    messages.sendMessage(new PortalMessage().setType(Type.UPDATED).setPortal(portal));
+    messages.sendMessage(portalChange().type(Type.UPDATED).portal(portal));
   }
 
   @SneakyThrows
-  private String executeScript(Integer portalId, String action, Map<String, String> arguments) {
+  private String executeScript(Integer portalId, CommandName commandName, Map<String, String> arguments) {
     @Cleanup
     val lock = locks.lockReading(portalId);
 
     val scriptFile = fileSystem.getScriptFile(portalId);
-    val command = createCommand(scriptFile, action, arguments);
+    val command = createCommand(scriptFile, commandName, arguments);
 
     log.info("Executing command: {}", command);
     val output = new ProcessExecutor()
@@ -158,10 +160,10 @@ public class PortalExecutor {
     return effectiveArguments;
   }
 
-  private static List<String> createCommand(File scriptFile, String action, Map<String, String> arguments) {
+  private static List<String> createCommand(File scriptFile, CommandName commandName, Map<String, String> arguments) {
     return ImmutableList.<String> builder()
         .add(scriptFile.getAbsolutePath())
-        .add(action)
+        .add(commandName.getId())
         .addAll(createCommandArgs(arguments)).build();
   }
 
@@ -189,6 +191,19 @@ public class PortalExecutor {
         .setPid(pid == null ? null : Integer.valueOf(pid))
         .setWrapper(wrapper)
         .setJava(java);
+  }
+
+  /**
+   * Command type.
+   */
+  @RequiredArgsConstructor
+  private enum CommandName {
+
+    START("start"), RESTART("restart"), STOP("stop"), STATUS("status");
+
+    @Getter
+    private final String id;
+
   }
 
 }

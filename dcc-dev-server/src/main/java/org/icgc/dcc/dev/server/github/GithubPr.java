@@ -33,7 +33,7 @@ public class GithubPr {
    * Primary key.
    */
   int number;
-  
+
   String title;
   String description;
   String user;

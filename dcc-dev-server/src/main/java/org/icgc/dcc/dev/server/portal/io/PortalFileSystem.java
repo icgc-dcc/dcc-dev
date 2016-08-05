@@ -36,7 +36,7 @@ public class PortalFileSystem {
   @Value("${workspace.dir}")
   File workspaceDir;
   @Value("${artifact.artifactId}")
-  String baseName = "dcc-portal-server";
+  String baseName;
 
   public File getDir() {
     return new File(workspaceDir, "portals");

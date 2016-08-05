@@ -17,42 +17,49 @@
  */
 package org.icgc.dcc.dev.server.message;
 
-import static lombok.AccessLevel.PRIVATE;
-
 import java.util.List;
 
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.server.portal.Portal;
 
-import lombok.Data;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.Value;
-import lombok.experimental.Accessors;
 
 /**
  * Catalog of messages to be sent from publishers to subscribers.
  */
-@NoArgsConstructor(access = PRIVATE)
+@NoArgsConstructor
 public final class Messages {
 
   @Value
+  @Builder
   public static class JenkinsBuildsMessage {
 
     List<JenkinsBuild> builds;
 
+    public static JenkinsBuildsMessageBuilder jenkinsBuilds() {
+      return builder();
+    }
+
   }
 
   @Value
+  @Builder
   public static class GithubPrsMessage {
 
     List<GithubPr> prs;
 
+    public static GithubPrsMessageBuilder githubPrs() {
+      return builder();
+    }
+
   }
 
-  @Data
-  @Accessors(chain = true)
-  public static class PortalMessage {
+  @Value
+  @Builder
+  public static class PortalChangeMessage {
 
     public enum Type {
       CREATED,
@@ -63,28 +70,46 @@ public final class Messages {
     Type type;
     Portal portal;
 
+    public static PortalChangeMessageBuilder portalChange() {
+      return builder();
+    }
+
   }
 
-  @Data
-  @Accessors(chain = true)
-  public static class LogMessage {
+  @Value
+  @Builder
+  public static class LogLineMessage {
 
     Integer portalId;
     String line;
 
+    public static LogLineMessageBuilder logLine() {
+      return builder();
+    }
+
   }
 
   @Value
+  @Builder
   public static class FirstSubscriberMessage {
 
     String topic;
 
+    public static FirstSubscriberMessageBuilder firstSubscriber() {
+      return builder();
+    }
+
   }
 
   @Value
+  @Builder
   public static class LastSubscriberMessage {
 
     String topic;
+
+    public static LastSubscriberMessageBuilder lastSubscriber() {
+      return builder();
+    }
 
   }
 

@@ -42,12 +42,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class PortalArchive {
-  
+
   /**
    * Configuration.
    */
   final URL archiveUrl;
-  
+
   @SneakyThrows
   public void extract(File outputDir) {
     @Cleanup
@@ -85,5 +85,5 @@ public class PortalArchive {
     // Strip staring directory with version from path
     return tarEntry.getName().replaceFirst("^[^/]+/", "");
   }
-  
+
 }

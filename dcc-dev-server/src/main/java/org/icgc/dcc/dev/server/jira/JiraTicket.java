@@ -33,7 +33,7 @@ public class JiraTicket {
    * Primary key.
    */
   String key;
-  
+
   String title;
   String status;
   String assignee;

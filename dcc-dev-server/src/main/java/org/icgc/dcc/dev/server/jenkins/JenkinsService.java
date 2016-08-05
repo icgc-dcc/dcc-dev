@@ -19,6 +19,7 @@ package org.icgc.dcc.dev.server.jenkins;
 
 import static com.google.common.primitives.Ints.tryParse;
 import static java.util.stream.Collectors.toList;
+import static org.icgc.dcc.dev.server.message.Messages.JenkinsBuildsMessage.jenkinsBuilds;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +28,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.icgc.dcc.dev.server.message.MessageService;
-import org.icgc.dcc.dev.server.message.Messages.JenkinsBuildsMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -56,7 +56,7 @@ public class JenkinsService {
   /**
    * Constants.
    */
-  private static final Pattern CAUSE_SHORT_DESCRIPTION_PATTERN =
+  static final Pattern CAUSE_SHORT_DESCRIPTION_PATTERN =
       Pattern.compile("GitHub pull request #(\\d+) of commit ([a-f0-9]+)");
 
   /**
@@ -80,7 +80,7 @@ public class JenkinsService {
   @Synchronized
   public void poll() {
     log.debug("Polling...");
-    messages.sendMessage(new JenkinsBuildsMessage(getSuccessfulBuilds()));
+    messages.sendMessage(jenkinsBuilds().builds(getSuccessfulBuilds()).build());
   }
 
   @SneakyThrows
