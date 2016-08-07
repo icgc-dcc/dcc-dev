@@ -17,13 +17,11 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
-import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 import static org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage.portalChange;
 
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.icgc.dcc.dev.server.jira.JiraService;
 import org.icgc.dcc.dev.server.jira.JiraTicket;
@@ -42,6 +40,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.github.slugify.Slugify;
+import com.google.common.collect.ImmutableList;
 
 import lombok.Cleanup;
 import lombok.NonNull;
@@ -91,11 +90,14 @@ public class PortalService {
   }
 
   public Portal get(@NonNull Integer portalId) {
-    return find(portalId).orElseThrow(() -> new PortalNotFoundException(portalId));
+    val portal = repository.findOne(portalId);
+    if (portal == null) throw new PortalNotFoundException(portalId);
+
+    return portal;
   }
 
   public Portal getBySlug(@NonNull String slug) {
-    return findBySlug(slug).orElseThrow(() -> new PortalNotFoundException(slug));
+    return repository.findBySlug(slug).orElseThrow(() -> new PortalNotFoundException(slug));
   }
 
   public Portal.Status getStatus(@NonNull Integer portalId) {
@@ -107,11 +109,7 @@ public class PortalService {
   }
 
   public List<Portal> list() {
-    return repository.getIds().stream()
-        .map(this::find)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(toImmutableList());
+    return ImmutableList.copyOf(repository.findAll());
   }
 
   public Portal create(@NonNull Integer prNumber, String slug, String title, String description, String ticket,
@@ -119,20 +117,13 @@ public class PortalService {
     log.info("Creating portal for PR {}...", prNumber);
 
     // Validate
-    validateSlug(slug);
-    validateSlugUniqueness(slug, null);
+    validateSlug(slug, null);
 
     // Resolve portal candidate by PR
     val candidate = candidates.resolve(prNumber).orElseThrow(() -> new PortalPrNotFoundException(prNumber));
 
-    // Get new id and lock
-    val portalId = deployer.nextPortalId();
-    @Cleanup
-    val lock = locks.lockWriting(portalId);
-
     // Collect metadata in a single object
-    val portal = new Portal()
-        .setId(portalId)
+    Portal portal = new Portal()
         .setTitle(resolveTitle(title, null, candidate.getPr().getTitle()))
         .setSlug(resolveSlug(slug, null, title, null, candidate.getPr().getTitle()))
         .setDescription(resolveDescription(description, null, candidate.getPr().getDescription()))
@@ -140,18 +131,22 @@ public class PortalService {
         .setConfig(resolveConfig(config, null))
         .setTarget(candidate);
 
+    // Save instance
+    portal = repository.save(portal);
+
+    // Lock
+    @Cleanup
+    val lock = locks.lockWriting(portal);
+
     // Create directory
     deployer.init(portal);
 
     // Install jar
     deployer.deploy(portal);
 
-    // Save instance
-    repository.create(portal);
-
     // Assign URL
     portal.setUrl(resolveUrl(publicUrl, portal));
-    repository.update(portal);
+    repository.save(portal);
 
     if (start) {
       // Start the portal
@@ -169,7 +164,7 @@ public class PortalService {
   public void update(Portal portal) {
     @Cleanup
     val lock = locks.lockWriting(portal);
-    repository.update(portal);
+    portal = repository.save(portal);
 
     val status = getStatus(portal.getId());
     if (status.isRunning()) {
@@ -187,15 +182,14 @@ public class PortalService {
     log.info("Updating portal {}...", portalId);
 
     // Validate
-    validateSlug(slug);
-    validateSlugUniqueness(slug, portalId);
+    validateSlug(slug, portalId);
 
     @Cleanup
     val lock = locks.lockWriting(portalId);
-    val portal = get(portalId);
+    Portal portal = get(portalId);
 
     val candidate = portal.getTarget();
-    repository.update(portal
+    portal = repository.save(portal
         .setTitle(resolveTitle(title, portal.getTitle(), candidate.getPr().getTitle()))
         .setSlug(resolveSlug(slug, portal.getSlug(), title, portal.getTitle(), candidate.getPr().getTitle()))
         .setDescription(resolveDescription(description, portal.getDescription(), candidate.getPr().getDescription()))
@@ -227,7 +221,6 @@ public class PortalService {
 
     // Wait for the instance to stop (synchronous)
     executor.stop(portal);
-
     deployer.undeploy(portalId);
 
     notifyChange(portal, Type.REMOVED);
@@ -271,18 +264,22 @@ public class PortalService {
     return logs.cat(portalId);
   }
 
-  private Optional<Portal> find(@NonNull Integer portalId) {
-    @Cleanup
-    val lock = locks.lockReading(portalId);
-    return repository.find(portalId);
-  }
+  @SneakyThrows
+  private void validateSlug(String slug, Integer portalId) {
+    if (slug == null) return;
 
-  private Optional<Portal> findBySlug(@NonNull String slug) {
-    return list().stream().filter(p -> p.getSlug().equals(slug)).findFirst();
-  }
+    val empty = slug.trim().equals("");
+    if (empty) throw new PortalValidationException("Portal slug '%s' cannot be blank", slug);
 
-  private void notifyChange(Portal portal, PortalChangeMessage.Type type) {
-    messages.sendMessage(portalChange().type(type).portal(portal).build());
+    val slugifiedSlug = new Slugify().slugify(slug);
+    val slugified = slug.equals(slugifiedSlug);
+    if (!slugified) throw new PortalValidationException("Portal slug '%s' is not slugified. Should be '%s'",
+        slug, slugifiedSlug);
+    
+    val existingPortal = repository.findBySlug(slug);
+    val duplicate = existingPortal.isPresent() && !existingPortal.get().getId().equals(portalId);
+    if (duplicate) throw new PortalValidationException("Portal %s already exists with slug '%s'",
+        existingPortal.get().getId(), slug);
   }
 
   private void updateTicket(Portal portal) {
@@ -293,26 +290,8 @@ public class PortalService {
     jira.updateTicket(ticketKey, "Deployed to " + iframeUrl + " for testing");
   }
 
-  @SneakyThrows
-  private void validateSlug(String slug) {
-    if (slug == null) return;
-
-    if (slug.trim().equals("")) {
-      throw new PortalValidationException("Portal slug '%s' cannot be blank", slug);
-    }
-
-    val slugifiedSlug = new Slugify().slugify(slug);
-    if (!slug.equals(slugifiedSlug)) {
-      throw new PortalValidationException("Portal slug '%s' is not slugified. Should be '%s'", slug, slugifiedSlug);
-    }
-  }
-
-  private void validateSlugUniqueness(String slug, Integer portalId) {
-    val existingPortal = findBySlug(slug);
-    if (existingPortal.isPresent() && !existingPortal.get().getId().equals(portalId)) {
-      throw new PortalValidationException("Portal %s already exists with slug '%s'", existingPortal.get().getId(),
-          slug);
-    }
+  private void notifyChange(Portal portal, PortalChangeMessage.Type type) {
+    messages.sendMessage(portalChange().type(type).portal(portal).build());
   }
 
   @SneakyThrows
@@ -347,9 +326,8 @@ public class PortalService {
 
   @SafeVarargs
   private static <T> T resolveValue(T... values) {
-    for (val value : values) {
+    for (val value : values)
       if (value != null) return value;
-    }
 
     return null;
   }

@@ -22,11 +22,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 import static org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage.portalChange;
-import static org.icgc.dcc.dev.server.portal.Portal.State.RESTARTING;
-import static org.icgc.dcc.dev.server.portal.Portal.State.RUNNING;
-import static org.icgc.dcc.dev.server.portal.Portal.State.STARTING;
-import static org.icgc.dcc.dev.server.portal.Portal.State.STOPPED;
-import static org.icgc.dcc.dev.server.portal.Portal.State.STOPPING;
 
 import java.io.File;
 import java.util.List;
@@ -37,7 +32,6 @@ import java.util.regex.Pattern;
 import org.icgc.dcc.dev.server.message.MessageService;
 import org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage.Type;
 import org.icgc.dcc.dev.server.portal.Portal;
-import org.icgc.dcc.dev.server.portal.Portal.State;
 import org.icgc.dcc.dev.server.portal.Portal.Status;
 import org.icgc.dcc.dev.server.portal.util.PortalLocks;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,9 +88,9 @@ public class PortalExecutor {
   }
 
   public void start(@NonNull Portal portal) {
-    update(portal, STARTING);
+    update(portal, State.STARTING);
     executeScript(portal.getId(), CommandName.START, resolveArguments(portal));
-    update(portal, RUNNING);
+    update(portal, State.RUNNING);
   }
 
   @Async
@@ -105,9 +99,9 @@ public class PortalExecutor {
   }
 
   public void restart(@NonNull Portal portal) {
-    update(portal, RESTARTING);
+    update(portal, State.RESTARTING);
     executeScript(portal.getId(), CommandName.RESTART, resolveArguments(portal));
-    update(portal, RUNNING);
+    update(portal, State.RUNNING);
   }
 
   @Async
@@ -116,9 +110,9 @@ public class PortalExecutor {
   }
 
   public void stop(@NonNull Portal portal) {
-    update(portal, STOPPING);
+    update(portal, State.STOPPING);
     executeScript(portal.getId(), CommandName.STOP, null);
-    update(portal, STOPPED);
+    update(portal, State.STOPPED);
   }
 
   @Async
@@ -194,7 +188,7 @@ public class PortalExecutor {
   }
 
   /**
-   * Command type.
+   * Script command.
    */
   @RequiredArgsConstructor
   private enum CommandName {
@@ -203,6 +197,15 @@ public class PortalExecutor {
 
     @Getter
     private final String id;
+
+  }
+
+  /**
+   * Represents the runtime state of a portal instance.
+   */
+  public static enum State {
+
+    NEW, STARTING, RUNNING, STOPPING, STOPPED, RESTARTING, FAILED;
 
   }
 

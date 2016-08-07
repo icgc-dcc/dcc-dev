@@ -17,107 +17,22 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
-import static com.google.common.base.Preconditions.checkState;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
-import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
-
-import java.io.File;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
-import org.icgc.dcc.dev.server.portal.io.PortalFileSystem;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.NonNull;
-import lombok.SneakyThrows;
-import lombok.val;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.Repository;
 
 /**
- * Repository for persisting portal instance metadata.
+ * {@link Repository} implementation for portal instance metadata.
  */
-@Repository
-public class PortalRepository {
+public interface PortalRepository extends CrudRepository<Portal, Integer> {
 
   /**
-   * Constants.
+   * Looks up a portal instance by {@literal slug} value.
+   * 
+   * @param slug value
+   * @return the portal instance
    */
-  private static final ObjectMapper MAPPER = new ObjectMapper()
-      .configure(FAIL_ON_UNKNOWN_PROPERTIES, false) // For schema evolution
-      .enable(INDENT_OUTPUT); // For humans
-
-  /**
-   * Dependencies.
-   */
-  @Autowired
-  PortalFileSystem fileSystem;
-
-  public List<Integer> getIds() {
-    String[] portalIds = fileSystem.getDir().list();
-    if (portalIds == null) return emptyList();
-
-    return Stream.of(portalIds).map(Integer::parseInt).collect(toImmutableList());
-  }
-
-  public boolean exists(@NonNull Integer portalId) {
-    val metadataFile = getMetadataFile(portalId);
-    return metadataFile.exists();
-  }
-
-  public List<Portal> list() {
-    return getIds().stream()
-        .map(this::find)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(toList());
-  }
-
-  public Optional<Portal> find(@NonNull Integer portalId) {
-    val metadataFile = getMetadataFile(portalId);
-    return Optional.ofNullable(metadataFile.exists() ? read(metadataFile) : null);
-  }
-
-  public void create(@NonNull Portal portal) {
-    val metadataFile = getMetadataFile(portal.getId());
-    checkState(!metadataFile.exists(), "Portal %s already exists!", portal.getId());
-
-    // Optimistic locking
-    portal.setVersion(1);
-
-    write(metadataFile, portal);
-  }
-
-  public void update(@NonNull Portal portal) {
-    val currentPortal = find(portal.getId());
-    checkState(currentPortal.isPresent(), "Portal %s does not exist for update!", portal.getId());
-
-    // Optimistic locking
-    val currentVersion = currentPortal.get().getVersion();
-    checkState(currentVersion == portal.getVersion(), "Optimisic lock could not be acquired!");
-    portal.setVersion(currentVersion + 1);
-
-    val metadataFile = getMetadataFile(portal.getId());
-    write(metadataFile, portal);
-  }
-
-  @SneakyThrows
-  private Portal read(File file) {
-    return MAPPER.readValue(file, Portal.class);
-  }
-
-  @SneakyThrows
-  private void write(File file, Portal portal) {
-    MAPPER.writeValue(file, portal);
-  }
-
-  private File getMetadataFile(Integer portalId) {
-    return fileSystem.getMetadataFile(portalId);
-  }
-
+  Optional<Portal> findBySlug(String slug);
+  
 }

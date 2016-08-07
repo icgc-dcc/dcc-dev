@@ -17,9 +17,6 @@
  */
 package org.icgc.dcc.dev.server.portal.io;
 
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.io.Files.write;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.copy;
 import static java.nio.file.Files.setPosixFilePermissions;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -42,11 +39,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.Files;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
-import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
@@ -80,26 +75,6 @@ public class PortalDeployer {
 
     val archive = new PortalArchive(templateUrl);
     archive.extract(templateDir);
-  }
-
-  @SneakyThrows
-  @Synchronized
-  public Integer nextPortalId() {
-    // Use a file to always monotonically increase portal ids to avoid confusion
-    val currentPortalIdFile = new File(workspaceDir, "currentPortalId");
-    if (!currentPortalIdFile.exists()) {
-      log.info("Creating {}...", currentPortalIdFile);
-      checkState(currentPortalIdFile.createNewFile(), "Could not create file %s", currentPortalIdFile);
-
-      // Initialize
-      write("0", currentPortalIdFile, UTF_8);
-    }
-
-    val currentPortalId = Integer.parseInt(Files.toString(currentPortalIdFile, UTF_8));
-    val nextPortalId = currentPortalId + 1;
-    write(String.valueOf(nextPortalId), currentPortalIdFile, UTF_8);
-
-    return nextPortalId;
   }
 
   @SneakyThrows

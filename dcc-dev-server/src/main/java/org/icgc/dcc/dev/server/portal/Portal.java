@@ -18,8 +18,19 @@
 package org.icgc.dcc.dev.server.portal;
 
 import static com.google.common.collect.Maps.newHashMap;
+import static javax.persistence.FetchType.EAGER;
 
 import java.util.Map;
+
+import javax.persistence.CollectionTable;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Lob;
+import javax.persistence.Version;
 
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
@@ -33,6 +44,7 @@ import lombok.experimental.Accessors;
  * <p>
  * Main user facing system entity.
  */
+@Entity
 @Data
 @Accessors(chain = true)
 public class Portal {
@@ -42,6 +54,8 @@ public class Portal {
    * <p>
    * Primary key.
    */
+  @Id
+  @GeneratedValue
   Integer id;
 
   /**
@@ -57,6 +71,7 @@ public class Portal {
   /**
    * A longer description for the portal instance.
    */
+  @Lob
   String description;
 
   /**
@@ -67,11 +82,15 @@ public class Portal {
   /**
    * User supplied configuration.
    */
+  @ElementCollection(fetch = EAGER)
+  @CollectionTable
   Map<String, String> config = newHashMap();
 
   /**
    * System supplied configuration.
    */
+  @ElementCollection(fetch = EAGER)
+  @CollectionTable
   Map<String, String> systemConfig = newHashMap();
 
   /**
@@ -92,28 +111,29 @@ public class Portal {
   /**
    * The upstream candidate information about the running portal instance.
    */
+  @Embedded
   Candidate target;
-
-  /**
-   * Runtime status.
-   */
-  Status status = new Status().setRunning(false);
 
   /**
    * Optimistic locking version.
    */
+  @Version
   int version = 0;
 
   /**
    * A candidate for portal instance deployment.
    */
   @Data
+  @Embeddable
   @Accessors(chain = true)
   public static class Candidate {
 
+    @Embedded
     GithubPr pr;
+    @Embedded
     JenkinsBuild build;
     String artifact;
+    @Embedded
     JiraTicket ticket;
 
   }
@@ -122,6 +142,7 @@ public class Portal {
    * Runtime status of the executing portal instance.
    */
   @Data
+  @Embeddable
   @Accessors(chain = true)
   public static class Status {
 
@@ -130,15 +151,6 @@ public class Portal {
     Integer pid;
     String wrapper;
     String java;
-
-  }
-
-  /**
-   * Represents the runtime state of a portal instance.
-   */
-  public static enum State {
-
-    NEW, STARTING, RUNNING, STOPPING, STOPPED, RESTARTING, FAILED;
 
   }
 
