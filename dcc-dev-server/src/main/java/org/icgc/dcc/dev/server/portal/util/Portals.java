@@ -15,31 +15,33 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.jenkins;
+package org.icgc.dcc.dev.server.portal.util;
 
-import javax.persistence.Embeddable;
+import static lombok.AccessLevel.PRIVATE;
 
-import lombok.Data;
-import lombok.experimental.Accessors;
+import org.icgc.dcc.dev.server.portal.Portal;
+
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 /**
- * A digest of a Jenkins' build.
+ * Portal utilities.
  */
-@Data
-@Embeddable
-@Accessors(chain = true)
-public class JenkinsBuild {
+@NoArgsConstructor(access = PRIVATE)
+public final class Portals {
 
   /**
-   * Build number.
-   * <p>
-   * Primary key.
+   * Main web port property name of a running instance.
    */
-  int number;
+  public static final String SERVER_PORT_PROPERTY = "server.port";
 
-  Integer prNumber;
-  String commitId;
-  String url;
-  Long timestamp;
+  /**
+   * Admin web port property name of a running instance.
+   */
+  public static final String MANAGEMENT_PORT_PROPERTY = "management.port";
+
+  public static String getServerPort(@NonNull Portal portal) {
+    return portal.getSystemConfig().get(Portals.SERVER_PORT_PROPERTY);
+  }
 
 }

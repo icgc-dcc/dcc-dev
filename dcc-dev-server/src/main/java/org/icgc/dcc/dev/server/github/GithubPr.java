@@ -17,6 +17,9 @@
  */
 package org.icgc.dcc.dev.server.github;
 
+import javax.persistence.Embeddable;
+import javax.persistence.Lob;
+
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -24,6 +27,7 @@ import lombok.experimental.Accessors;
  * A digest of a GitHub "pull request" (PR).
  */
 @Data
+@Embeddable
 @Accessors(chain = true)
 public class GithubPr {
 
@@ -35,6 +39,7 @@ public class GithubPr {
   int number;
 
   String title;
+  @Lob
   String description;
   String user;
   String branch;
