@@ -22,8 +22,8 @@
 unset MAIL
 
 # Application
-APP_NAME="dcc-config-server"
-APP_LONG_NAME="DCC Config Server"
+APP_NAME="dcc-dev-server"
+APP_LONG_NAME="DCC Dev Server"
 
 # Wrapper
 WRAPPER_CMD="./wrapper"
@@ -98,19 +98,19 @@ PLIST_DOMAIN=org.tanukisoftware.wrapper
 # The following two lines are used by the chkconfig command. Change as is
 #  appropriate for your application.  They should remain commented.
 # chkconfig: 2345 20 80
-# description: DCC Config Server
+# description: DCC Dev Server
  
 # Initialization block for the install_initd and remove_initd scripts used by
 #  SUSE linux distributions.
 ### BEGIN INIT INFO
-# Provides: dcc-config-server
+# Provides: dcc-dev-server
 # Required-Start: $local_fs $network $syslog
 # Should-Start: 
 # Required-Stop:
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 1 6
-# Short-Description: DCC Config Server
-# Description: DCC Config Server
+# Short-Description: DCC Dev Server
+# Description: DCC Dev Server
 ### END INIT INFO
 
 # Do not modify anything beyond this point

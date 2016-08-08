@@ -24,6 +24,9 @@ import org.springframework.web.socket.config.annotation.AbstractWebSocketMessage
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 
+/**
+ * Message module configuration.
+ */
 @Configuration
 @EnableWebSocketMessageBroker
 public class MessageConfig extends AbstractWebSocketMessageBrokerConfigurer {
@@ -33,7 +36,7 @@ public class MessageConfig extends AbstractWebSocketMessageBrokerConfigurer {
    */
   @Value("${message.topicPrefix}")
   String topicPrefix;
-  
+
   @Override
   public void configureMessageBroker(MessageBrokerRegistry config) {
     config.enableSimpleBroker(topicPrefix);

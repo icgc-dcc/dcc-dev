@@ -15,23 +15,34 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.artifactory;
+package org.icgc.dcc.dev.server.util;
 
-import org.jfrog.artifactory.client.Artifactory;
-import org.jfrog.artifactory.client.ArtifactoryClient;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import static org.icgc.dcc.common.core.json.Jackson.DEFAULT;
+
+import java.util.Map;
+
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import lombok.SneakyThrows;
 
 /**
- * Artifactory module configuration.
+ * {@link Converter} from a JSON object {@code String} to a {@code Map<String, String}}
  */
-@Configuration
-public class ArtifactoryConfig {
+@Component
+public final class MapConverter implements Converter<String, Map<String, String>> {
 
-  @Bean
-  public Artifactory artifactory(@Value("${artifact.url}") String url) {
-    return ArtifactoryClient.create(url);
+  /**
+   * Reified generic "to" type.
+   */
+  static final TypeReference<Map<String, String>> TO_TYPE = new TypeReference<Map<String, String>>() {};
+
+  @Override
+  @SneakyThrows
+  public Map<String, String> convert(String source) {
+    return DEFAULT.readValue(source, TO_TYPE);
   }
 
 }

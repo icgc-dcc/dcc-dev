@@ -17,23 +17,31 @@
  */
 package org.icgc.dcc.dev.server.slack;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import in.ashwanthkumar.slack.webhook.Slack;
 import in.ashwanthkumar.slack.webhook.SlackMessage;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
+/**
+ * Slack façade service.
+ */
 @Service
+@RequiredArgsConstructor
 public class SlackService {
 
   /**
    * Dependencies.
    */
-  @Autowired
-  Slack slack;
+  final Slack slack;
 
+  /**
+   * Post a slack message for users to see.
+   * 
+   * @param message The message to broadcast.
+   */
   @SneakyThrows
   public void notify(@NonNull SlackMessage message) {
     slack.push(message);

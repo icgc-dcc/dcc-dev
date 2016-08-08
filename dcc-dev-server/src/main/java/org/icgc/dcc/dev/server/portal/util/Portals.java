@@ -15,23 +15,33 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.artifactory;
+package org.icgc.dcc.dev.server.portal.util;
 
-import org.jfrog.artifactory.client.Artifactory;
-import org.jfrog.artifactory.client.ArtifactoryClient;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import static lombok.AccessLevel.PRIVATE;
+
+import org.icgc.dcc.dev.server.portal.Portal;
+
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 /**
- * Artifactory module configuration.
+ * Portal utilities.
  */
-@Configuration
-public class ArtifactoryConfig {
+@NoArgsConstructor(access = PRIVATE)
+public final class Portals {
 
-  @Bean
-  public Artifactory artifactory(@Value("${artifact.url}") String url) {
-    return ArtifactoryClient.create(url);
+  /**
+   * Main web port property name of a running instance.
+   */
+  public static final String SERVER_PORT_PROPERTY = "server.port";
+
+  /**
+   * Admin web port property name of a running instance.
+   */
+  public static final String MANAGEMENT_PORT_PROPERTY = "management.port";
+
+  public static String getServerPort(@NonNull Portal portal) {
+    return portal.getSystemConfig().get(Portals.SERVER_PORT_PROPERTY);
   }
 
 }

@@ -18,23 +18,21 @@
 package org.icgc.dcc.dev.server.message;
 
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
-import org.icgc.dcc.dev.server.message.Messages.ExecutionMessage;
-import org.icgc.dcc.dev.server.message.Messages.LogMessage;
-import org.icgc.dcc.dev.server.message.Messages.StateMessage;
+import org.icgc.dcc.dev.server.message.Messages.LogLineMessage;
+import org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage;
 import org.icgc.dcc.dev.server.slack.SlackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.messaging.AbstractSubProtocolEvent;
 
 import lombok.NonNull;
 import lombok.val;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+/**
+ * Responsible for routing messages from publishers to subscribers using varies publication channels.
+ */
 @Service
 public class MessageService {
 
@@ -54,16 +52,18 @@ public class MessageService {
   @Autowired
   SlackService slack;
 
+  /**
+   * Routes a message to the appropriate listeners.
+   * 
+   * @param message the message to send
+   */
   public void sendMessage(@NonNull Object message) {
-    if (message instanceof StateMessage) {
-      val stateMessage = (StateMessage) message;
-      sendWebSocketMessage("/portal/state", stateMessage);
-    } else if (message instanceof ExecutionMessage) {
-      val executionMessage = (ExecutionMessage) message;
-      sendWebSocketMessage("/portal/execute", executionMessage);
-    } else if (message instanceof LogMessage) {
-      val logMessage = (LogMessage) message;
-      sendWebSocketMessage("/logs/" + logMessage.getPortalId(), logMessage);
+    if (message instanceof PortalChangeMessage) {
+      val portalChange = (PortalChangeMessage) message;
+      sendWebSocketMessage("/portal", portalChange);
+    } else if (message instanceof LogLineMessage) {
+      val logLine = (LogLineMessage) message;
+      sendWebSocketMessage("/logs/" + logLine.getPortalId(), logLine);
     } else if (message instanceof JenkinsBuild) {
       val build = (JenkinsBuild) message;
       publisher.publishEvent(build);
@@ -71,11 +71,6 @@ public class MessageService {
     } else {
       publisher.publishEvent(message);
     }
-  }
-
-  @EventListener
-  public void onSessionEvent(AbstractSubProtocolEvent event) {
-    log.info("Session event: {}", event);
   }
 
   private void sendWebSocketMessage(String destination, Object message) {

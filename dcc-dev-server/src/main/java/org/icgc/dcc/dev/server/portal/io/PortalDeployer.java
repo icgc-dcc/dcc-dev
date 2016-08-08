@@ -15,21 +15,27 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.portal;
+package org.icgc.dcc.dev.server.portal.io;
 
 import static java.nio.file.Files.copy;
+import static java.nio.file.Files.setPosixFilePermissions;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
 import static org.apache.commons.io.FileUtils.copyDirectory;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
+import static org.icgc.dcc.dev.server.portal.util.Portals.MANAGEMENT_PORT_PROPERTY;
+import static org.icgc.dcc.dev.server.portal.util.Portals.SERVER_PORT_PROPERTY;
+import static org.springframework.util.SocketUtils.findAvailableTcpPort;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
+import java.util.Map;
 
+import org.icgc.dcc.dev.server.portal.Portal;
+import org.icgc.dcc.dev.server.portal.util.PortalArchive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -41,6 +47,9 @@ import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Responsible for creating the physical environment for running portal instances.
+ */
 @Slf4j
 @Component
 public class PortalDeployer {
@@ -48,6 +57,8 @@ public class PortalDeployer {
   /**
    * Configuration.
    */
+  @Value("${workspace.dir}")
+  File workspaceDir;
   @Value("${template.url}")
   URL templateUrl;
   @Value("${template.dir}")
@@ -73,7 +84,7 @@ public class PortalDeployer {
     val targetDir = fileSystem.getRootDir(portal.getId());
     if (!targetDir.exists()) {
       copyTemplate(portal.getId(), targetDir);
-      
+
       // Ensure log dir is created (JSW won't make it but logback will)
       fileSystem.getLogsDir(portal.getId()).mkdir();
     }
@@ -82,22 +93,23 @@ public class PortalDeployer {
   @SneakyThrows
   public void deploy(@NonNull Portal portal) {
     downloadJar(portal);
+    assignPorts(portal);
   }
 
   @SneakyThrows
-  public void undeploy(@NonNull String portalId) {
+  public void undeploy(@NonNull Integer portalId) {
     val targetDir = fileSystem.getRootDir(portalId);
 
     deleteDirectory(targetDir);
   }
 
-  private void copyTemplate(String portalId, File targetDir) throws IOException {
+  private void copyTemplate(Integer portalId, File targetDir) throws IOException {
     copyDirectory(templateDir, targetDir);
 
     // Make executable
-    val binaries = fileSystem.getBinDir(portalId).listFiles();
-    for (val binary : binaries) {
-      Files.setPosixFilePermissions(binary.toPath(), ImmutableSet.of(OWNER_EXECUTE, OWNER_READ));
+    File[] binaries = fileSystem.getBinDir(portalId).listFiles();
+    for (File binary : binaries) {
+      setPosixFilePermissions(binary.toPath(), ImmutableSet.of(OWNER_EXECUTE, OWNER_READ));
     }
   }
 
@@ -107,6 +119,22 @@ public class PortalDeployer {
 
     log.info("Downloading {} to {}", artifactUrl, jarFile);
     copy(artifactUrl.openStream(), jarFile.toPath(), REPLACE_EXISTING);
+  }
+
+  private static void assignPorts(Portal portal) {
+    val systemConfig = portal.getSystemConfig();
+    assignPort(systemConfig, SERVER_PORT_PROPERTY);
+    assignPort(systemConfig, MANAGEMENT_PORT_PROPERTY);
+    log.info("Ports: {}", systemConfig);
+  }
+
+  private static void assignPort(Map<String, String> systemConfig, String portProperty) {
+    // Give preference to the current value, if any
+    val portStart = Integer.valueOf(systemConfig.getOrDefault(portProperty, "8000"));
+    val portEnd = 9000;
+    val port = findAvailableTcpPort(portStart, portEnd);
+
+    systemConfig.put(portProperty, String.valueOf(port));
   }
 
 }

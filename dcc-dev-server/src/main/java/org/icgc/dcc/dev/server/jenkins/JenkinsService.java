@@ -19,6 +19,7 @@ package org.icgc.dcc.dev.server.jenkins;
 
 import static com.google.common.primitives.Ints.tryParse;
 import static java.util.stream.Collectors.toList;
+import static org.icgc.dcc.dev.server.message.Messages.JenkinsBuildsMessage.jenkinsBuilds;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +28,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.icgc.dcc.dev.server.message.MessageService;
-import org.icgc.dcc.dev.server.message.Messages.JenkinsBuildsMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.primitives.Ints;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.BuildCause;
+import com.offbytwo.jenkins.model.BuildResult;
 import com.offbytwo.jenkins.model.MavenBuild;
 import com.offbytwo.jenkins.model.MavenJobWithDetails;
 
@@ -45,6 +46,9 @@ import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Jenkins façade service.
+ */
 @Slf4j
 @Service
 public class JenkinsService {
@@ -52,7 +56,7 @@ public class JenkinsService {
   /**
    * Constants.
    */
-  private static final Pattern CAUSE_SHORT_DESCRIPTION_PATTERN =
+  static final Pattern CAUSE_SHORT_DESCRIPTION_PATTERN =
       Pattern.compile("GitHub pull request #(\\d+) of commit ([a-f0-9]+)");
 
   /**
@@ -69,24 +73,27 @@ public class JenkinsService {
   @Autowired
   MessageService messages;
 
+  /**
+   * Poll at regular intervals for available builds.
+   */
   @Scheduled(cron = "${jenkins.cron}")
   @Synchronized
   public void poll() {
     log.debug("Polling...");
-    messages.sendMessage(new JenkinsBuildsMessage(getBuilds()));
+    messages.sendMessage(jenkinsBuilds().builds(getSuccessfulBuilds()).build());
   }
 
   @SneakyThrows
-  public List<JenkinsBuild> getBuilds() {
-    return builds().map(this::convert).collect(toList());
+  public List<JenkinsBuild> getSuccessfulBuilds() {
+    return successfulBuild().map(this::convert).collect(toList());
   }
 
   @SneakyThrows
-  public JenkinsBuild getBuild(@NonNull String buildNumber) {
+  public JenkinsBuild getSuccessfulBuild(@NonNull String buildNumber) {
     val value = Ints.tryParse(buildNumber);
     val defaultValue = new JenkinsBuild().setNumber(value);
 
-    return builds().filter(b -> b.getNumber() == value).findFirst().map(this::convert).orElse(defaultValue);
+    return successfulBuild().filter(b -> b.getNumber() == value).findFirst().map(this::convert).orElse(defaultValue);
   }
 
   @SneakyThrows
@@ -94,8 +101,13 @@ public class JenkinsService {
     return jenkins.getMavenJob(jobName);
   }
 
-  private Stream<MavenBuild> builds() {
-    return getJob().getBuilds().stream();
+  private Stream<MavenBuild> successfulBuild() {
+    return getJob().getBuilds().stream().filter(this::isSuccessfulBuild);
+  }
+
+  @SneakyThrows
+  private boolean isSuccessfulBuild(MavenBuild build) {
+    return build.details().getResult().equals(BuildResult.SUCCESS);
   }
 
   @SneakyThrows

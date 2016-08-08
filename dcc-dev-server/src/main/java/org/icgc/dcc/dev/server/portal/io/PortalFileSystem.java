@@ -15,23 +15,67 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.artifactory;
+package org.icgc.dcc.dev.server.portal.io;
 
-import org.jfrog.artifactory.client.Artifactory;
-import org.jfrog.artifactory.client.ArtifactoryClient;
+import java.io.File;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+
+import lombok.NonNull;
 
 /**
- * Artifactory module configuration.
+ * Abstraction that encapsulates the file layout of a portal instance.
  */
-@Configuration
-public class ArtifactoryConfig {
+@Component
+public class PortalFileSystem {
 
-  @Bean
-  public Artifactory artifactory(@Value("${artifact.url}") String url) {
-    return ArtifactoryClient.create(url);
+  /**
+   * Configuration.
+   */
+  @Value("${workspace.dir}")
+  File workspaceDir;
+  @Value("${artifact.artifactId}")
+  String baseName;
+
+  public File getDir() {
+    return new File(workspaceDir, "portals");
+  }
+
+  public File getRootDir(@NonNull Integer portalId) {
+    return new File(getDir(), String.valueOf(portalId));
+  }
+
+  public File getBinDir(@NonNull Integer portalId) {
+    return new File(getRootDir(portalId), "bin");
+  }
+
+  public File getSettingsFile(@NonNull Integer portalId) {
+    return new File(getConfDir(portalId), "application.yml");
+  }
+
+  public File getConfDir(@NonNull Integer portalId) {
+    return new File(getRootDir(portalId), "conf");
+  }
+
+  public File getLibDir(@NonNull Integer portalId) {
+    return new File(getRootDir(portalId), "lib");
+  }
+
+  public File getLogsDir(@NonNull Integer portalId) {
+    return new File(getRootDir(portalId), "logs");
+  }
+
+  public File getScriptFile(@NonNull Integer portalId) {
+    return new File(getBinDir(portalId), baseName);
+  }
+
+  public File getJarFile(@NonNull Integer portalId) {
+    return new File(getLibDir(portalId), baseName + ".jar");
+  }
+
+  public File getLogFile(@NonNull Integer portalId) {
+    return new File(getLogsDir(portalId), baseName + ".log");
   }
 
 }

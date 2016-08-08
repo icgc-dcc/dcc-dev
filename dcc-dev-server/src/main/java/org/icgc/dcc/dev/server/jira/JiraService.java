@@ -17,6 +17,8 @@
  */
 package org.icgc.dcc.dev.server.jira;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +29,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.rcarz.jiraclient.Issue;
 import net.rcarz.jiraclient.JiraClient;
 
+/**
+ * JIRA façade service.
+ */
 @Slf4j
 @Service
 public class JiraService {
@@ -35,7 +40,7 @@ public class JiraService {
    * Constants.
    */
   private static final String STATUS_FIELD_NAME = "status";
-  private static final String TEST_STATUS = "Ready for testing";
+  private static final String STATUS_READY_FOR_TESTING = "Ready for testing";
 
   /**
    * Dependencies.
@@ -61,12 +66,17 @@ public class JiraService {
       log.warn("Cannot find ticket {}", key);
       return;
     }
-    
-    if (!issue.getStatus().getName().equals(TEST_STATUS)) {
-      issue.update().field(STATUS_FIELD_NAME, TEST_STATUS);
+
+    val testing = STATUS_READY_FOR_TESTING;
+    val notTesting = !issue.getStatus().getName().equals(testing);
+    if (notTesting) {
+      log.info("Setting status to '{}'", testing);
+      issue.update().field(STATUS_FIELD_NAME, testing);
     }
 
-    issue.addComment(comment);
+    if (!isNullOrEmpty(comment)) {
+      issue.addComment(comment);
+    }
   }
 
   @SneakyThrows

@@ -25,6 +25,7 @@ import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
+import org.icgc.dcc.dev.server.portal.io.PortalDeployer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -38,6 +39,9 @@ import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Portal module configuration for portal infrastructure.
+ */
 @Slf4j
 @EnableAsync
 @Configuration
@@ -87,9 +91,7 @@ public class PortalConfig {
     log.info("**** Started!");
 
     val portals = service.list();
-    if (portals.isEmpty()) {
-      return;
-    }
+    if (portals.isEmpty()) return;
 
     log.info("Restarting portals...");
     for (val portal : portals) {

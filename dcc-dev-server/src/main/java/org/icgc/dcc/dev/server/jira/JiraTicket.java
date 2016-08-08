@@ -17,10 +17,16 @@
  */
 package org.icgc.dcc.dev.server.jira;
 
+import javax.persistence.Embeddable;
+
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+/**
+ * A digest of a JIRA ticket.
+ */
 @Data
+@Embeddable
 @Accessors(chain = true)
 public class JiraTicket {
 
@@ -30,7 +36,7 @@ public class JiraTicket {
    * Primary key.
    */
   String key;
-  
+
   String title;
   String status;
   String assignee;

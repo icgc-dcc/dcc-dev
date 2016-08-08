@@ -15,9 +15,11 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.portal;
+package org.icgc.dcc.dev.server.portal.io;
 
-import java.nio.charset.StandardCharsets;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.icgc.dcc.dev.server.message.Messages.LogLineMessage.logLine;
+
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,9 +29,11 @@ import javax.annotation.PreDestroy;
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListenerAdapter;
 import org.icgc.dcc.dev.server.message.MessageService;
-import org.icgc.dcc.dev.server.message.Messages.LogMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.icgc.dcc.dev.server.message.Messages.FirstSubscriberMessage;
+import org.icgc.dcc.dev.server.message.Messages.LastSubscriberMessage;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
@@ -41,48 +45,50 @@ import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Responsible for reporting and streaming log contents to interested parties.
+ */
 @Slf4j
-@Service
-public class PortalLogService {
+@Component
+@RequiredArgsConstructor
+public class PortalLogs {
 
   /**
    * Dependencies.
    */
-  @Autowired
-  PortalFileSystem fileSystem;
-  @Autowired
-  MessageService messages;
+  final PortalFileSystem fileSystem;
+  final MessageService messages;
 
   /**
    * State.
    */
-  Map<String, Tailer> tailers = Maps.newConcurrentMap();
-  ExecutorService executor = Executors.newCachedThreadPool();
+  final Map<Integer, Tailer> tailers = Maps.newConcurrentMap();
+  final ExecutorService executor = Executors.newCachedThreadPool();
 
   @SneakyThrows
-  public String cat(String portalId) {
+  public String cat(@NonNull Integer portalId) {
     val logFile = fileSystem.getLogFile(portalId);
-    return Files.toString(logFile, StandardCharsets.UTF_8);
+    return Files.toString(logFile, UTF_8);
   }
 
   @Synchronized
-  public void startTailing(@NonNull String portalId) {
-    if (!tailers.containsKey(portalId)) {
-      val logFile = fileSystem.getLogFile(portalId);
-      log.info("Tailing portal {}: {}...", portalId, logFile);
+  public void startTailing(@NonNull Integer portalId) {
+    if (tailers.containsKey(portalId)) return;
 
-      val tailer = new Tailer(logFile, this.new LogListener(portalId));
-      tailers.put(portalId, tailer);
+    val logFile = fileSystem.getLogFile(portalId);
+    val tailer = new Tailer(logFile, this.new PortalLogLineListener(portalId));
+    tailers.put(portalId, tailer);
 
-      executor.execute(tailer);
-    }
+    log.info("Starting tailing of portal {}: {}...", portalId, logFile);
+    executor.execute(tailer);
   }
 
   @Synchronized
-  public void stopTailing(@NonNull String portalId) {
+  public void stopTailing(@NonNull Integer portalId) {
     val tailer = tailers.remove(portalId);
     if (tailer == null) return;
 
+    log.info("Stopping tailing of portal {}: {}...", portalId, tailer.getFile());
     tailer.stop();
   }
 
@@ -91,16 +97,61 @@ public class PortalLogService {
     tailers.values().forEach(Tailer::stop);
   }
 
+  /**
+   * Tailer implementation for portal instances.
+   */
   @RequiredArgsConstructor
-  private class LogListener extends TailerListenerAdapter {
+  class PortalLogLineListener extends TailerListenerAdapter {
 
-    final String portalId;
+    final Integer portalId;
 
     @Override
     public void handle(String line) {
       log.info("{}: {}", portalId, line);
-      val message = new LogMessage().setLine(line).setPortalId(portalId);
+      val message = logLine().portalId(portalId).line(line).build();
       messages.sendMessage(message);
+    }
+
+  }
+
+  /**
+   * Listens for events that indicate tailing state transitions.
+   */
+  @Component
+  class PortalLogTopicListener {
+
+    /**
+     * Configuration.
+     */
+    @Value("${message.topicPrefix}")
+    String topicPrefix;
+
+    @EventListener
+    void handle(FirstSubscriberMessage message) {
+      val topic = message.getTopic();
+      if (!isLog(topic)) return;
+
+      val portalId = resolvePortalId(topic);
+      startTailing(portalId);
+    }
+
+    @EventListener
+    void handle(LastSubscriberMessage message) {
+      val topic = message.getTopic();
+      if (!isLog(topic)) return;
+
+      val portalId = resolvePortalId(topic);
+      stopTailing(portalId);
+    }
+
+    private Integer resolvePortalId(String topic) {
+      val parts = topic.split("/");
+
+      return Integer.valueOf(parts[parts.length - 1]);
+    }
+
+    private boolean isLog(String topic) {
+      return topic.startsWith(topicPrefix + "/log");
     }
 
   }

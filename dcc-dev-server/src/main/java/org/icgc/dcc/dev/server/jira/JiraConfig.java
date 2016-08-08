@@ -28,18 +28,21 @@ import lombok.val;
 import net.rcarz.jiraclient.BasicCredentials;
 import net.rcarz.jiraclient.JiraClient;
 
+/**
+ * JIRA module configuration.
+ */
 @Service
 public class JiraConfig {
 
   @Bean
   @SneakyThrows
   public JiraClient jira(
-      @Value("${jira.url}") URI url, 
+      @Value("${jira.url}") URI url,
       @Value("${jira.user}") String user,
       @Value("${jira.password}") String password) {
     val creds = new BasicCredentials(user, password);
-    
-    return new JiraClient(url.toString(), creds);    
+
+    return new JiraClient(url.toString(), creds);
   }
-  
+
 }

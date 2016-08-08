@@ -15,7 +15,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.portal;
+package org.icgc.dcc.dev.server.portal.util;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.apache.commons.io.IOUtils.copy;
@@ -36,15 +36,18 @@ import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Represents a portal distribution and provides operation for interaction.
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class PortalArchive {
-  
+
   /**
    * Configuration.
    */
   final URL archiveUrl;
-  
+
   @SneakyThrows
   public void extract(File outputDir) {
     @Cleanup
@@ -82,5 +85,5 @@ public class PortalArchive {
     // Strip staring directory with version from path
     return tarEntry.getName().replaceFirst("^[^/]+/", "");
   }
-  
+
 }

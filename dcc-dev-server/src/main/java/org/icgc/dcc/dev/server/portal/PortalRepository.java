@@ -17,92 +17,22 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
-
-import java.io.File;
-import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-
-import lombok.NonNull;
-import lombok.SneakyThrows;
-import lombok.val;
-
-@Repository
-public class PortalRepository {
+/**
+ * {@link Repository} implementation for portal instance metadata.
+ */
+public interface PortalRepository extends CrudRepository<Portal, Integer> {
 
   /**
-   * Constants.
+   * Looks up a portal instance by {@literal slug} value.
+   * 
+   * @param slug value
+   * @return the portal instance
    */
-  private static final ObjectMapper MAPPER = new ObjectMapper().enable(INDENT_OUTPUT);
-
-  /**
-   * Dependencies.
-   */
-  @Autowired
-  PortalFileSystem fileSystem;
-
-  public List<String> getIds() {
-    String[] portalIds = fileSystem.getDir().list();
-    if (portalIds == null) return emptyList();
+  Optional<Portal> findBySlug(String slug);
   
-    return ImmutableList.copyOf(portalIds);
-  }
-
-  public List<Portal> list() {
-    return getIds().stream()
-        .map(this::get)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(toList());
-  }
-
-  public Optional<Portal> get(@NonNull String portalId) {
-    val metadataFile = getMetadataFile(portalId);
-    if (!metadataFile.exists()) {
-      return Optional.empty();
-    }
-    
-    return Optional.of(read(metadataFile));
-  }
-
-  public void create(@NonNull Portal portal) {
-    val metadataFile = getMetadataFile(portal.getId());
-    if (metadataFile.exists()) {
-      throw new IllegalStateException("Portal " + portal.getId() + " already exists!");
-    }
-    
-    write(metadataFile, portal);
-  }
-  
-  public void update(@NonNull Portal portal) {
-    val metadataFile = getMetadataFile(portal.getId());
-    if (!metadataFile.exists()) {
-      throw new IllegalStateException("Portal " + portal.getId() + " no longer exists!");
-    }
-    
-    write(metadataFile, portal);
-  }
-
-  @SneakyThrows
-  private Portal read(File file) {
-    return MAPPER.readValue(file, Portal.class);
-  }
-
-  @SneakyThrows
-  private void write(File file, Portal portal) {
-    MAPPER.writeValue(file, portal);
-  }
-
-  private File getMetadataFile(String portalId) {
-    return fileSystem.getMetadataFile(portalId);
-  }
-
 }

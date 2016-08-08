@@ -15,11 +15,13 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.portal;
+package org.icgc.dcc.dev.server.portal.candidate;
 
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.icgc.dcc.dev.server.artifactory.ArtifactoryService;
@@ -27,19 +29,24 @@ import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.github.GithubService;
 import org.icgc.dcc.dev.server.jenkins.JenkinsService;
 import org.icgc.dcc.dev.server.jira.JiraService;
+import org.icgc.dcc.dev.server.portal.Portal;
+import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import lombok.NonNull;
 import lombok.val;
 
+/**
+ * Responsible for finding potential portal instances.
+ */
 @Component
 public class PortalCandidateResolver {
 
   /**
    * Constants.
    */
-  private static final Pattern PR_PATTERN = Pattern.compile("^(DCC-\\d+)/.*$");
+  private static final Pattern PR_TICKET_PATTERN = Pattern.compile("(DCC-\\d+)", CASE_INSENSITIVE);
 
   /**
    * Dependencies.
@@ -54,20 +61,25 @@ public class PortalCandidateResolver {
   ArtifactoryService artifactory;
 
   public List<Portal.Candidate> resolve() {
-    return github.getPrs().stream().map(this::resolve).collect(toList());
+    return github.getPrs().stream()
+        .map(this::resolve)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(toList());
   }
 
-  public Portal.Candidate resolve(@NonNull Integer prNumber) {
-    val pr = github.getPr(prNumber);
-
-    return resolve(pr);
+  public Optional<Candidate> resolve(@NonNull Integer prNumber) {
+    return github.getPr(prNumber)
+        .flatMap(this::resolve);
   }
 
-  public Portal.Candidate resolve(@NonNull GithubPr pr) {
-    val buildNumber = github.getBuildNumber(pr.getHead());
-    if (buildNumber == null) return null;
+  public Optional<Portal.Candidate> resolve(@NonNull GithubPr pr) {
+    return github.getBuildNumber(pr.getHead())
+        .map(buildNumber -> createCandidate(pr, buildNumber));
+  }
 
-    val build = jenkins.getBuild(buildNumber);
+  private Candidate createCandidate(GithubPr pr, String buildNumber) {
+    val build = jenkins.getSuccessfulBuild(buildNumber);
     val artifact = artifactory.getArtifact(buildNumber);
     val ticketKey = parseTicketKey(pr.getBranch());
     val ticket = ticketKey == null ? null : jira.getTicket(ticketKey);
@@ -80,7 +92,7 @@ public class PortalCandidateResolver {
   }
 
   private static String parseTicketKey(String branch) {
-    val matcher = PR_PATTERN.matcher(branch);
+    val matcher = PR_TICKET_PATTERN.matcher(branch);
 
     return matcher.find() ? matcher.group(1) : null;
   }

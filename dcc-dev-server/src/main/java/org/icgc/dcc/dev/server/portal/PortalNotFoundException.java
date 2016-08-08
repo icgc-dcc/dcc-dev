@@ -15,23 +15,32 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.artifactory;
+package org.icgc.dcc.dev.server.portal;
 
-import org.jfrog.artifactory.client.Artifactory;
-import org.jfrog.artifactory.client.ArtifactoryClient;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import lombok.Getter;
+import lombok.NonNull;
 
 /**
- * Artifactory module configuration.
+ * Exception for representing when a portal instance is not available.
  */
-@Configuration
-public class ArtifactoryConfig {
+@ResponseStatus(NOT_FOUND)
+public class PortalNotFoundException extends RuntimeException {
 
-  @Bean
-  public Artifactory artifactory(@Value("${artifact.url}") String url) {
-    return ArtifactoryClient.create(url);
+  @Getter
+  private final Integer portalId;
+
+  public PortalNotFoundException(@NonNull Integer portalId) {
+    super("Portal " + portalId + " not found");
+    this.portalId = portalId;
+  }
+
+  public PortalNotFoundException(@NonNull String slug) {
+    super("Portal '" + slug + "' not found");
+    this.portalId = null;
   }
 
 }

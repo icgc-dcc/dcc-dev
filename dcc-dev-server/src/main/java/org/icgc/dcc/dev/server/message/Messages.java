@@ -21,62 +21,97 @@ import java.util.List;
 
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
-import org.icgc.dcc.dev.server.portal.Portal.State;
+import org.icgc.dcc.dev.server.portal.io.PortalExecutor.State;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 import lombok.Value;
-import lombok.experimental.Accessors;
 
-public class Messages {
+/**
+ * Catalog of messages to be sent from publishers to subscribers.
+ */
+@NoArgsConstructor
+public final class Messages {
 
   @Value
+  @Builder
   public static class JenkinsBuildsMessage {
 
     List<JenkinsBuild> builds;
 
+    public static JenkinsBuildsMessageBuilder jenkinsBuilds() {
+      return builder();
+    }
+
   }
 
   @Value
+  @Builder
   public static class GithubPrsMessage {
 
     List<GithubPr> prs;
 
-  }
-
-  @Data
-  @Accessors(chain = true)
-  public static abstract class PortalMessage {
-
-    String portalId;
+    public static GithubPrsMessageBuilder githubPrs() {
+      return builder();
+    }
 
   }
 
-  @Data
-  @Accessors(chain = true)
-  @EqualsAndHashCode(callSuper = true)
-  public static class LogMessage extends PortalMessage {
+  @Value
+  @Builder
+  public static class PortalChangeMessage {
 
+    public enum Type {
+      CREATED,
+      REMOVED,
+      UPDATED,
+      EXECUTION,
+    }
+
+    Integer portalId;
+    Type type;
+    State state;
+
+    public static PortalChangeMessageBuilder portalChange() {
+      return builder();
+    }
+
+  }
+
+  @Value
+  @Builder
+  public static class LogLineMessage {
+
+    Integer portalId;
     String line;
 
-  }
-
-  @Data
-  @Accessors(chain = true)
-  @EqualsAndHashCode(callSuper = true)
-  public static class ExecutionMessage extends PortalMessage {
-
-    String action;
-    String output;
+    public static LogLineMessageBuilder logLine() {
+      return builder();
+    }
 
   }
 
-  @Data
-  @Accessors(chain = true)
-  @EqualsAndHashCode(callSuper = true)
-  public static class StateMessage extends PortalMessage {
+  @Value
+  @Builder
+  public static class FirstSubscriberMessage {
 
-    State state;
+    String topic;
+
+    public static FirstSubscriberMessageBuilder firstSubscriber() {
+      return builder();
+    }
+
+  }
+
+  @Value
+  @Builder
+  public static class LastSubscriberMessage {
+
+    String topic;
+
+    public static LastSubscriberMessageBuilder lastSubscriber() {
+      return builder();
+    }
 
   }
 

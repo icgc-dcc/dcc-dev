@@ -15,23 +15,27 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.artifactory;
+package org.icgc.dcc.dev.server.portal;
 
-import org.jfrog.artifactory.client.Artifactory;
-import org.jfrog.artifactory.client.ArtifactoryClient;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import lombok.Getter;
+import lombok.NonNull;
 
 /**
- * Artifactory module configuration.
+ * Exception for representing when a PR is not open / preset and thus not available.
  */
-@Configuration
-public class ArtifactoryConfig {
+@ResponseStatus(BAD_REQUEST)
+public class PortalPrNotFoundException extends RuntimeException {
 
-  @Bean
-  public Artifactory artifactory(@Value("${artifact.url}") String url) {
-    return ArtifactoryClient.create(url);
+  @Getter
+  private final Integer prNumber;
+
+  public PortalPrNotFoundException(@NonNull Integer prNumber) {
+    super("PR " + prNumber + " not found or no build available");
+    this.prNumber = prNumber;
   }
 
 }

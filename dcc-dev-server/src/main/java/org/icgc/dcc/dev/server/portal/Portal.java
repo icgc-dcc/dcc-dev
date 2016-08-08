@@ -18,8 +18,21 @@
 package org.icgc.dcc.dev.server.portal;
 
 import static com.google.common.collect.Maps.newHashMap;
+import static javax.persistence.FetchType.EAGER;
 
 import java.util.Map;
+
+import javax.persistence.CollectionTable;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Lob;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Version;
 
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
@@ -28,6 +41,12 @@ import org.icgc.dcc.dev.server.jira.JiraTicket;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+/**
+ * Collection of metadata that represents a portal instance.
+ * <p>
+ * Main user facing system entity.
+ */
+@Entity
 @Data
 @Accessors(chain = true)
 public class Portal {
@@ -37,12 +56,14 @@ public class Portal {
    * <p>
    * Primary key.
    */
-  String id;
+  @Id
+  @GeneratedValue
+  Integer id;
 
   /**
-   * A symbolic name for the portal instance.
+   * A symbolic addressable URL slug for the portal instance.
    */
-  String name;
+  String slug;
 
   /**
    * A short title for the portal instance.
@@ -52,22 +73,27 @@ public class Portal {
   /**
    * A longer description for the portal instance.
    */
+  @Lob
   String description;
 
   /**
-   * The JIRA ticket number for the portal instance.
+   * The JIRA ticket (issue) key for the portal instance.
    */
-  String ticket;
+  String ticketKey;
 
   /**
-   * User supplied configuration properties.
+   * User supplied configuration.
    */
-  Map<String, String> properties = newHashMap();
+  @ElementCollection(fetch = EAGER)
+  @CollectionTable
+  Map<String, String> config = newHashMap();
 
   /**
-   * System supplied configuration properties.
+   * System supplied configuration.
    */
-  Map<String, String> systemProperties = newHashMap();
+  @ElementCollection(fetch = EAGER)
+  @CollectionTable
+  Map<String, String> systemConfig = newHashMap();
 
   /**
    * The absolute URL of the running portal instance.
@@ -75,39 +101,88 @@ public class Portal {
   String url;
 
   /**
-   * The execution state of the portal instance.
-   */
-  State state = State.NEW;
-
-  /**
    * Whether or not to automatically deploy a new build when available.
    */
   boolean autoDeploy;
-  
+
   /**
    * Whether or not to automatically destroy when a PR is merged.
    */
   boolean autoRemove;
-  
+
   /**
-   * The upstream canidate information about the running portal instance.
+   * The upstream candidate information about the running portal instance.
    */
+  @Embedded
   Candidate target;
 
+  /**
+   * Optimistic locking version.
+   */
+  @Version
+  int version;
+  
+  /**
+   * Timestamps.
+   */
+  long created;
+  long updated;
+
+  @PrePersist
+  void handlePersist() {
+    this.created = this.updated = System.currentTimeMillis();
+  }
+
+  @PreUpdate
+  void handleUpdate() {
+    this.updated = System.currentTimeMillis();
+  }
+
+  /**
+   * A candidate for portal instance deployment.
+   */
   @Data
+  @Embeddable
   @Accessors(chain = true)
   public static class Candidate {
 
+    @Embedded
     GithubPr pr;
+    @Embedded
     JenkinsBuild build;
     String artifact;
+    @Embedded
     JiraTicket ticket;
 
   }
 
-  public static enum State {
+  /**
+   * Runtime status of the executing portal instance.
+   */
+  @Data
+  @Embeddable
+  @Accessors(chain = true)
+  public static class Status {
 
-    NEW, STARTING, RUNNING, STOPPING, STOPPED, RESTARTING, FAILED;
+    /**
+     * Indicates if the portal instance is running.
+     */
+    boolean running;
+
+    /**
+     * Process PID.
+     */
+    Integer pid;
+    
+    /**
+     * Wrapper process state.
+     */
+    String wrapper;
+    
+    /**
+     * Java process state.
+     */
+    String java;
 
   }
 
