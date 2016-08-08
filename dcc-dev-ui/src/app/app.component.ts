@@ -18,7 +18,7 @@ import { AppState } from './app.service';
   template: `
     <md-content>
       <md-toolbar color="primary">
-          <span>{{ name }}</span>
+          <span>DCC Deployment Server</span>
           <span class="fill"></span>
           <a md-button [routerLink]=" ['./'] ">
             Index
@@ -45,8 +45,6 @@ import { AppState } from './app.service';
 export class App {
   angularclassLogo = 'assets/img/angularclass-avatar.png';
   loading = false;
-  name = 'Angular 2 Webpack Starter';
-  url = 'https://twitter.com/AngularClass';
 
   constructor(
     public appState: AppState) {

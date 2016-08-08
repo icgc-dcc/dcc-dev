@@ -9,7 +9,7 @@ import { Http, Headers, URLSearchParams } from '@angular/http';
 })
 export class PortalControls {
   @Input()
-  portal: Object;
+  portal: any;
   @Input()
   prNumber: String;
 
