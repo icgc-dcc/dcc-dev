@@ -21,7 +21,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
-import static org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage.portalChange;
 
 import java.io.File;
 import java.util.List;
@@ -30,7 +29,8 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 import org.icgc.dcc.dev.server.message.MessageService;
-import org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage.Type;
+import org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage;
+import org.icgc.dcc.dev.server.message.Messages.PortalChangeType;
 import org.icgc.dcc.dev.server.portal.Portal;
 import org.icgc.dcc.dev.server.portal.Portal.Status;
 import org.icgc.dcc.dev.server.portal.util.PortalLocks;
@@ -122,10 +122,9 @@ public class PortalExecutor {
 
   private void notifyChange(Portal portal, State state) {
     // Notify
-    messages.sendMessage(portalChange()
-        .portalId(portal.getId())
-        .type(Type.UPDATED)
-        .build());
+    messages.sendMessage(new PortalChangeMessage()
+        .setPortalId(portal.getId())
+        .setType(PortalChangeType.EXECUTION));
   }
 
   @SneakyThrows
@@ -157,7 +156,8 @@ public class PortalExecutor {
     return effectiveArguments;
   }
 
-  private static List<String> createCommand(File scriptFile, ScriptCommand scriptCommand, Map<String, String> arguments) {
+  private static List<String> createCommand(File scriptFile, ScriptCommand scriptCommand,
+      Map<String, String> arguments) {
     return ImmutableList.<String> builder()
         .add(scriptFile.getAbsolutePath())
         .add(scriptCommand.getId())

@@ -23,95 +23,70 @@ import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.server.portal.io.PortalExecutor.State;
 
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.Value;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * Catalog of messages to be sent from publishers to subscribers.
  */
-@NoArgsConstructor
-public final class Messages {
+public class Messages {
 
-  @Value
-  @Builder
+  public enum PortalChangeType {
+    CREATED,
+    REMOVED,
+    UPDATED,
+    EXECUTION;
+  }
+  
+  @Data
+  @Accessors(chain = true)
+  public static class PortalChangeMessage {
+
+
+    Integer portalId;
+    PortalChangeType type;
+    State state;
+
+  }
+
+  @Data
+  @Accessors(chain = true)
   public static class JenkinsBuildsMessage {
 
     List<JenkinsBuild> builds;
 
-    public static JenkinsBuildsMessageBuilder jenkinsBuilds() {
-      return builder();
-    }
-
   }
 
-  @Value
-  @Builder
+  @Data
+  @Accessors(chain = true)
   public static class GithubPrsMessage {
 
     List<GithubPr> prs;
 
-    public static GithubPrsMessageBuilder githubPrs() {
-      return builder();
-    }
-
   }
 
-  @Value
-  @Builder
-  public static class PortalChangeMessage {
-
-    public enum Type {
-      CREATED,
-      REMOVED,
-      UPDATED,
-      EXECUTION,
-    }
-
-    Integer portalId;
-    Type type;
-    State state;
-
-    public static PortalChangeMessageBuilder portalChange() {
-      return builder();
-    }
-
-  }
-
-  @Value
-  @Builder
+  @Data
+  @Accessors(chain = true)
   public static class LogLineMessage {
 
     Integer portalId;
     String line;
 
-    public static LogLineMessageBuilder logLine() {
-      return builder();
-    }
-
   }
 
-  @Value
-  @Builder
+  @Data
+  @Accessors(chain = true)
   public static class FirstSubscriberMessage {
 
     String topic;
 
-    public static FirstSubscriberMessageBuilder firstSubscriber() {
-      return builder();
-    }
-
   }
 
-  @Value
-  @Builder
+  @Data
+  @Accessors(chain = true)
   public static class LastSubscriberMessage {
 
     String topic;
-
-    public static LastSubscriberMessageBuilder lastSubscriber() {
-      return builder();
-    }
 
   }
 

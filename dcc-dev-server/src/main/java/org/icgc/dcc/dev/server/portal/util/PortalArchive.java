@@ -31,6 +31,7 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 
 import lombok.Cleanup;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -46,6 +47,7 @@ public class PortalArchive {
   /**
    * Configuration.
    */
+  @NonNull
   final URL archiveUrl;
 
   @SneakyThrows

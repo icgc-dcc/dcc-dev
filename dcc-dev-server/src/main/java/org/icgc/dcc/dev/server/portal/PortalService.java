@@ -18,7 +18,6 @@
 package org.icgc.dcc.dev.server.portal;
 
 import static com.google.api.client.repackaged.com.google.common.base.Strings.repeat;
-import static org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage.portalChange;
 import static org.icgc.dcc.dev.server.portal.util.Portals.getServerPort;
 
 import java.net.URL;
@@ -29,7 +28,7 @@ import org.icgc.dcc.dev.server.jira.JiraService;
 import org.icgc.dcc.dev.server.jira.JiraTicket;
 import org.icgc.dcc.dev.server.message.MessageService;
 import org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage;
-import org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage.Type;
+import org.icgc.dcc.dev.server.message.Messages.PortalChangeType;
 import org.icgc.dcc.dev.server.portal.candidate.PortalCandidateResolver;
 import org.icgc.dcc.dev.server.portal.io.PortalDeployer;
 import org.icgc.dcc.dev.server.portal.io.PortalExecutor;
@@ -160,7 +159,7 @@ public class PortalService {
       updateTicket(portal);
     }
 
-    notifyChange(portal, Type.CREATED);
+    notifyChange(portal, PortalChangeType.CREATED);
 
     return portal;
   }
@@ -178,7 +177,7 @@ public class PortalService {
     deployer.deploy(portal);
     executor.startAsync(portal);
 
-    notifyChange(portal, Type.UPDATED);
+    notifyChange(portal, PortalChangeType.UPDATED);
   }
 
   public Portal update(@NonNull Integer portalId, String slug, String title, String description, String ticket,
@@ -204,7 +203,7 @@ public class PortalService {
     deployer.deploy(portal);
     executor.startAsync(portal);
 
-    notifyChange(portal, Type.UPDATED);
+    notifyChange(portal, PortalChangeType.UPDATED);
 
     return portal;
   }
@@ -227,7 +226,7 @@ public class PortalService {
     executor.stop(portal);
     deployer.undeploy(portalId);
 
-    notifyChange(portal, Type.REMOVED);
+    notifyChange(portal, PortalChangeType.REMOVED);
   }
 
   public void start(@NonNull Integer portalId) {
@@ -294,11 +293,10 @@ public class PortalService {
     jira.updateTicket(ticketKey, "Deployed to " + iframeUrl + " for testing");
   }
 
-  private void notifyChange(Portal portal, PortalChangeMessage.Type type) {
-    messages.sendMessage(portalChange()
-        .type(type)
-        .portalId(portal.getId())
-        .build());
+  private void notifyChange(Portal portal, PortalChangeType type) {
+    messages.sendMessage(new PortalChangeMessage()
+        .setType(type)
+        .setPortalId(portal.getId()));
   }
 
   @SneakyThrows
@@ -333,7 +331,7 @@ public class PortalService {
 
   @SafeVarargs
   private static <T> T resolveValue(T... values) {
-    for (val value : values)
+    for (T value : values)
       if (value != null) return value;
 
     return null;

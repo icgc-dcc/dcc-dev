@@ -18,7 +18,6 @@
 package org.icgc.dcc.dev.server.portal.io;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.icgc.dcc.dev.server.message.Messages.LogLineMessage.logLine;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -31,6 +30,7 @@ import org.apache.commons.io.input.TailerListenerAdapter;
 import org.icgc.dcc.dev.server.message.MessageService;
 import org.icgc.dcc.dev.server.message.Messages.FirstSubscriberMessage;
 import org.icgc.dcc.dev.server.message.Messages.LastSubscriberMessage;
+import org.icgc.dcc.dev.server.message.Messages.LogLineMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -108,7 +108,7 @@ public class PortalLogs {
     @Override
     public void handle(String line) {
       log.info("{}: {}", portalId, line);
-      val message = logLine().portalId(portalId).line(line).build();
+      val message = new LogLineMessage().setPortalId(portalId).setLine(line);
       messages.sendMessage(message);
     }
 

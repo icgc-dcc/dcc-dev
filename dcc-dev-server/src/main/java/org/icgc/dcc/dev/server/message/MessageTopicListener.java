@@ -18,9 +18,9 @@
 package org.icgc.dcc.dev.server.message;
 
 import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
-import static org.icgc.dcc.dev.server.message.Messages.FirstSubscriberMessage.firstSubscriber;
-import static org.icgc.dcc.dev.server.message.Messages.LastSubscriberMessage.lastSubscriber;
 
+import org.icgc.dcc.dev.server.message.Messages.FirstSubscriberMessage;
+import org.icgc.dcc.dev.server.message.Messages.LastSubscriberMessage;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
@@ -83,7 +83,7 @@ class MessageTopicListener {
 
     if (!isFirst(topic)) return;
 
-    messages.sendMessage(firstSubscriber().topic(topic).build());
+    messages.sendMessage(new FirstSubscriberMessage().setTopic(topic));
   }
 
   private void handleUnsubscribe(String topic, String sessionId) {
@@ -92,7 +92,7 @@ class MessageTopicListener {
 
     if (!isLast(topic)) return;
 
-    messages.sendMessage(lastSubscriber().topic(topic).build());
+    messages.sendMessage(new LastSubscriberMessage().setTopic(topic));
   }
 
   private void handleDisconnect(String sessionId) {
@@ -109,7 +109,7 @@ class MessageTopicListener {
 
       if (!isLast(topic)) continue;
 
-      messages.sendMessage(lastSubscriber().topic(topic).build());
+      messages.sendMessage(new LastSubscriberMessage().setTopic(topic));
     }
   }
 

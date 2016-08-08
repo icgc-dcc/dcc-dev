@@ -19,7 +19,6 @@ package org.icgc.dcc.dev.server.github;
 
 import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 import static org.icgc.dcc.common.core.util.stream.Streams.stream;
-import static org.icgc.dcc.dev.server.message.Messages.GithubPrsMessage.githubPrs;
 import static org.kohsuke.github.GHCommitState.SUCCESS;
 import static org.kohsuke.github.GHIssueState.OPEN;
 
@@ -28,6 +27,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.icgc.dcc.dev.server.message.MessageService;
+import org.icgc.dcc.dev.server.message.Messages.GithubPrsMessage;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -66,7 +66,7 @@ public class GithubService {
   @Synchronized
   public void poll() {
     log.debug("Polling...");
-    messages.sendMessage(githubPrs().prs(getPrs()).build());
+    messages.sendMessage(new GithubPrsMessage().setPrs(getPrs()));
   }
 
   public Optional<GithubPr> getPr(@NonNull Integer prNumber) {
