@@ -61,7 +61,7 @@ public class PortalCandidateListener {
         val staleBuild = latestBuild.getNumber() <= buildNumber;
         if (staleBuild) continue;
 
-        log.info("Build update found for portal {}:  {}", portal.getId(), latestBuild);
+        log.debug("Build update found for portal {}:  {}", portal.getId(), latestBuild);
         if (!portal.isAutoDeploy()) continue;
 
         log.info("Auto deploying portal {}: {}", portal.getId(), latestBuild);
@@ -84,7 +84,7 @@ public class PortalCandidateListener {
       val prOpen = openPrNumbers.containsKey(prNumber);
       if (prOpen) continue;
 
-      log.info("Closed PR found for portal {}", portal.getId());
+      log.debug("Closed PR found for portal {}", portal.getId());
       if (!portal.isAutoRemove()) continue;
 
       log.info("Auto removing portal {}", portal.getId());
