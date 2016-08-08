@@ -6,6 +6,45 @@ import { XLarge } from './x-large';
 import { Http } from '@angular/http';
 import { PortalControls } from '../portal-controls';
 
+interface PullRequest {
+  avatarUrl: String;
+  branch: String;
+  description: String;
+  head: String;
+  number: Number;
+  title: String;
+  url: String;
+  user: String;
+}
+
+interface Candidate {
+  artifact: String;
+  build: {
+    commitId: String,
+    number: Number,
+    prNumber: Number,
+    timestamp: Number,
+    url: String
+  };
+  pr: PullRequest;
+};
+
+interface Portal {
+  autoDeploy: Boolean,
+  autoRemove: Boolean,
+  description: String,
+  id: String,
+  properties: any,
+  state: String, // maybe enum?
+  systemProperties: {
+    'management.port': String,
+    'server.port': String
+  },
+  target: Candidate,
+  ticket: any,
+  url: String
+};
+
 @Component({
   // The selector is what angular internally uses
   // for `document.querySelectorAll(selector)` in our index.html
@@ -29,8 +68,8 @@ import { PortalControls } from '../portal-controls';
 export class Home {
   // Set our default values
   localState = { value: '' };
-  candidates: Array<Object>;
-  portals: Array<Object>;
+  candidates: Array<Candidate>;
+  portals: Array<Portal>;
   // TypeScript public modifiers
   constructor(public appState: AppState, public http: Http) {
 
@@ -52,7 +91,7 @@ export class Home {
       .map(res => res.json());
   }
 
-  getCandidatePortal = (candidate) => {
+  getCandidatePortal = (candidate: Candidate) => {
     return this.portals.find(p => p.target.pr.number === candidate.pr.number);
   }
 
