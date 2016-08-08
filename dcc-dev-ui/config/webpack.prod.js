@@ -59,7 +59,7 @@ module.exports = webpackMerge(commonConfig, {
      *
      * See: http://webpack.github.io/docs/configuration.html#output-path
      */
-    path: helpers.root('target/app'),
+    path: helpers.root('target/classes/app'),
 
     /**
      * Specifies the name of each output file on disk.

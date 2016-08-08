@@ -15,19 +15,46 @@
   <description>${project.name}</description>
 
   <build>
-    <resources>
-      <resource>
-        <directory>${app.dir}</directory>
-      </resource>
-    </resources>
     <plugins>
-      <!-- Resources -->
+      <!-- Delegate to UI build -->
       <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <configuration>
-          <outputDirectory>${project.build.directory}/classes/${app.dir}</outputDirectory>
-        </configuration>
-      </plugin>    
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <!-- Compile -->
+          <execution>
+            <id>npm-install</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>npm</executable>
+              <arguments>
+                <argument>install</argument>
+              </arguments>
+              <workingDirectory>.</workingDirectory>
+            </configuration>
+          </execution>
+
+          <!-- Prepare package -->
+          <execution>
+            <id>npm-build</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>npm</executable>
+              <arguments>
+                <argument>run</argument>
+                <argument>build:prod</argument>
+              </arguments>
+              <workingDirectory>.</workingDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>      
     
     
       <!-- Disable Java plugins -->
@@ -91,9 +118,5 @@
     </plugins>
 
   </build>
-
-  <properties>
-    <app.dir>app/</app.dir>
-  </properties>
 
 </project>
