@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
-import org.icgc.dcc.dev.server.portal.Portal;
+import org.icgc.dcc.dev.server.portal.io.PortalExecutor.State;
 
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -64,11 +64,13 @@ public final class Messages {
     public enum Type {
       CREATED,
       REMOVED,
-      UPDATED
+      UPDATED,
+      EXECUTION,
     }
 
+    Integer portalId;
     Type type;
-    Portal portal;
+    State state;
 
     public static PortalChangeMessageBuilder portalChange() {
       return builder();

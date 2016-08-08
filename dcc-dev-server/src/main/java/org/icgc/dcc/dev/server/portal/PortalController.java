@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.icgc.dcc.dev.server.portal.Portal.Status;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
 import lombok.val;
 
 /**
@@ -45,13 +45,13 @@ import lombok.val;
  */
 @CrossOrigin
 @RestController
+@RequiredArgsConstructor
 public class PortalController {
 
   /**
    * Dependencies.
    */
-  @Autowired
-  PortalService service;
+  final PortalService service;
 
   /**
    * Redirects by {@code slug} to the associated portal's {@code url}. <br>

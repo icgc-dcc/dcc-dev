@@ -295,7 +295,10 @@ public class PortalService {
   }
 
   private void notifyChange(Portal portal, PortalChangeMessage.Type type) {
-    messages.sendMessage(portalChange().type(type).portal(portal).build());
+    messages.sendMessage(portalChange()
+        .type(type)
+        .portalId(portal.getId())
+        .build());
   }
 
   @SneakyThrows

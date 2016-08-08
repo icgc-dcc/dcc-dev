@@ -83,14 +83,14 @@ public class PortalExecutor {
   MessageService messages;
 
   public Status getStatus(@NonNull Integer portalId) {
-    val statusOutput = executeScript(portalId, CommandName.STATUS, null);
+    val statusOutput = executeScript(portalId, ScriptCommand.STATUS, null);
     return parseStatus(statusOutput);
   }
 
   public void start(@NonNull Portal portal) {
-    update(portal, State.STARTING);
-    executeScript(portal.getId(), CommandName.START, resolveArguments(portal));
-    update(portal, State.RUNNING);
+    notifyChange(portal, State.STARTING);
+    executeScript(portal.getId(), ScriptCommand.START, resolveArguments(portal));
+    notifyChange(portal, State.RUNNING);
   }
 
   @Async
@@ -99,9 +99,9 @@ public class PortalExecutor {
   }
 
   public void restart(@NonNull Portal portal) {
-    update(portal, State.RESTARTING);
-    executeScript(portal.getId(), CommandName.RESTART, resolveArguments(portal));
-    update(portal, State.RUNNING);
+    notifyChange(portal, State.RESTARTING);
+    executeScript(portal.getId(), ScriptCommand.RESTART, resolveArguments(portal));
+    notifyChange(portal, State.RUNNING);
   }
 
   @Async
@@ -110,9 +110,9 @@ public class PortalExecutor {
   }
 
   public void stop(@NonNull Portal portal) {
-    update(portal, State.STOPPING);
-    executeScript(portal.getId(), CommandName.STOP, null);
-    update(portal, State.STOPPED);
+    notifyChange(portal, State.STOPPING);
+    executeScript(portal.getId(), ScriptCommand.STOP, null);
+    notifyChange(portal, State.STOPPED);
   }
 
   @Async
@@ -120,18 +120,21 @@ public class PortalExecutor {
     stop(portal);
   }
 
-  private void update(Portal portal, State state) {
+  private void notifyChange(Portal portal, State state) {
     // Notify
-    messages.sendMessage(portalChange().type(Type.UPDATED).portal(portal));
+    messages.sendMessage(portalChange()
+        .portalId(portal.getId())
+        .type(Type.UPDATED)
+        .build());
   }
 
   @SneakyThrows
-  private String executeScript(Integer portalId, CommandName commandName, Map<String, String> arguments) {
+  private String executeScript(Integer portalId, ScriptCommand scriptCommand, Map<String, String> arguments) {
     @Cleanup
     val lock = locks.lockReading(portalId);
 
     val scriptFile = fileSystem.getScriptFile(portalId);
-    val command = createCommand(scriptFile, commandName, arguments);
+    val command = createCommand(scriptFile, scriptCommand, arguments);
 
     log.info("Executing command: {}", command);
     val output = new ProcessExecutor()
@@ -154,10 +157,10 @@ public class PortalExecutor {
     return effectiveArguments;
   }
 
-  private static List<String> createCommand(File scriptFile, CommandName commandName, Map<String, String> arguments) {
+  private static List<String> createCommand(File scriptFile, ScriptCommand scriptCommand, Map<String, String> arguments) {
     return ImmutableList.<String> builder()
         .add(scriptFile.getAbsolutePath())
-        .add(commandName.getId())
+        .add(scriptCommand.getId())
         .addAll(createCommandArgs(arguments)).build();
   }
 
@@ -191,7 +194,7 @@ public class PortalExecutor {
    * Script command.
    */
   @RequiredArgsConstructor
-  private enum CommandName {
+  private enum ScriptCommand {
 
     START("start"), RESTART("restart"), STOP("stop"), STATUS("status");
 
@@ -205,7 +208,7 @@ public class PortalExecutor {
    */
   public static enum State {
 
-    NEW, STARTING, RUNNING, STOPPING, STOPPED, RESTARTING, FAILED;
+    STARTING, RUNNING, STOPPING, STOPPED, RESTARTING, FAILED;
 
   }
 

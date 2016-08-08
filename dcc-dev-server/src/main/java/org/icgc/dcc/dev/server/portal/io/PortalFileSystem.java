@@ -70,10 +70,6 @@ public class PortalFileSystem {
     return new File(getBinDir(portalId), baseName);
   }
 
-  public File getMetadataFile(@NonNull Integer portalId) {
-    return new File(getRootDir(portalId), "portal.json");
-  }
-
   public File getJarFile(@NonNull Integer portalId) {
     return new File(getLibDir(portalId), baseName + ".jar");
   }

@@ -86,6 +86,7 @@ public class PortalLocks {
   @RequiredArgsConstructor
   public static class PortalLock implements Lock, AutoCloseable {
 
+    @NonNull
     private final Lock delegate;
 
     @Override

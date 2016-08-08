@@ -60,7 +60,7 @@ public class MessageService {
   public void sendMessage(@NonNull Object message) {
     if (message instanceof PortalChangeMessage) {
       val portalChange = (PortalChangeMessage) message;
-      sendWebSocketMessage("/portal", portalChange.getPortal());
+      sendWebSocketMessage("/portal", portalChange);
     } else if (message instanceof LogLineMessage) {
       val logLine = (LogLineMessage) message;
       sendWebSocketMessage("/logs/" + logLine.getPortalId(), logLine);
