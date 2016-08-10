@@ -15,12 +15,8 @@
 # IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# DCC Dev Server - Configuration
+# DCC Dev Server - Common Configuration
 #
-
-###############################################################################
-# Profile - common
-###############################################################################
 
 # Server
 server:
@@ -88,3 +84,6 @@ spring.jpa:
   hibernate:
     ddl-auto: update
     naming.implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyComponentPathImpl
+    
+# Banner
+spring.main.banner-mode: log
