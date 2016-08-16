@@ -4,46 +4,12 @@ import { AppState } from '../app.service';
 import { XLarge } from './x-large';
 
 import { Http } from '@angular/http';
+
+import { PortalService } from '../portal-service';
 import { PortalControls } from '../portal-controls';
 
-interface PullRequest {
-  avatarUrl: String;
-  branch: String;
-  description: String;
-  head: String;
-  number: Number;
-  title: String;
-  url: String;
-  user: String;
-}
-
-interface Candidate {
-  artifact: String;
-  build: {
-    commitId: String,
-    number: Number,
-    prNumber: Number,
-    timestamp: Number,
-    url: String
-  };
-  pr: PullRequest;
-};
-
-interface Portal {
-  autoDeploy: Boolean,
-  autoRemove: Boolean,
-  description: String,
-  id: String,
-  properties: any,
-  state: String, // maybe enum?
-  systemProperties: {
-    'management.port': String,
-    'server.port': String
-  },
-  target: Candidate,
-  ticket: any,
-  url: String
-};
+import { PullRequest, Candidate, Portal }  from '../interfaces';
+import { includes } from 'lodash';
 
 @Component({
   // The selector is what angular internally uses
@@ -51,7 +17,7 @@ interface Portal {
   // where, in this case, selector is the string 'home'
   selector: 'home',  // <home></home>
   // We need to tell Angular's Dependency Injection which providers are in our app.
-  providers: [],
+  providers: [ PortalService ],
   // We need to tell Angular's compiler which directives are in our template.
   // Doing so will allow Angular to attach our behavior to an element
   directives: [
@@ -66,39 +32,29 @@ interface Portal {
   templateUrl: './home.template.html'
 })
 export class Home {
-  // Set our default values
-  localState = { value: '' };
-  candidates: Array<Candidate>;
-  portals: Array<Portal>;
   // TypeScript public modifiers
-  constructor(public appState: AppState, public http: Http) {
+  constructor(public portalService: PortalService) {
 
   }
 
   ngOnInit() {
     console.log('hello `Home` component');
-    this.fetchCandidates().subscribe(data => this.candidates = data);
-    this.fetchPortals().subscribe(data => this.portals = data);
   }
 
-  fetchCandidates = () => {
-    return this.http.get('http://dev.dcc.icgc.org:9000/api/candidates')
-      .map(res => res.json());
+  get candidates(): Array<Candidate> {
+    return this.portalService.candidates;
   }
 
-  fetchPortals = () => {
-    return this.http.get('http://dev.dcc.icgc.org:9000/api/portals')
-      .map(res => res.json());
+  get portals(): Array<Portal> {
+    return this.portalService.portals;
+  }
+
+  get portalsWithoutPRs(): Array<Portal> {
+    const prNumbers = this.candidates.map(candidate => candidate.pr.number);
+    return this.portals.filter((portal: Portal) => !includes(prNumbers, portal.target.pr.number));
   }
 
   getCandidatePortal = (candidate: Candidate) => {
     return this.portals.find(p => p.target.pr.number === candidate.pr.number);
   }
-
-  submitState(value) {
-    console.log('submitState', value);
-    this.appState.set('value', value);
-    this.localState.value = '';
-  }
-
 }

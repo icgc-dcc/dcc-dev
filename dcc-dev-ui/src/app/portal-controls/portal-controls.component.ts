@@ -1,11 +1,11 @@
 import { Component, Input } from '@angular/core';
-
-import { Http, Headers, URLSearchParams } from '@angular/http';
+import { PortalService } from '../portal-service';
 
 // TODO: move PortalControls into own folder
 @Component({
   selector: 'portal-controls',
-  templateUrl: './portal-controls.html'
+  templateUrl: './portal-controls.html',
+  providers: [ PortalService ],
 })
 export class PortalControls {
   @Input()
@@ -13,24 +13,20 @@ export class PortalControls {
   @Input()
   prNumber: String;
 
-  constructor (public http: Http) {}
+  constructor (public portalService: PortalService) {}
 
   // TODO: this component should only send signals up, and not make the actual http request
   // The signals would trigger reqeusts and then model updates
   start = () => {
-    return this.http.post('http://dev.dcc.icgc.org:9000/api/portals', `prNumber=${this.prNumber}`, {
-      headers: new Headers({
-        'Content-Type': 'application/x-www-form-urlencoded'
-      })
-    })
-      .map(res => res.json())
-      .subscribe(res => this.portal = res);
+    return this.portalService.createPortal(this.prNumber);
   };
-
   stop = () => {};
   restart = () => {};
   delete = () => {
-    return this.http.delete(`http://dev.dcc.icgc.org:9000/api/portals/${this.portal.id}`)
-      .subscribe(() => this.portal = undefined);
+    return this.portalService.deletePortal(this.portal.id);
   };
+
+  get transformedUrl() {
+    return 'https://dev.dcc.icgc.org:' + this.portal.url.split(':')[2];
+  }
 }

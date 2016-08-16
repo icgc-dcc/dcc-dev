@@ -20,18 +20,7 @@ import { AppState } from './app.service';
       <md-toolbar color="primary">
           <span>DCC Deployment Server</span>
           <span class="fill"></span>
-          <a md-button [routerLink]=" ['./'] ">
-            Index
-          </a>
-          <a md-button [routerLink]=" ['./home'] ">
-            Home
-          </a>
-          <a md-button [routerLink]=" ['./detail'] ">
-            Detail
-          </a>
-          <a md-button [routerLink]=" ['./about'] ">
-            About
-          </a>
+          
       </md-toolbar>
 
       <md-progress-bar mode="indeterminate" color="primary" *ngIf="loading"></md-progress-bar>

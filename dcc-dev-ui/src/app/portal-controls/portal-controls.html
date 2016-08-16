@@ -3,7 +3,8 @@
     <button disabled (click)="stop()">stop</button>
     <button disabled (click)="restart()">restart</button>
     <button (click)="delete()">delete</button>
-    <a target="_blank" [href]="portal.url">{{ portal.url }}</a>
+    
+    <a target="_blank" [href]="transformedUrl">{{ transformedUrl }}</a>
   </div>
   <div *ngIf="!portal">
     <button (click)="start()">start</button>

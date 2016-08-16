@@ -8,6 +8,11 @@
         {{ candidate.pr.number }} -
         {{ candidate.pr.title }} -
         {{ candidate.pr.user }}
+        <div>
+          <a [href]="candidate.build.url" target="_blank">
+            Build #{{ candidate.build.number }}
+          </a>
+        </div>
         <portal-controls
           [portal]="getCandidatePortal(candidate)"
           [prNumber]="candidate.pr.number"
@@ -16,45 +21,13 @@
 
     </ul>
 
-    Portals: (not sure if this is necessary, maybe only show portals without PRs)
+    Orphaned Portals:
     <ul>
-      <li *ngFor="let portal of portals">
-        {{ portal.title || portal.target.pr.title}}
+      <li *ngFor="let portal of portalsWithoutPRs">
+        {{ portal.title || portal.target.pr.title }}
         <portal-controls [portal]="portal"></portal-controls>
       </li>
 
     </ul>
   </md-card>
-  <!--<md-card>
-    For hot module reloading run
-    <pre>npm run start:hmr</pre>
-  </md-card>-->
-  <!--<md-card>
-    <md-card-title>Local State</md-card-title>
-    <md-card-content>
-
-      <form (ngSubmit)="submitState(localState.value)" autocomplete="off">
-
-        <md-input
-          placeholder="Submit Local State to App State"
-          [value]="localState.value"
-          (input)="localState.value = $event.target.value"
-          autofocus>
-        </md-input>
-
-        <button md-raised-button color="primary">Submit Value</button>
-      </form>-->
-
-      <!--
-        <input type="text" [value]="localState.value" (input)="localState.value = $event.target.value" autofocus>
-        Rather than wiring up two-way data-binding ourselves with [value] and (input)
-        we can use Angular's [(ngModel)] syntax
-        <input type="text" name="textInput" [(ngModel)]="localState.value" autofocus>
-      -->
-<!--
-      <pre>this.localState = {{ localState | json }}</pre>
-
-    </md-card-content>
-  </md-card>-->
-
 </div>

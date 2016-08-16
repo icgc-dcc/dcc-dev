@@ -1,1 +1,1 @@
-export * from './candidates.service';
+export * from './portal.service';
