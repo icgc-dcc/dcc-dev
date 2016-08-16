@@ -107,7 +107,7 @@ public class JenkinsService {
 
   @SneakyThrows
   private boolean isSuccessfulBuild(MavenBuild build) {
-    return build.details().getResult().equals(BuildResult.SUCCESS);
+    return build.details().getResult() == BuildResult.SUCCESS;
   }
 
   @SneakyThrows
