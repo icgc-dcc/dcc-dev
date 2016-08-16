@@ -9,8 +9,8 @@ export class Candidates {
 
   }
 
-  getData = () => {
-    return this.http.get('http://dev.dcc.icgc.org:9000/candidates')
+  getCandidates = () => {
+    return this.http.get('http://dev.dcc.icgc.org:9000/api/candidates')
       .map(res => res.json());
   }
 

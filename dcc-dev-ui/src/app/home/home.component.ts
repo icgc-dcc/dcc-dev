@@ -82,12 +82,12 @@ export class Home {
   }
 
   fetchCandidates = () => {
-    return this.http.get('http://dev.dcc.icgc.org:9000/candidates')
+    return this.http.get('http://dev.dcc.icgc.org:9000/api/candidates')
       .map(res => res.json());
   }
 
   fetchPortals = () => {
-    return this.http.get('http://dev.dcc.icgc.org:9000/portals')
+    return this.http.get('http://dev.dcc.icgc.org:9000/api/portals')
       .map(res => res.json());
   }
 

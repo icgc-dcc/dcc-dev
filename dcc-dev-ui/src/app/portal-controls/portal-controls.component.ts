@@ -18,7 +18,7 @@ export class PortalControls {
   // TODO: this component should only send signals up, and not make the actual http request
   // The signals would trigger reqeusts and then model updates
   start = () => {
-    return this.http.post('http://dev.dcc.icgc.org:9000/portals', `prNumber=${this.prNumber}`, {
+    return this.http.post('http://dev.dcc.icgc.org:9000/api/portals', `prNumber=${this.prNumber}`, {
       headers: new Headers({
         'Content-Type': 'application/x-www-form-urlencoded'
       })
@@ -30,7 +30,7 @@ export class PortalControls {
   stop = () => {};
   restart = () => {};
   delete = () => {
-    return this.http.delete(`http://dev.dcc.icgc.org:9000/portals/${this.portal.id}`)
+    return this.http.delete(`http://dev.dcc.icgc.org:9000/api/portals/${this.portal.id}`)
       .subscribe(() => this.portal = undefined);
   };
 }
