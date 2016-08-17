@@ -69,8 +69,8 @@ public class Messages {
   @Accessors(chain = true)
   public static class LogLineMessage {
 
-    Long timestamp;
     Integer portalId;
+    Long timestamp;
     String line;
 
   }

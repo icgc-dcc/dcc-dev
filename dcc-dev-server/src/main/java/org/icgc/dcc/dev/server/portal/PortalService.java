@@ -293,7 +293,7 @@ public class PortalService {
     if (ticketKey == null) return;
 
     try {
-      val iframeUrl = publicUrl + "/" + portal.getId();
+      val iframeUrl = publicUrl + "/portals/" + portal.getId();
       jira.updateTicket(ticketKey, "Deployed to " + iframeUrl + " for testing");
     } catch (Exception e) {
       log.error("Could not update ticket " + ticketKey + ":", e);

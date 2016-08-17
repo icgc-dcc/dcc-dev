@@ -18,6 +18,7 @@
 package org.icgc.dcc.dev.server.portal;
 
 import static org.springframework.http.HttpStatus.ACCEPTED;
+import static org.springframework.http.ResponseEntity.ok;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,7 +59,7 @@ public class PortalController {
    * Redirects by {@code slug} to the associated portal's {@code url}. <br>
    * Useful as a mnemonic URL for users.
    */
-  @GetMapping("/portals/{slug:\\w.+}")
+  @GetMapping("/portals/{slug:\\D.*}")
   public void redirect(@PathVariable("slug") String slug, HttpServletResponse response) throws IOException {
     val portal = service.getBySlug(slug);
     response.sendRedirect(portal.getUrl());
@@ -105,11 +106,8 @@ public class PortalController {
   public ResponseEntity<String> getLog(@PathVariable("portalId") Integer portalId) {
     val portalLog = service.getLog(portalId);
     val serverTimestamp = String.valueOf(System.currentTimeMillis());
-    
-    val response = ResponseEntity.ok(portalLog);
-    response.getHeaders().add("X-Server-Timestamp", serverTimestamp);
-    
-    return response;
+
+    return ok().header("X-Server-Timestamp", serverTimestamp).body(portalLog);
   }
 
   /**
