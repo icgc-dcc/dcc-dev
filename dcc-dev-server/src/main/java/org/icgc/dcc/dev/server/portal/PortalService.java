@@ -217,18 +217,18 @@ public class PortalService {
 
   public void remove(@NonNull Integer portalId) {
     log.info("Removing portal {}...", portalId);
-    
+
     @Cleanup
     val lock = locks.lockWriting(portalId);
     val portal = get(portalId);
-    
+
     // Wait for the instance to stop (synchronous)
     executor.stop(portal);
     deployer.undeploy(portalId);
 
     // Remove meatdata
     repository.delete(portalId);
-    
+
     notifyChange(portal, PortalChangeType.REMOVED);
   }
 
@@ -292,8 +292,12 @@ public class PortalService {
     val ticketKey = portal.getTicketKey();
     if (ticketKey == null) return;
 
-    val iframeUrl = publicUrl + "/" + portal.getId();
-    jira.updateTicket(ticketKey, "Deployed to " + iframeUrl + " for testing");
+    try {
+      val iframeUrl = publicUrl + "/" + portal.getId();
+      jira.updateTicket(ticketKey, "Deployed to " + iframeUrl + " for testing");
+    } catch (Exception e) {
+      log.error("Could not update ticket " + ticketKey + ":", e);
+    }
   }
 
   private void notifyChange(Portal portal, PortalChangeType type) {
