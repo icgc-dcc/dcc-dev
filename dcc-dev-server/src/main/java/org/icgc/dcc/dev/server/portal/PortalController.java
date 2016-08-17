@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.icgc.dcc.dev.server.portal.Portal.Status;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -101,8 +102,14 @@ public class PortalController {
    * Gets the full content of portal log with the supplied {@code portalId}.
    */
   @GetMapping("/api/portals/{portalId}/log")
-  public String getLog(@PathVariable("portalId") Integer portalId) {
-    return service.getLog(portalId);
+  public ResponseEntity<String> getLog(@PathVariable("portalId") Integer portalId) {
+    val portalLog = service.getLog(portalId);
+    val serverTimestamp = String.valueOf(System.currentTimeMillis());
+    
+    val response = ResponseEntity.ok(portalLog);
+    response.getHeaders().add("X-Server-Timestamp", serverTimestamp);
+    
+    return response;
   }
 
   /**

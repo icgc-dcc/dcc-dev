@@ -108,7 +108,7 @@ public class PortalLogs {
     @Override
     public void handle(String line) {
       log.info("{}: {}", portalId, line);
-      val message = new LogLineMessage().setPortalId(portalId).setLine(line);
+      val message = new LogLineMessage().setPortalId(portalId).setTimestamp(System.currentTimeMillis()).setLine(line);
       messages.sendMessage(message);
     }
 
