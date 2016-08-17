@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ApplicationRef } from '@angular/core';
 
 import { AppState } from '../app.service';
 import { XLarge } from './x-large';
@@ -33,7 +33,7 @@ import { includes } from 'lodash';
 })
 export class Home {
   // TypeScript public modifiers
-  constructor(public portalService: PortalService) {
+  constructor(public portalService: PortalService, private ref: ApplicationRef) {
 
   }
 

@@ -5,7 +5,6 @@ import { PortalService } from '../portal-service';
 @Component({
   selector: 'portal-controls',
   templateUrl: './portal-controls.html',
-  providers: [ PortalService ],
 })
 export class PortalControls {
   @Input()
