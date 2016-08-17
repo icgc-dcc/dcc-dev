@@ -2,11 +2,19 @@
   <div *ngIf="portal">
     <button disabled (click)="stop()">stop</button>
     <button disabled (click)="restart()">restart</button>
-    <button (click)="delete()">delete</button>
+    <button [disabled]="isProcessing" (click)="delete()">delete</button>
+    <button (click)="requestLogs()">request logs</button>
     
     <a target="_blank" [href]="transformedUrl">{{ transformedUrl }}</a>
   </div>
   <div *ngIf="!portal">
-    <button (click)="start()">start</button>
+    <button [disabled]="isProcessing" (click)="start()">start</button>
+  </div>
+  <div *ngIf="isProcessing">...</div>
+
+  <div>
+    logs:
+    <!--<pre>{{ logsFromRest.content }}</pre>-->
+    <pre *ngFor="let log of logsFromWebsocket">{{ log.timestamp }} : {{ log.line }}</pre>
   </div>
 </div>

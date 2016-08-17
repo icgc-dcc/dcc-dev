@@ -11,21 +11,40 @@ export class PortalControls {
   portal: any;
   @Input()
   prNumber: String;
+  isProcessing: Boolean;
+
+  // TODO: rename..
+  logsFromRest = {};
+  logsFromWebsocket = [];
+
 
   constructor (public portalService: PortalService) {}
 
-  // TODO: this component should only send signals up, and not make the actual http request
-  // The signals would trigger reqeusts and then model updates
   start = () => {
+    this.isProcessing = true;
     return this.portalService.createPortal(this.prNumber);
   };
   stop = () => {};
   restart = () => {};
   delete = () => {
+    this.isProcessing = true;
     return this.portalService.deletePortal(this.portal.id);
   };
 
+  requestLogs = () => {
+    this.portalService.fetchPortalLog(this.portal.id)
+      .subscribe( data => this.logsFromRest = data );
+
+    this.portalService.subscribePortalLog(this.portal.id, (message) => {
+      this.logsFromWebsocket.push(JSON.parse(message.body));
+    });
+  }
+
   get transformedUrl() {
     return 'https://dev.dcc.icgc.org:' + this.portal.url.split(':')[2];
+  }
+
+  get logs() {
+    return this.portalService.logsMap[this.portal.id];
   }
 }
