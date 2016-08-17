@@ -264,9 +264,12 @@ public class PortalService {
 
   public String getLog(Integer portalId) {
     log.info("Getting log of portal {}...", portalId);
+    // TODO: Do existence check instead
+    get(portalId);
 
     @Cleanup
     val lock = locks.lockReading(portalId);
+    
     return logs.cat(portalId);
   }
 
