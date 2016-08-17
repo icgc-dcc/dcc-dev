@@ -217,15 +217,18 @@ public class PortalService {
 
   public void remove(@NonNull Integer portalId) {
     log.info("Removing portal {}...", portalId);
-
+    
     @Cleanup
     val lock = locks.lockWriting(portalId);
     val portal = get(portalId);
-
+    
     // Wait for the instance to stop (synchronous)
     executor.stop(portal);
     deployer.undeploy(portalId);
 
+    // Remove meatdata
+    repository.delete(portalId);
+    
     notifyChange(portal, PortalChangeType.REMOVED);
   }
 
