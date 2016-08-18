@@ -54,7 +54,7 @@ export class Home {
     return this.portals.filter((portal: Portal) => !includes(prNumbers, portal.target.pr.number));
   }
 
-  getCandidatePortal = (candidate: Candidate) => {
-    return this.portals.find(p => p.target.pr.number === candidate.pr.number);
+  getCandidatePortals = (candidate: Candidate) => {
+    return this.portals.filter(p => p.target.pr.number === candidate.pr.number);
   }
 }

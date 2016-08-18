@@ -10,3 +10,9 @@
 .card-container md-card{
     margin: 5px;
 }
+
+.owner-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+}

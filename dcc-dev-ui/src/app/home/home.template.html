@@ -8,15 +8,28 @@
         {{ candidate.pr.number }} -
         {{ candidate.pr.title }} -
         {{ candidate.pr.user }}
+        <img class="owner-avatar" [src]="'http://github.com/' + candidate.pr.user + '.png'">
+
         <div>
           <a [href]="candidate.build.url" target="_blank">
             Build #{{ candidate.build.number }}
           </a>
         </div>
-        <portal-controls
-          [portal]="getCandidatePortal(candidate)"
-          [prNumber]="candidate.pr.number"
-        ></portal-controls>
+
+        <div class="jira" *ngIf="candidate.ticket">
+            <a
+              target="_blank"
+              [href]="'https://jira.oicr.on.ca/browse/' + candidate.ticket.key"
+            >{{ candidate.ticket.key }}</a>
+        </div>
+
+        <portal-controls [prNumber]="candidate.pr.number"></portal-controls>
+        <div *ngFor="let portal of getCandidatePortals(candidate)">
+          <portal-controls
+            [portal]="portal"
+            [prNumber]="candidate.pr.number"
+          ></portal-controls>
+        </div>
       </li>
 
     </ul>

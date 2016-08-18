@@ -17,7 +17,7 @@
   </div>
 
   <div *ngIf="portal">
-    <button [disabled]="isProcessing" (click)="save()">save</button>
+    <button [disabled]="isProcessing" (click)="update()">update</button>
     <button (click)="requestLogs()">request logs</button>
     <button [disabled]="isProcessing" (click)="delete()">delete</button>
   </div>

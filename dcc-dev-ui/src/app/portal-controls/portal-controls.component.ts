@@ -49,11 +49,13 @@ export class PortalControls {
     this.isProcessing = true;
     return this.portalService.createPortal(this.prNumber, {config: this.serializedConfig});
   };
+
   delete = () => {
     this.isProcessing = true;
     return this.portalService.deletePortal(this.portal.id);
   };
-  save = () => {
+
+  update = () => {
     this.isProcessing = true;
     return this.portalService.updatePortal(this.portal.id, {config: this.serializedConfig});
   }
