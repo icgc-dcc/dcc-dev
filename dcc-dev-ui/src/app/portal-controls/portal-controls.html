@@ -1,20 +1,39 @@
 <div>
-  <div *ngIf="portal">
-    <button disabled (click)="stop()">stop</button>
-    <button disabled (click)="restart()">restart</button>
-    <button [disabled]="isProcessing" (click)="delete()">delete</button>
-    <button (click)="requestLogs()">request logs</button>
-    
-    <a target="_blank" [href]="transformedUrl">{{ transformedUrl }}</a>
+  <a
+    *ngIf="portal"
+    target="_blank"
+    [href]="transformedUrl"
+  >{{ transformedUrl }}</a>
+  <div>
+    <strong>Config:</strong>
+    <button (click)="addConfigEntry()">+</button>
+    <ul>
+      <li *ngFor="let config of configEntries">
+        <label>Name: <input [(ngModel)]="config.name"></label>
+        <label>Value: <input [(ngModel)]="config.value"></label>
+        <button (click)="removeConfigEntry(config)">-</button>
+      </li>
+    </ul>
   </div>
+
+  <div *ngIf="portal">
+    <button [disabled]="isProcessing" (click)="save()">save</button>
+    <button (click)="requestLogs()">request logs</button>
+    <button [disabled]="isProcessing" (click)="delete()">delete</button>
+  </div>
+
   <div *ngIf="!portal">
     <button [disabled]="isProcessing" (click)="start()">start</button>
   </div>
+
   <div *ngIf="isProcessing">...</div>
 
-  <div>
-    logs:
-    <!--<pre>{{ logsFromRest.content }}</pre>-->
-    <pre *ngFor="let log of logsFromWebsocket">{{ log.timestamp }} : {{ log.line }}</pre>
+  <div class="portal-controls__logs">
+    <!--{{ logsFromRestEndpoint.timestamp }}-->
+    <pre>
+<!--{{ logsFromRestEndpoint.content }}-->
+<template ngFor let-log="$implicit" [ngForOf]="logsFromWebsocketAfterLogsFromRestEndpoint">{{ log.timestamp }}{{ log.line }}
+</template>
+    </pre>
   </div>
 </div>

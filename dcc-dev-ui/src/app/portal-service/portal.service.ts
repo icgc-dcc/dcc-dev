@@ -3,10 +3,19 @@ import { Http, Headers, URLSearchParams } from '@angular/http';
 import { PullRequest, Candidate, Portal }  from '../interfaces';
 import * as SockJS from 'sockjs-client';
 import { Stomp } from 'stompjs/lib/stomp.js';
+import { map } from 'lodash';
 
 const API_ROOT = 'https://dev.dcc.icgc.org:9000/api';
 const socket = new SockJS(`https://dev.dcc.icgc.org:9000/messages`);
 const stompClient = Stomp.over(socket);
+
+function encodeFormValues(values) {
+  return map(values,
+      (value, key) => encodeURIComponent(key) + '=' + encodeURIComponent(value))
+      .join('&');
+}
+
+const formHeaders = new Headers({ 'Content-Type': 'application/x-www-form-urlencoded' });
 
 @Injectable()
 export class PortalService {
@@ -39,12 +48,15 @@ export class PortalService {
     });
   }
 
-  createPortal = (prNumber) => {
-    return this.http.post(`${API_ROOT}/portals`, `prNumber=${prNumber}`, {
-      headers: new Headers({
-        'Content-Type': 'application/x-www-form-urlencoded'
-      })
-    })
+  createPortal = (prNumber, values = {}) => {
+    const payload = encodeFormValues(Object.assign({prNumber}, values));
+    return this.http.post(`${API_ROOT}/portals`, payload, { headers: formHeaders })
+      .subscribe();
+  }
+
+  updatePortal = (portalId, values = {}) => {
+    const payload = encodeFormValues(values);
+    return this.http.put(`${API_ROOT}/portals/${portalId}`, payload, { headers: formHeaders })
       .subscribe();
   }
 
@@ -63,15 +75,10 @@ export class PortalService {
 
   // TODO: make this an observable
   subscribePortalLog = (portalId, cb) => {
-    // stompClient.subscribe(`/topic/logs/${portalId}`, this.handlePortalLogMessage);
     stompClient.subscribe(`/topic/logs/${portalId}`, (message) => {
       this._ngZone.run(() => cb(message));
     });
   };
-
-  // private handlePortalLogMessage = (message) => {
-  //   console.log(message);
-  // };
 
   private handlePortalStateMessage = (message) => {
     const {portalId, type} = JSON.parse(message.body);
