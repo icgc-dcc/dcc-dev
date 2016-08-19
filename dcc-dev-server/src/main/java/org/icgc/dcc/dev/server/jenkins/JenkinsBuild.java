@@ -19,6 +19,8 @@ package org.icgc.dcc.dev.server.jenkins;
 
 import javax.persistence.Embeddable;
 
+import com.offbytwo.jenkins.model.BuildResult;
+
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -41,5 +43,6 @@ public class JenkinsBuild {
   String commitId;
   String url;
   Long timestamp;
+  BuildResult result;
 
 }

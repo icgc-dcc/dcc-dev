@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 import net.rcarz.jiraclient.Issue;
@@ -48,6 +49,7 @@ public class JiraService {
   @Autowired
   JiraClient jira;
 
+  @Synchronized
   public JiraTicket getTicket(@NonNull String key) {
     val issue = getIssue(key);
 
@@ -59,6 +61,7 @@ public class JiraService {
         .setUrl(issue.getUrl());
   }
 
+  @Synchronized
   @SneakyThrows
   public void updateTicket(@NonNull String key, String comment) {
     val issue = getIssue(key);

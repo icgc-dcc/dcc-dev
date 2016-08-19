@@ -80,7 +80,7 @@ public class PortalCandidateResolver {
   }
 
   private Candidate createCandidate(GithubPr pr, String buildNumber) {
-    val build = buildNumber == null ? null : jenkins.getSuccessfulBuild(buildNumber);
+    val build = buildNumber == null ? null : jenkins.getBuild(buildNumber);
     val artifact = buildNumber == null ? null : artifactory.getArtifact(buildNumber).orElse(null);
     val ticketKey = parseTicketKey(pr.getBranch());
     val ticket = ticketKey == null ? null : jira.getTicket(ticketKey);

@@ -36,7 +36,6 @@ import org.springframework.stereotype.Service;
 import com.google.common.primitives.Ints;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.BuildCause;
-import com.offbytwo.jenkins.model.BuildResult;
 import com.offbytwo.jenkins.model.MavenBuild;
 import com.offbytwo.jenkins.model.MavenJobWithDetails;
 
@@ -80,20 +79,20 @@ public class JenkinsService {
   @Synchronized
   public void poll() {
     log.debug("Polling...");
-    messages.sendMessage(new JenkinsBuildsMessage().setBuilds(getSuccessfulBuilds()));
+    messages.sendMessage(new JenkinsBuildsMessage().setBuilds(getBuilds()));
   }
 
   @SneakyThrows
-  public List<JenkinsBuild> getSuccessfulBuilds() {
-    return successfulBuild().map(this::convert).collect(toList());
+  public List<JenkinsBuild> getBuilds() {
+    return builds().map(this::convert).collect(toList());
   }
 
   @SneakyThrows
-  public JenkinsBuild getSuccessfulBuild(@NonNull String buildNumber) {
+  public JenkinsBuild getBuild(@NonNull String buildNumber) {
     val value = Ints.tryParse(buildNumber);
     val defaultValue = new JenkinsBuild().setNumber(value);
 
-    return successfulBuild().filter(b -> b.getNumber() == value).findFirst().map(this::convert).orElse(defaultValue);
+    return builds().filter(b -> b.getNumber() == value).findFirst().map(this::convert).orElse(defaultValue);
   }
 
   @SneakyThrows
@@ -101,13 +100,8 @@ public class JenkinsService {
     return jenkins.getMavenJob(jobName);
   }
 
-  private Stream<MavenBuild> successfulBuild() {
-    return getJob().getBuilds().stream().filter(this::isSuccessfulBuild);
-  }
-
-  @SneakyThrows
-  private boolean isSuccessfulBuild(MavenBuild build) {
-    return build.details().getResult() == BuildResult.SUCCESS;
+  private Stream<MavenBuild> builds() {
+    return getJob().getBuilds().stream();
   }
 
   @SneakyThrows
@@ -121,6 +115,7 @@ public class JenkinsService {
         .setPrNumber(prNumber)
         .setCommitId(commitId)
         .setUrl(build.getUrl())
+        .setResult(build.details().getResult())
         .setTimestamp(build.details().getTimestamp());
   }
 
