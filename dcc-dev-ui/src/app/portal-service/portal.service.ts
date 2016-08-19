@@ -11,7 +11,7 @@ const stompClient = Stomp.over(socket);
 
 function encodeFormValues(values) {
   return map(values,
-      (value, key) => encodeURIComponent(key) + '=' + encodeURIComponent(value))
+      (value, key: string) => encodeURIComponent(key) + '=' + encodeURIComponent(value))
       .join('&');
 }
 

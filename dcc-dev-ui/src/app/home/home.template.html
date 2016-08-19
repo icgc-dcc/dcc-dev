@@ -1,46 +1,44 @@
-<div class="card-container">
-  <md-card>
+<div class="card-container home">
+  <div class="home-column">
     Candidates:
-    <ul>
-      <li
-        *ngFor="let candidate of candidates"
-      >
-        {{ candidate.pr.number }} -
-        {{ candidate.pr.title }} -
-        {{ candidate.pr.user }}
-        <img class="owner-avatar" [src]="'http://github.com/' + candidate.pr.user + '.png'">
 
-        <div>
-          <a [href]="candidate.build.url" target="_blank">
-            Build #{{ candidate.build.number }}
-          </a>
-        </div>
+    <md-card
+      class=""
+      *ngFor="let candidate of candidates"
+    >
 
-        <div class="jira" *ngIf="candidate.ticket">
-            <a
-              target="_blank"
-              [href]="'https://jira.oicr.on.ca/browse/' + candidate.ticket.key"
-            >{{ candidate.ticket.key }}</a>
-        </div>
+      
 
-        <portal-controls [prNumber]="candidate.pr.number"></portal-controls>
-        <!--<div *ngFor="let portal of getCandidatePortals(candidate)">
-          <portal-controls
-            [portal]="portal"
-            [prNumber]="candidate.pr.number"
-          ></portal-controls>
-        </div>-->
-      </li>
+      <div class="jira" *ngIf="candidate.ticket">
+          <a
+            target="_blank"
+            [href]="'https://jira.oicr.on.ca/browse/' + candidate.ticket.key"
+          >{{ candidate.ticket.key }}</a>
+      </div>
 
-    </ul>
+      <portal-controls
+        [build]="candidate.build"
+        [pr]="candidate.pr"
+      ></portal-controls>
+      <!--<div *ngFor="let portal of getCandidatePortals(candidate)">
+        <portal-controls
+          [portal]="portal"
+          [prNumber]="candidate.pr.number"
+        ></portal-controls>
+      </div>-->
+    </md-card>
+  </div>
+  <div class="home-column">
 
     Deployed Portals:
-    <ul>
-      <li *ngFor="let portal of portals">
-        {{ portal.title }}
-        <portal-controls [portal]="portal"></portal-controls>
-      </li>
 
-    </ul>
-  </md-card>
+    <md-card *ngFor="let portal of portals">
+      {{ portal.title }}
+      <portal-controls
+        [portal]="portal"
+        [build]="portal.target.build"
+        [pr]="portal.target.pr"
+      ></portal-controls>
+    </md-card>
+  </div>
 </div>

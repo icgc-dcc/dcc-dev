@@ -1,42 +1,63 @@
 <div>
-  <a
-    *ngIf="portal"
-    target="_blank"
-    [href]="transformedUrl"
-  >{{ transformedUrl }}</a>
+  <div class="primary-column">
+    <img class="owner-avatar" [src]="'http://github.com/' + pr.user + '.png'">
+    <button
+      *ngIf="!portal"
+      md-raised-button
+      color="primary"
+      (click)="start()"
+    >Create Portal</button>
+  </div>
   <div>
-    <md-checkbox [(ngModel)]="autoDeploy">
-      Auto Deploy
-    </md-checkbox>
-    <br>
-    <strong>Config:</strong>
-    <button (click)="addConfigEntry()">+</button>
-    <ul>
-      <li *ngFor="let config of configEntries">
-        <label>Name: <input [(ngModel)]="config.name"></label>
-        <label>Value: <input [(ngModel)]="config.value"></label>
-        <button (click)="removeConfigEntry(config)">-</button>
-      </li>
-    </ul>
-  </div>
+    <div>
+      {{ pr.number }} -
+      {{ pr.title }} -
+      {{ pr.user }}
+    </div>
+    <div *ngIf="build">
+        <a [href]="build.url" target="_blank">
+          Build #{{ build.number }}
+        </a>
+      </div>
+    <a
+      *ngIf="portal"
+      target="_blank"
+      [href]="transformedUrl"
+    >{{ transformedUrl }}</a>
+    <div>
+      <md-checkbox [(ngModel)]="autoDeploy">
+        Auto Deploy
+      </md-checkbox>
+      <br>
+      <strong>Config:</strong>
+      <button (click)="addConfigEntry()">+</button>
+      <ul>
+        <li *ngFor="let config of configEntries">
+          <label>Name: <input [(ngModel)]="config.name"></label>
+          <label>Value: <input [(ngModel)]="config.value"></label>
+          <button (click)="removeConfigEntry(config)">-</button>
+        </li>
+      </ul>
+    </div>
 
-  <div *ngIf="portal">
-    <button [disabled]="isProcessing" (click)="update()">update</button>
-    <button (click)="requestLogs()">request logs</button>
-    <button [disabled]="isProcessing" (click)="delete()">delete</button>
-  </div>
+    <div *ngIf="portal">
+      <button [disabled]="isProcessing" (click)="update()">update</button>
+      <button (click)="requestLogs()">request logs</button>
+      <button [disabled]="isProcessing" (click)="delete()">delete</button>
+    </div>
 
-  <div *ngIf="!portal">
-    <button [disabled]="isProcessing" (click)="start()">Create Portal</button>
-  </div>
+    <div *ngIf="!portal">
+      <button [disabled]="isProcessing" (click)="start()">Create Portal</button>
+    </div>
 
-  <div *ngIf="isProcessing">...</div>
+    <div *ngIf="isProcessing">...</div>
 
-  <div class="portal-controls__logs">
-    <pre>
-<!--{{ logsFromRestEndpoint.content }}-->
-<template ngFor let-log="$implicit" [ngForOf]="logsFromWebsocketAfterLogsFromRestEndpoint">{{ log.line }}
-</template>
-    </pre>
+    <div class="portal-controls__logs" *ngIf="logsFromWebsocketAfterLogsFromRestEndpoint.length">
+      <pre>
+  <!--{{ logsFromRestEndpoint.content }}-->
+  <template ngFor let-log="$implicit" [ngForOf]="logsFromWebsocketAfterLogsFromRestEndpoint">{{ log.line }}
+  </template>
+      </pre>
+    </div>
   </div>
 </div>

@@ -27,6 +27,21 @@ export class PortalOptionsEditor {
 
   constructor () {}
 
+  get serializedConfig() {
+    const entries = this.configEntries.filter(x => x.name && x.value);
+    return JSON.stringify(zipObject(
+      entries.map(x => x.name),
+      entries.map(x => x.value)
+    ));
+  }
+
+  get optionsValue() {
+    return {
+      config: this.serializedConfig,
+      autoDeploy: this.autoDeploy
+    };
+  }
+
   addConfigEntry = () => {
     this.configEntries.push({ name: '', value: '' });
   };
@@ -46,7 +61,10 @@ export class PortalControls {
   portal: any;
 
   @Input()
-  prNumber: String;
+  pr: any;
+
+  @Input()
+  build: any;
 
   isProcessing: Boolean;
   autoDeploy: Boolean = false;
@@ -69,13 +87,13 @@ export class PortalControls {
     //   // this.config = configChanges;
     //   this.configEntries = map(configChanges, (value, key) => ({name: key, value}));
     // }
-    const autoDeploy = get(changes, 'portal.currentValue.autoDeploy');
+    const autoDeploy = get<Boolean>(changes, 'portal.currentValue.autoDeploy');
     this.autoDeploy = autoDeploy;
 
   }
 
   // TODO: rename..
-  logsFromRestEndpoint = {};
+  logsFromRestEndpoint: any = {};
   logsFromWebsocket = [];
 
   get logsFromWebsocketAfterLogsFromRestEndpoint() {
@@ -95,7 +113,7 @@ export class PortalControls {
   start = () => {
     this.isProcessing = true;
     console.log(this.portalOptions, this.autoDeploy);
-    return this.portalService.createPortal(this.prNumber, this.portalOptions);
+    return this.portalService.createPortal(this.pr.number, this.portalOptions);
   };
 
   delete = () => {
@@ -118,6 +136,6 @@ export class PortalControls {
   };
 
   get transformedUrl() {
-    return 'https://dev.dcc.icgc.org:' + this.portal.url.split(':')[2];
+    return 'https://dev.dcc.icgc.org:9000/portals/' + this.portal.id;
   }
 }
