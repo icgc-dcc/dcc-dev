@@ -24,7 +24,6 @@
     Deployed Portals:
 
     <md-card *ngFor="let portal of portals">
-      {{ portal.title }}
       <portal-controls
         [portal]="portal"
         [build]="portal.target.build"
