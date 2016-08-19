@@ -1,7 +1,12 @@
 <div>
   <div class="primary-column">
     <img class="owner-avatar" [src]="'http://github.com/' + pr.user + '.png'">
-    <button md-raised-button color="primary">Create Portal</button>
+    <button
+      *ngIf="!portal"
+      md-raised-button
+      color="primary"
+      (click)="start()"
+    >Create Portal</button>
   </div>
   <div>
     <div>
