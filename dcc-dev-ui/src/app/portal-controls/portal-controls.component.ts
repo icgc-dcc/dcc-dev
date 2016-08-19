@@ -1,36 +1,123 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChange } from '@angular/core';
+import { PortalService } from '../portal-service';
+import { get, map, zipObject, without } from 'lodash';
 
-import { Http, Headers, URLSearchParams } from '@angular/http';
+@Component({
+  selector: 'portal-options-editor',
+  template: ``
+})
+export class PortalOptionsEditor {
+  @Input()
+  title: string;
 
-// TODO: move PortalControls into own folder
+  @Input()
+  slug: string;
+
+  @Input()
+  description: string;
+
+  @Input()
+  autoDeploy: boolean = false;
+
+  @Input()
+  autoRemove: boolean = false;
+
+  @Input()
+  configEntries: Array<any> = [{name: '', value: ''}];
+
+  constructor () {}
+
+  addConfigEntry = () => {
+    this.configEntries.push({ name: '', value: '' });
+  };
+
+  removeConfigEntry = (entry) => {
+    this.configEntries = without(this.configEntries, entry);
+  };
+}
+
 @Component({
   selector: 'portal-controls',
-  templateUrl: './portal-controls.html'
+  templateUrl: './portal-controls.html',
+  styleUrls: [ './portal-controls.style.css' ],
 })
 export class PortalControls {
   @Input()
   portal: any;
+
   @Input()
   prNumber: String;
 
-  constructor (public http: Http) {}
+  isProcessing: Boolean;
+  autoDeploy: Boolean = false;
 
-  // TODO: this component should only send signals up, and not make the actual http request
-  // The signals would trigger reqeusts and then model updates
+  configEntries: Array<any> = [{name: '', value: ''}];
+  get serializedConfig() {
+    const entries = this.configEntries.filter(x => x.name && x.value);
+    return JSON.stringify(zipObject(
+      entries.map(x => x.name),
+      entries.map(x => x.value)
+    ));
+  }
+
+  ngOnChanges(changes: {[propKey: string]: SimpleChange}) {
+    // const configChanges = get(changes, 'portal.currentValue.config');
+    // // TODO: may want to somehow check if someone is currently editing the config
+    // // prevents an endpoint pull triggered by someone else
+    // // causing currently being edited configs to be reset 
+    // if (configChanges && Object.keys(configChanges).length) {
+    //   // this.config = configChanges;
+    //   this.configEntries = map(configChanges, (value, key) => ({name: key, value}));
+    // }
+    const autoDeploy = get(changes, 'portal.currentValue.autoDeploy');
+    this.autoDeploy = autoDeploy;
+
+  }
+
+  // TODO: rename..
+  logsFromRestEndpoint = {};
+  logsFromWebsocket = [];
+
+  get logsFromWebsocketAfterLogsFromRestEndpoint() {
+    const demarcation = this.logsFromRestEndpoint.timestamp || 0;
+    return this.logsFromWebsocket.filter(log => log.timestamp > demarcation);
+  }
+
+  constructor (public portalService: PortalService) {}
+
+  get portalOptions() {
+    return {
+      config: this.serializedConfig,
+      autoDeploy: this.autoDeploy
+    };
+  }
+
   start = () => {
-    return this.http.post('http://dev.dcc.icgc.org:9000/api/portals', `prNumber=${this.prNumber}`, {
-      headers: new Headers({
-        'Content-Type': 'application/x-www-form-urlencoded'
-      })
-    })
-      .map(res => res.json())
-      .subscribe(res => this.portal = res);
+    this.isProcessing = true;
+    console.log(this.portalOptions, this.autoDeploy);
+    return this.portalService.createPortal(this.prNumber, this.portalOptions);
   };
 
-  stop = () => {};
-  restart = () => {};
   delete = () => {
-    return this.http.delete(`http://dev.dcc.icgc.org:9000/api/portals/${this.portal.id}`)
-      .subscribe(() => this.portal = undefined);
+    this.isProcessing = true;
+    return this.portalService.deletePortal(this.portal.id);
   };
+
+  update = () => {
+    this.isProcessing = true;
+    return this.portalService.updatePortal(this.portal.id, this.portalOptions);
+  }
+
+  requestLogs = () => {
+    this.portalService.fetchPortalLog(this.portal.id)
+      .subscribe( data => this.logsFromRestEndpoint = data );
+
+    this.portalService.subscribePortalLog(this.portal.id, (message) => {
+      this.logsFromWebsocket.push(JSON.parse(message.body));
+    });
+  };
+
+  get transformedUrl() {
+    return 'https://dev.dcc.icgc.org:' + this.portal.url.split(':')[2];
+  }
 }

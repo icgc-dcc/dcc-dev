@@ -1,0 +1,4 @@
+.portal-controls__logs {
+  max-height: 300px;
+  overflow: auto;
+}

@@ -16,7 +16,7 @@ $(function(){
 	}
 
 	function connect() {
-	    var socket = new SockJS('/messages');
+	    var socket = new SockJS('http://dev.dcc.icgc.org:9000/messages');
 	    stompClient = Stomp.over(socket);
 	    stompClient.connect({}, function(frame) {
 	        setConnected(true);
