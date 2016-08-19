@@ -19,7 +19,6 @@ package org.icgc.dcc.dev.server.github;
 
 import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 import static org.icgc.dcc.common.core.util.stream.Streams.stream;
-import static org.kohsuke.github.GHCommitState.SUCCESS;
 import static org.kohsuke.github.GHIssueState.OPEN;
 
 import java.util.List;
@@ -86,9 +85,8 @@ public class GithubService {
   @SneakyThrows
   public Optional<String> getBuildNumber(@NonNull String sha1) {
     val status = repo.getLastCommitStatus(sha1);
-    val state = status.getState();
 
-    return Optional.ofNullable(state != SUCCESS ? null : parseBuildNumber(status.getTargetUrl()));
+    return Optional.ofNullable(parseBuildNumber(status.getTargetUrl()));
   }
 
   private GithubPr convert(GHPullRequest pr) {
