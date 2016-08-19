@@ -3,6 +3,40 @@ import { PortalService } from '../portal-service';
 import { get, map, zipObject, without } from 'lodash';
 
 @Component({
+  selector: 'portal-options-editor',
+  template: ``
+})
+export class PortalOptionsEditor {
+  @Input()
+  title: string;
+
+  @Input()
+  slug: string;
+
+  @Input()
+  description: string;
+
+  @Input()
+  autoDeploy: boolean = false;
+
+  @Input()
+  autoRemove: boolean = false;
+
+  @Input()
+  configEntries: Array<any> = [{name: '', value: ''}];
+
+  constructor () {}
+
+  addConfigEntry = () => {
+    this.configEntries.push({ name: '', value: '' });
+  };
+
+  removeConfigEntry = (entry) => {
+    this.configEntries = without(this.configEntries, entry);
+  };
+}
+
+@Component({
   selector: 'portal-controls',
   templateUrl: './portal-controls.html',
   styleUrls: [ './portal-controls.style.css' ],
@@ -10,9 +44,12 @@ import { get, map, zipObject, without } from 'lodash';
 export class PortalControls {
   @Input()
   portal: any;
+
   @Input()
   prNumber: String;
+
   isProcessing: Boolean;
+  autoDeploy: Boolean = false;
 
   configEntries: Array<any> = [{name: '', value: ''}];
   get serializedConfig() {
@@ -21,6 +58,20 @@ export class PortalControls {
       entries.map(x => x.name),
       entries.map(x => x.value)
     ));
+  }
+
+  ngOnChanges(changes: {[propKey: string]: SimpleChange}) {
+    // const configChanges = get(changes, 'portal.currentValue.config');
+    // // TODO: may want to somehow check if someone is currently editing the config
+    // // prevents an endpoint pull triggered by someone else
+    // // causing currently being edited configs to be reset 
+    // if (configChanges && Object.keys(configChanges).length) {
+    //   // this.config = configChanges;
+    //   this.configEntries = map(configChanges, (value, key) => ({name: key, value}));
+    // }
+    const autoDeploy = get(changes, 'portal.currentValue.autoDeploy');
+    this.autoDeploy = autoDeploy;
+
   }
 
   // TODO: rename..
@@ -34,20 +85,17 @@ export class PortalControls {
 
   constructor (public portalService: PortalService) {}
 
-  ngOnChanges(changes: {[propKey: string]: SimpleChange}) {
-    const configChanges = get(changes, 'portal.currentValue.config');
-    // TODO: may want to somehow check if someone is currently editing the config
-    // prevents an endpoint pull triggered by someone else
-    // causing currently being edited configs to be reset 
-    if (configChanges && Object.keys(configChanges).length) {
-      // this.config = configChanges;
-      this.configEntries = map(configChanges, (value, key) => ({name: key, value}));
-    }
+  get portalOptions() {
+    return {
+      config: this.serializedConfig,
+      autoDeploy: this.autoDeploy
+    };
   }
 
   start = () => {
     this.isProcessing = true;
-    return this.portalService.createPortal(this.prNumber, {config: this.serializedConfig});
+    console.log(this.portalOptions, this.autoDeploy);
+    return this.portalService.createPortal(this.prNumber, this.portalOptions);
   };
 
   delete = () => {
@@ -57,7 +105,7 @@ export class PortalControls {
 
   update = () => {
     this.isProcessing = true;
-    return this.portalService.updatePortal(this.portal.id, {config: this.serializedConfig});
+    return this.portalService.updatePortal(this.portal.id, this.portalOptions);
   }
 
   requestLogs = () => {
@@ -67,14 +115,6 @@ export class PortalControls {
     this.portalService.subscribePortalLog(this.portal.id, (message) => {
       this.logsFromWebsocket.push(JSON.parse(message.body));
     });
-  };
-
-  addConfigEntry = () => {
-    this.configEntries.push({name: '', value: ''});
-  };
-  
-  removeConfigEntry = (entry) => {
-    this.configEntries = without(this.configEntries, entry);
   };
 
   get transformedUrl() {

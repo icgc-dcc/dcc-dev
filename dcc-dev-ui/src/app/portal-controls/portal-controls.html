@@ -5,6 +5,10 @@
     [href]="transformedUrl"
   >{{ transformedUrl }}</a>
   <div>
+    <md-checkbox [(ngModel)]="autoDeploy">
+      Auto Deploy
+    </md-checkbox>
+    <br>
     <strong>Config:</strong>
     <button (click)="addConfigEntry()">+</button>
     <ul>
@@ -23,16 +27,15 @@
   </div>
 
   <div *ngIf="!portal">
-    <button [disabled]="isProcessing" (click)="start()">start</button>
+    <button [disabled]="isProcessing" (click)="start()">Create Portal</button>
   </div>
 
   <div *ngIf="isProcessing">...</div>
 
   <div class="portal-controls__logs">
-    <!--{{ logsFromRestEndpoint.timestamp }}-->
     <pre>
 <!--{{ logsFromRestEndpoint.content }}-->
-<template ngFor let-log="$implicit" [ngForOf]="logsFromWebsocketAfterLogsFromRestEndpoint">{{ log.timestamp }}{{ log.line }}
+<template ngFor let-log="$implicit" [ngForOf]="logsFromWebsocketAfterLogsFromRestEndpoint">{{ log.line }}
 </template>
     </pre>
   </div>
