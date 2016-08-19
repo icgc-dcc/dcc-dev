@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import lombok.Synchronized;
 import lombok.val;
 
 /**
@@ -60,11 +61,13 @@ public class ArtifactoryService {
   @Autowired
   Artifactory artifactory;
 
+  @Synchronized
   @SneakyThrows
   public List<RepoPath> list() {
     return prepareSearch().doSearch();
   }
 
+  @Synchronized
   @SneakyThrows
   public Optional<String> getArtifact(@NonNull String buildNumber) {
     val paths = prepareSearch().itemsByProperty().property(BUILD_NUMBER_PROPERTY_NAME, buildNumber).doSearch();
@@ -74,7 +77,8 @@ public class ArtifactoryService {
         .map(RepoPath::getItemPath)
         .map(this::resolveAbsolutePath);
   }
-
+  
+  @Synchronized
   @SneakyThrows
   public List<Item> getArtifactFolder() {
     val path = resolveGroupPath(groupId) + "/" + artifactId;
