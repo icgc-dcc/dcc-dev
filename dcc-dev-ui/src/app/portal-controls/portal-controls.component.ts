@@ -66,6 +66,9 @@ export class PortalControls {
   @Input()
   build: any;
 
+  @Input()
+  ticket: any;
+
   isProcessing: Boolean;
   autoDeploy: Boolean = false;
 

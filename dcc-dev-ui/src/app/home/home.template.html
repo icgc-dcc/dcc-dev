@@ -6,19 +6,10 @@
       class=""
       *ngFor="let candidate of candidates"
     >
-
-      
-
-      <div class="jira" *ngIf="candidate.ticket">
-          <a
-            target="_blank"
-            [href]="'https://jira.oicr.on.ca/browse/' + candidate.ticket.key"
-          >{{ candidate.ticket.key }}</a>
-      </div>
-
       <portal-controls
         [build]="candidate.build"
         [pr]="candidate.pr"
+        [ticket]="candidate.ticket"
       ></portal-controls>
       <!--<div *ngFor="let portal of getCandidatePortals(candidate)">
         <portal-controls
@@ -38,6 +29,7 @@
         [portal]="portal"
         [build]="portal.target.build"
         [pr]="portal.target.pr"
+        [ticket]="portal.target.ticket"
       ></portal-controls>
     </md-card>
   </div>
