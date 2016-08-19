@@ -49,10 +49,10 @@ export class Home {
     return this.portalService.portals;
   }
 
-  get portalsWithoutPRs(): Array<Portal> {
-    const prNumbers = this.candidates.map(candidate => candidate.pr.number);
-    return this.portals.filter((portal: Portal) => !includes(prNumbers, portal.target.pr.number));
-  }
+  // get portalsWithoutPRs(): Array<Portal> {
+  //   const prNumbers = this.candidates.map(candidate => candidate.pr.number);
+  //   return this.portals.filter((portal: Portal) => !includes(prNumbers, portal.target.pr.number));
+  // }
 
   getCandidatePortals = (candidate: Candidate) => {
     return this.portals.filter(p => p.target.pr.number === candidate.pr.number);

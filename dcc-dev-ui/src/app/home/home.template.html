@@ -1,6 +1,6 @@
 <div class="card-container">
   <md-card>
-    PRs:
+    Candidates:
     <ul>
       <li
         *ngFor="let candidate of candidates"
@@ -24,20 +24,20 @@
         </div>
 
         <portal-controls [prNumber]="candidate.pr.number"></portal-controls>
-        <div *ngFor="let portal of getCandidatePortals(candidate)">
+        <!--<div *ngFor="let portal of getCandidatePortals(candidate)">
           <portal-controls
             [portal]="portal"
             [prNumber]="candidate.pr.number"
           ></portal-controls>
-        </div>
+        </div>-->
       </li>
 
     </ul>
 
-    Orphaned Portals:
+    Deployed Portals:
     <ul>
-      <li *ngFor="let portal of portalsWithoutPRs">
-        {{ portal.title || portal.target.pr.title }}
+      <li *ngFor="let portal of portals">
+        {{ portal.title }}
         <portal-controls [portal]="portal"></portal-controls>
       </li>
 
