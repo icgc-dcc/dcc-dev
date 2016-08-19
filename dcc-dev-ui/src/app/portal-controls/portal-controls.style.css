@@ -1,10 +1,22 @@
+.container {
+  display: flex;
+  flex-direction: row;
+}
+
+.primary-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+
 .portal-controls__logs {
   max-height: 300px;
   overflow: auto;
 }
 
 .owner-avatar {
-    width: 26px;
-    height: 26px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
 }
