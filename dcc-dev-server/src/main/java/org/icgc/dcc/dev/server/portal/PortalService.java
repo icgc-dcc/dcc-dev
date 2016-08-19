@@ -114,7 +114,7 @@ public class PortalService {
   }
 
   public Portal create(@NonNull Integer prNumber, String slug, String title, String description, String ticket,
-      Map<String, String> config, boolean start) {
+      Map<String, String> config, boolean autoDeploy, boolean autoRemove, boolean start) {
     log.info("{}", repeat("-", 80));
     log.info("Creating portal for PR {}...", prNumber);
     log.info("{}", repeat("-", 80));
@@ -132,6 +132,8 @@ public class PortalService {
         .setDescription(resolveDescription(description, null, candidate.getPr().getDescription()))
         .setTicketKey(resolveTicketKey(ticket, null, candidate.getTicket()))
         .setConfig(resolveConfig(config, null))
+        .setAutoDeploy(autoDeploy)
+        .setAutoRemove(autoRemove)
         .setTarget(candidate);
 
     // Save instance
@@ -181,7 +183,7 @@ public class PortalService {
   }
 
   public Portal update(@NonNull Integer portalId, String slug, String title, String description, String ticket,
-      Map<String, String> config) {
+      Map<String, String> config, boolean autoDeploy, boolean autoRemove) {
     log.info("Updating portal {}...", portalId);
 
     // Validate
@@ -197,7 +199,9 @@ public class PortalService {
         .setSlug(resolveSlug(slug, portal.getSlug(), title, portal.getTitle(), candidate.getPr().getTitle()))
         .setDescription(resolveDescription(description, portal.getDescription(), candidate.getPr().getDescription()))
         .setTicketKey(resolveTicketKey(ticket, portal.getTicketKey(), candidate.getTicket()))
-        .setConfig(resolveConfig(config, portal.getConfig())));
+        .setConfig(resolveConfig(config, portal.getConfig())))
+        .setAutoDeploy(autoDeploy)
+        .setAutoRemove(autoRemove);
 
     executor.stop(portal);
     deployer.deploy(portal);
@@ -269,7 +273,7 @@ public class PortalService {
 
     @Cleanup
     val lock = locks.lockReading(portalId);
-    
+
     return logs.cat(portalId);
   }
 
