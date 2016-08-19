@@ -8,14 +8,3 @@
 /// <reference path="globals/uglify-js/index.d.ts" />
 /// <reference path="globals/webpack/index.d.ts" />
 /// <reference path="modules/lodash/index.d.ts" />
-
-declare module "sockjs-client" {
-    var x: any;
-    export = x;
-}
-
-declare module "stompjs/lib/stomp.js" {
-    var x: any;
-    export default x;
-    export var Stomp;
-}

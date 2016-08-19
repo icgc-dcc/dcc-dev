@@ -1,4 +1,4 @@
-<div>
+<div class="container">
   <div class="primary-column">
     <img class="owner-avatar" [src]="'http://github.com/' + pr.user + '.png'">
     <button
@@ -15,10 +15,16 @@
       {{ pr.user }}
     </div>
     <div *ngIf="build">
-        <a [href]="build.url" target="_blank">
-          Build #{{ build.number }}
-        </a>
-      </div>
+      <a [href]="build.url" target="_blank">
+        Build #{{ build.number }}
+      </a>
+    </div>
+    <div class="jira" *ngIf="ticket">
+        <a
+          target="_blank"
+          [href]="'https://jira.oicr.on.ca/browse/' + ticket.key"
+        >{{ ticket.key }}</a>
+    </div>
     <a
       *ngIf="portal"
       target="_blank"
@@ -44,10 +50,6 @@
       <button [disabled]="isProcessing" (click)="update()">update</button>
       <button (click)="requestLogs()">request logs</button>
       <button [disabled]="isProcessing" (click)="delete()">delete</button>
-    </div>
-
-    <div *ngIf="!portal">
-      <button [disabled]="isProcessing" (click)="start()">Create Portal</button>
     </div>
 
     <div *ngIf="isProcessing">...</div>
