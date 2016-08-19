@@ -1,60 +1,15 @@
 import { Component, Input, OnChanges, SimpleChange } from '@angular/core';
 import { PortalService } from '../portal-service';
+import { PortalOptions } from './portal-options/portal-options.component';
 import { get, map, zipObject, without } from 'lodash';
-
-@Component({
-  selector: 'portal-options-editor',
-  template: ``
-})
-export class PortalOptionsEditor {
-  @Input()
-  title: string;
-
-  @Input()
-  slug: string;
-
-  @Input()
-  description: string;
-
-  @Input()
-  autoDeploy: boolean = false;
-
-  @Input()
-  autoRemove: boolean = false;
-
-  @Input()
-  configEntries: Array<any> = [{name: '', value: ''}];
-
-  constructor () {}
-
-  get serializedConfig() {
-    const entries = this.configEntries.filter(x => x.name && x.value);
-    return JSON.stringify(zipObject(
-      entries.map(x => x.name),
-      entries.map(x => x.value)
-    ));
-  }
-
-  get optionsValue() {
-    return {
-      config: this.serializedConfig,
-      autoDeploy: this.autoDeploy
-    };
-  }
-
-  addConfigEntry = () => {
-    this.configEntries.push({ name: '', value: '' });
-  };
-
-  removeConfigEntry = (entry) => {
-    this.configEntries = without(this.configEntries, entry);
-  };
-}
 
 @Component({
   selector: 'portal-controls',
   templateUrl: './portal-controls.html',
   styleUrls: [ './portal-controls.style.css' ],
+  directives: [
+    PortalOptions
+  ]
 })
 export class PortalControls {
   @Input()
@@ -64,36 +19,17 @@ export class PortalControls {
   pr: any;
 
   @Input()
+  artifact: any;
+
+  @Input()
   build: any;
 
   @Input()
   ticket: any;
 
   isProcessing: Boolean;
-  autoDeploy: Boolean = false;
 
-  configEntries: Array<any> = [{name: '', value: ''}];
-  get serializedConfig() {
-    const entries = this.configEntries.filter(x => x.name && x.value);
-    return JSON.stringify(zipObject(
-      entries.map(x => x.name),
-      entries.map(x => x.value)
-    ));
-  }
-
-  ngOnChanges(changes: {[propKey: string]: SimpleChange}) {
-    // const configChanges = get(changes, 'portal.currentValue.config');
-    // // TODO: may want to somehow check if someone is currently editing the config
-    // // prevents an endpoint pull triggered by someone else
-    // // causing currently being edited configs to be reset 
-    // if (configChanges && Object.keys(configChanges).length) {
-    //   // this.config = configChanges;
-    //   this.configEntries = map(configChanges, (value, key) => ({name: key, value}));
-    // }
-    const autoDeploy = get<Boolean>(changes, 'portal.currentValue.autoDeploy');
-    this.autoDeploy = autoDeploy;
-
-  }
+  portalOptions: any = {};
 
   // TODO: rename..
   logsFromRestEndpoint: any = {};
@@ -106,16 +42,8 @@ export class PortalControls {
 
   constructor (public portalService: PortalService) {}
 
-  get portalOptions() {
-    return {
-      config: this.serializedConfig,
-      autoDeploy: this.autoDeploy
-    };
-  }
-
   start = () => {
     this.isProcessing = true;
-    console.log(this.portalOptions, this.autoDeploy);
     return this.portalService.createPortal(this.pr.number, this.portalOptions);
   };
 
@@ -137,6 +65,10 @@ export class PortalControls {
       this.logsFromWebsocket.push(JSON.parse(message.body));
     });
   };
+
+  handlePortalOptionsChange = (options) => {
+    this.portalOptions = options;
+  }
 
   get transformedUrl() {
     return 'https://dev.dcc.icgc.org:9000/portals/' + this.portal.id;

@@ -1,0 +1,17 @@
+<div class="portal-options">
+  <md-checkbox [(ngModel)]="autoDeploy" (ngModelChange)="change()">
+    Auto Deploy
+  </md-checkbox>
+  <br>
+  <strong>Config:</strong>
+  <button (click)="addConfigEntry()">
+    <i class="md-icon dp48"></i>
+  </button>
+  <ul>
+    <li *ngFor="let config of configEntries">
+      <md-input placeholder="name" [(ngModel)]="config.name" (ngModelChange)="change()"></md-input>
+      <md-input placeholder="value" [(ngModel)]="config.value" (ngModelChange)="change()"></md-input>
+      <button (click)="removeConfigEntry(config)">-</button>
+    </li>
+  </ul>
+</div>
