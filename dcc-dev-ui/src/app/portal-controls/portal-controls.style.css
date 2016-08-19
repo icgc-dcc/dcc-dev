@@ -3,11 +3,46 @@
   flex-direction: row;
 }
 
+.material-icons {
+  display: block;
+}
+
 .primary-column {
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
   align-items: center;
+  margin-right: 24px;
+}
+
+.primary-column > * {
+  margin-top: 20px;
+}
+
+.primary-column .buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.primary-column .buttons button:not(:first-child) {
+  margin-top: 5px;
+}
+
+.secondary-column {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.secondary-column .buttons {
+  display: flex;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.secondary-column .buttons .delete-button {
+  margin-left: auto;
 }
 
 .portal-controls__logs {
@@ -16,15 +51,28 @@
 }
 
 .owner-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
 }
 
-.artifact.ready {
+.ready, .success {
   color: green;
 }
 
-.artifact.not-ready {
-  color: orange;
+.not-ready, .not-built {
+  color: #ececec;
+}
+
+/*FAILURE, UNSTABLE, REBUILDING, BUILDING, ABORTED, SUCCESS, UNKNOWN, NOT_BUILT*/
+.build.building, .build.rebuilding {
+  color: orange
+}
+
+.build.unknown {
+  color: purple;
+}
+
+.build.failure, .build.aborted, .build.unstable {
+  color: red;
 }

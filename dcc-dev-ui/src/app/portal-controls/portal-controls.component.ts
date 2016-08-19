@@ -28,8 +28,8 @@ export class PortalControls {
   ticket: any;
 
   isProcessing: Boolean;
-
   portalOptions: any = {};
+  shouldShowConfig = false;
 
   // TODO: rename..
   logsFromRestEndpoint: any = {};
