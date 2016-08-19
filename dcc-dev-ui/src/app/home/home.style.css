@@ -1,18 +1,17 @@
 /*styles for home content only*/
 .card-container{
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     margin: 15px;
 }
+
+.home.card-container .home-column {
+    width: 50%;
+}
+
 .sample-content{
     flex: 1;
 }
 .card-container md-card{
     margin: 5px;
-}
-
-.owner-avatar {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
 }
