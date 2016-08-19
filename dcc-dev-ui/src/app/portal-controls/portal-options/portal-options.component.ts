@@ -52,7 +52,9 @@ export class PortalOptions {
     //   autoRemove: this.autoRemove,
     //   config: this.serializedConfig,
     // };
-    return pick(this, 'title', 'description', 'autoDeploy', 'config');
+    return Object.assign({},
+      pick(this, 'title', 'description', 'autoDeploy'),
+      { config: this.serializedConfig });
   }
 
   addConfigEntry = () => {

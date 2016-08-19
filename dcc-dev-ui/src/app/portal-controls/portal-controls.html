@@ -2,22 +2,39 @@
   <div class="primary-column">
     <img class="owner-avatar" [src]="'http://github.com/' + pr.user + '.png'">
 
-    <a
-      class="artifact"
-      [ngClass]="{ 'ready' : artifact, 'not-ready': !artifact }"
-      [title]="'artifact not ready'"
-    >
-      <i class="fa fa-cubes"></i>
-    </a>
+    <div>
+      <a
+        class="artifact"
+        [title]="artifact ? 'artifact ready' : 'artifact not ready'"
+        [ngClass]="{ 'ready' : artifact, 'not-ready': !artifact }"
+      >
+        <i class="fa fa-cubes"></i>
+      </a>
 
-    <button
-      *ngIf="!portal"
-      md-raised-button
-      color="primary"
-      (click)="start()"
-    >Create Portal</button>
+      <a
+        class="build {{ build.result && build.result.toLowerCase() }}"
+      >
+        <i class="fa fa-gears"></i>
+      </a>
+    </div>
+
+    <div class="buttons">
+      <button
+        *ngIf="!portal"
+        md-raised-button
+        color="primary"
+        [disabled]="isProcessing"
+        (click)="start()"
+      >Create</button>
+      <a
+        *ngIf="portal"
+        md-raised-button
+        [href]="transformedUrl"
+        target="_blank"
+      >View</a>
+    </div>
   </div>
-  <div>
+  <div class="secondary-column">
     <div>
       <i class="fa fa-github"></i>
       <a [href]="pr.url" target="_blank">
@@ -57,13 +74,21 @@
       [shouldShowConfig]="shouldShowConfig"
     ></portal-options>
 
-    <div *ngIf="portal">
-      <button [disabled]="isProcessing" (click)="update()">update</button>
-      <button (click)="requestLogs()">request logs</button>
-      <button [disabled]="isProcessing" (click)="delete()">delete</button>
-    </div>
+    <div class="minor-buttons">
+      <button
+        *ngIf="!shouldShowConfig"
+        (click)="shouldShowConfig = true"
+      >
+        show configs
+      </button>
 
-    <div *ngIf="isProcessing">...</div>
+      <button
+        *ngIf="portal"
+        (click)="requestLogs()"
+      >
+        request logs
+      </button>
+    </div>
 
     <div class="portal-controls__logs" *ngIf="logsFromWebsocketAfterLogsFromRestEndpoint.length">
       <pre>
@@ -72,6 +97,28 @@
   </template>
       </pre>
     </div>
-  <pre>{{ portalOptions | json }}</pre>
+  <div class="buttons">
+      <button
+        *ngIf="portal"
+        md-raised-button
+        color="primary"
+        [disabled]="isProcessing"
+        (click)="update()"
+      >Save</button>
+      <button
+        *ngIf="portal"
+        md-raised-button
+        class="delete-button"
+        color="accent"
+        [disabled]="isProcessing"
+        (click)="delete()"
+      >
+        <i class="material-icons">delete</i>
+      </button>
+  </div>
+  <md-progress-bar
+    *ngIf="isProcessing"
+    mode="indeterminate"
+    aria-label="Indeterminate progress-bar example"></md-progress-bar>
   </div>
 </div>

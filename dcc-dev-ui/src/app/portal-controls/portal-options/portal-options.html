@@ -3,15 +3,22 @@
     Auto Deploy
   </md-checkbox>
   <br>
-  <strong>Config:</strong>
-  <button (click)="addConfigEntry()">
-    <i class="md-icon dp48"></i>
-  </button>
-  <ul>
-    <li *ngFor="let config of configEntries">
-      <md-input placeholder="name" [(ngModel)]="config.name" (ngModelChange)="change()"></md-input>
-      <md-input placeholder="value" [(ngModel)]="config.value" (ngModelChange)="change()"></md-input>
-      <button (click)="removeConfigEntry(config)">-</button>
-    </li>
-  </ul>
+  <md-input placeholder="notes" [(ngModel)]="description" (ngModelChange)="change()"></md-input>
+  <div *ngIf="shouldShowConfig">
+    <button (click)="addConfigEntry()">
+      <i class="fa fa-plus"></i>
+    </button>
+    <md-list>
+      <md-list-item *ngFor="let config of configEntries; let index = index;">
+        <md-input placeholder="name" [(ngModel)]="config.name" (ngModelChange)="change()"></md-input>
+        <md-input placeholder="value" [(ngModel)]="config.value" (ngModelChange)="change()"></md-input>
+        <button (click)="removeConfigEntry(config)">
+          <i class="fa fa-minus"></i>
+        </button>
+        <button *ngIf="index === 0" (click)="addConfigEntry()">
+          <i class="fa fa-plus"></i>
+        </button>
+      </md-list-item>
+    </md-list>
+  </div>
 </div>
