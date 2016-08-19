@@ -1,6 +1,15 @@
 <div class="container">
   <div class="primary-column">
     <img class="owner-avatar" [src]="'http://github.com/' + pr.user + '.png'">
+
+    <a
+      class="artifact"
+      [ngClass]="{ 'ready' : artifact, 'not-ready': !artifact }"
+      [title]="'artifact not ready'"
+    >
+      <i class="fa fa-cubes"></i>
+    </a>
+
     <button
       *ngIf="!portal"
       md-raised-button
@@ -10,41 +19,43 @@
   </div>
   <div>
     <div>
+      <i class="fa fa-github"></i>
+      <a [href]="pr.url" target="_blank">
       {{ pr.number }} -
-      {{ pr.title }} -
-      {{ pr.user }}
+      {{ pr.title }}
+      </a>
     </div>
     <div *ngIf="build">
+      <i class="fa fa-cogs"></i>
       <a [href]="build.url" target="_blank">
         Build #{{ build.number }}
       </a>
     </div>
     <div class="jira" *ngIf="ticket">
+        <i class="fa fa-tasks"></i>
         <a
           target="_blank"
           [href]="'https://jira.oicr.on.ca/browse/' + ticket.key"
         >{{ ticket.key }}</a>
     </div>
-    <a
-      *ngIf="portal"
-      target="_blank"
-      [href]="transformedUrl"
-    >{{ transformedUrl }}</a>
-    <div>
-      <md-checkbox [(ngModel)]="autoDeploy">
-        Auto Deploy
-      </md-checkbox>
-      <br>
-      <strong>Config:</strong>
-      <button (click)="addConfigEntry()">+</button>
-      <ul>
-        <li *ngFor="let config of configEntries">
-          <label>Name: <input [(ngModel)]="config.name"></label>
-          <label>Value: <input [(ngModel)]="config.value"></label>
-          <button (click)="removeConfigEntry(config)">-</button>
-        </li>
-      </ul>
+    <div class="link" *ngIf="portal">
+      <i class="fa fa-external-link"></i>
+      <a
+        *ngIf="portal"
+        target="_blank"
+        [href]="transformedUrl"
+      >{{ transformedUrl }}</a>
     </div>
+
+    <portal-options
+      [title]="portal && portal.title || pr.title"
+      [description]="portal && portal.description || ''"
+      [autoDeploy]="portal ? portal.autoDeploy : true"
+      [autoRemove]="portal && portal.autoRemove"
+      [configs]="portal && portal.configs"
+      [onChange]="handlePortalOptionsChange"
+      [shouldShowConfig]="shouldShowConfig"
+    ></portal-options>
 
     <div *ngIf="portal">
       <button [disabled]="isProcessing" (click)="update()">update</button>
@@ -61,5 +72,6 @@
   </template>
       </pre>
     </div>
+  <pre>{{ portalOptions | json }}</pre>
   </div>
 </div>
