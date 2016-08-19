@@ -111,3 +111,14 @@ interface ErrorConstructor extends ErrorStackTraceLimit {}
 interface NodeRequireFunction extends Es6PromiseLoader  {}
 interface NodeModule extends WebpackModule {}
 interface Global extends GlobalEnvironment  {}
+
+declare module "sockjs-client" {
+    var x: any;
+    export = x;
+}
+
+declare module "stompjs/lib/stomp.js" {
+    var x: any;
+    export default x;
+    export var Stomp;
+}
