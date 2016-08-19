@@ -74,20 +74,21 @@ public class PortalCandidateResolver {
   }
 
   public Optional<Portal.Candidate> resolve(@NonNull GithubPr pr) {
-    return github.getBuildNumber(pr.getHead())
-        .map(buildNumber -> createCandidate(pr, buildNumber));
+    val buildNumber = github.getBuildNumber(pr.getHead()).orElse(null);
+
+    return Optional.ofNullable(createCandidate(pr, buildNumber));
   }
 
   private Candidate createCandidate(GithubPr pr, String buildNumber) {
-    val build = jenkins.getSuccessfulBuild(buildNumber);
-    val artifact = artifactory.getArtifact(buildNumber);
+    val build = buildNumber == null ? null : jenkins.getSuccessfulBuild(buildNumber);
+    val artifact = buildNumber == null ? null : artifactory.getArtifact(buildNumber).orElse(null);
     val ticketKey = parseTicketKey(pr.getBranch());
     val ticket = ticketKey == null ? null : jira.getTicket(ticketKey);
 
     return new Portal.Candidate()
         .setPr(pr)
         .setBuild(build)
-        .setArtifact(artifact.orElse(null))
+        .setArtifact(artifact)
         .setTicket(ticket);
   }
 
