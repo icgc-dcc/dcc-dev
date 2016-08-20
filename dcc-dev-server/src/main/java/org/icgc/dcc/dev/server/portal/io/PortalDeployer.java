@@ -117,6 +117,7 @@ public class PortalDeployer {
     val artifact = portal.getTarget().getArtifact();
     if (artifact == null) {
       log.info("Artifact portal {} not availabled. Skipping jar downlodad...", portal.getId());
+      return;
     }
 
     val artifactUrl = new URL(artifact);
