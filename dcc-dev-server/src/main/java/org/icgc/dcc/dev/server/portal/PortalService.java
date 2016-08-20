@@ -169,7 +169,6 @@ public class PortalService {
   public void update(Portal portal) {
     @Cleanup
     val lock = locks.lockWriting(portal);
-    portal = repository.save(portal);
 
     val status = getStatus(portal.getId());
     if (status.isRunning()) {
@@ -177,6 +176,8 @@ public class PortalService {
     }
 
     deployer.deploy(portal);
+    repository.save(portal);
+
     executor.startAsync(portal);
 
     notifyChange(portal, PortalChangeType.UPDATED);
@@ -194,17 +195,20 @@ public class PortalService {
     Portal portal = get(portalId);
 
     val candidate = portal.getTarget();
-    portal = repository.save(portal
+    portal
         .setTitle(resolveTitle(title, portal.getTitle(), candidate.getPr().getTitle()))
         .setSlug(resolveSlug(slug, portal.getSlug(), title, portal.getTitle(), candidate.getPr().getTitle()))
         .setDescription(resolveDescription(description, portal.getDescription(), candidate.getPr().getDescription()))
         .setTicketKey(resolveTicketKey(ticket, portal.getTicketKey(), candidate.getTicket()))
-        .setConfig(resolveConfig(config, portal.getConfig())))
+        .setConfig(resolveConfig(config, portal.getConfig()))
         .setAutoDeploy(autoDeploy)
         .setAutoRemove(autoRemove);
 
     executor.stop(portal);
+    
     deployer.deploy(portal);
+    portal = repository.save(portal);
+
     executor.startAsync(portal);
 
     notifyChange(portal, PortalChangeType.UPDATED);

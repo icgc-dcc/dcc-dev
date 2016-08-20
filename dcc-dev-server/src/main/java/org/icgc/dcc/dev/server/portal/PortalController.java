@@ -126,6 +126,7 @@ public class PortalController {
 
       @RequestParam(value = "autoDeploy", required = false, defaultValue = "true") boolean autoDeploy,
       @RequestParam(value = "autoRemove", required = false, defaultValue = "false") boolean autoRemove,
+      
       @RequestParam(value = "start", required = false, defaultValue = "true") boolean start) {
     return service.create(prNumber, slug, title, description, ticket, config, autoDeploy, autoRemove, start);
   }
@@ -144,7 +145,6 @@ public class PortalController {
       @RequestParam(value = "ticket", required = false) String ticket,
       @RequestParam(value = "config", required = false) Map<String, String> config,
       
-
       @RequestParam(value = "autoDeploy", required = false, defaultValue = "true") boolean autoDeploy,
       @RequestParam(value = "autoRemove", required = false, defaultValue = "false") boolean autoRemove) {
     return service.update(portalId, slug, title, description, ticket, config, autoDeploy, autoRemove);
