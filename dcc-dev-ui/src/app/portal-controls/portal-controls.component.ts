@@ -71,6 +71,6 @@ export class PortalControls {
   }
 
   get transformedUrl() {
-    return 'https://dev.dcc.icgc.org:9000/portals/' + this.portal.id;
+    return 'https://dev.dcc.icgc.org/portals/' + this.portal.id;
   }
 }

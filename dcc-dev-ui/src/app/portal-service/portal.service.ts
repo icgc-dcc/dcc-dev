@@ -5,8 +5,8 @@ import * as SockJS from 'sockjs-client';
 import { Stomp } from 'stompjs/lib/stomp.js';
 import { map } from 'lodash';
 
-const API_ROOT = 'https://dev.dcc.icgc.org:9000/api';
-const socket = new SockJS(`https://dev.dcc.icgc.org:9000/messages`);
+const API_ROOT = 'https://dev.dcc.icgc.org/api';
+const socket = new SockJS(`https://dev.dcc.icgc.org/messages`);
 const stompClient = Stomp.over(socket);
 
 function encodeFormValues(values) {
