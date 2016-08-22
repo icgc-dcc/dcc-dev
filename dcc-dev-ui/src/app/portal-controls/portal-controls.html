@@ -1,124 +1,132 @@
-<div class="container">
-  <div class="primary-column">
-    <img class="owner-avatar" [src]="'http://github.com/' + pr.user + '.png'">
+<md-card
+  [ngClass]="{
+    'candidate': !portal,
+    'portal': portal
+  }"
+>
+  <div class="container">
+    <div class="primary-column">
+      <img class="owner-avatar" [src]="'http://github.com/' + pr.user + '.png'">
 
-    <div>
-      <a
-        class="artifact"
-        [title]="artifact ? 'artifact ready' : 'artifact not ready'"
-        [ngClass]="{ 'ready' : artifact, 'not-ready': !artifact }"
-      >
-        <i class="fa fa-cubes"></i>
-      </a>
-
-      <a
-        class="build {{ build.result && build.result.toLowerCase() }}"
-      >
-        <i class="fa fa-gears"></i>
-      </a>
-    </div>
-
-    <div class="buttons">
-      <button
-        *ngIf="!portal"
-        md-raised-button
-        color="primary"
-        [disabled]="isProcessing"
-        (click)="start()"
-      >Create</button>
-      <a
-        *ngIf="portal"
-        md-raised-button
-        [href]="transformedUrl"
-        target="_blank"
-      >View</a>
-    </div>
-  </div>
-  <div class="secondary-column">
-    <div>
-      <i class="fa fa-github"></i>
-      <a [href]="pr.url" target="_blank">
-      {{ pr.number }} -
-      {{ pr.title }}
-      </a>
-    </div>
-    <div *ngIf="build">
-      <i class="fa fa-cogs"></i>
-      <a [href]="build.url" target="_blank">
-        Build #{{ build.number }}
-      </a>
-    </div>
-    <div class="jira" *ngIf="ticket">
-        <i class="fa fa-tasks"></i>
+      <div>
         <a
+          class="artifact"
+          [title]="'Artifact: ' + (artifact ? 'ready' : 'not ready')"
+          [ngClass]="{ 'ready' : artifact, 'not-ready': !artifact }"
+        >
+          <i class="fa fa-cubes"></i>
+        </a>
+
+        <a
+          [title]="'Build: ' + build.result"
+          class="build {{ build.result && build.result.toLowerCase() }}"
+        >
+          <i class="fa fa-gears"></i>
+        </a>
+      </div>
+
+      <div class="buttons">
+        <button
+          *ngIf="!portal"
+          md-raised-button
+          color="primary"
+          [disabled]="isProcessing"
+          (click)="start()"
+        >Create</button>
+        <a
+          *ngIf="portal"
+          md-raised-button
+          [href]="transformedUrl"
           target="_blank"
-          [href]="'https://jira.oicr.on.ca/browse/' + ticket.key"
-        >{{ ticket.key }}</a>
+        >View</a>
+      </div>
     </div>
-    <div class="link" *ngIf="portal">
-      <i class="fa fa-external-link"></i>
-      <a
-        *ngIf="portal"
-        target="_blank"
-        [href]="transformedUrl"
-      >{{ transformedUrl }}</a>
+    <div class="secondary-column">
+      <div>
+        <i class="fa fa-github"></i>
+        <a [href]="pr.url" target="_blank">
+        {{ pr.number }} -
+        {{ pr.title }}
+        </a>
+      </div>
+      <div *ngIf="build">
+        <i class="fa fa-cogs"></i>
+        <a [href]="build.url" target="_blank">
+          Build #{{ build.number }} : {{build.result}}
+        </a>
+      </div>
+      <div class="jira" *ngIf="ticket">
+          <i class="fa fa-tasks"></i>
+          <a
+            target="_blank"
+            [href]="'https://jira.oicr.on.ca/browse/' + ticket.key"
+          >{{ ticket.key }}</a>
+      </div>
+      <div class="link" *ngIf="portal">
+        <i class="fa fa-external-link"></i>
+        <a
+          *ngIf="portal"
+          target="_blank"
+          [href]="transformedUrl"
+        >{{ transformedUrl }}</a>
+      </div>
+
+      <portal-options
+        [title]="portal && portal.title || pr.title"
+        [description]="portal && portal.description || ''"
+        [autoDeploy]="portal ? portal.autoDeploy : true"
+        [autoRemove]="portal && portal.autoRemove"
+        [configs]="portal && portal.configs"
+        [onChange]="handlePortalOptionsChange"
+        [shouldShowConfig]="shouldShowConfig"
+      ></portal-options>
+
+      <div class="minor-buttons">
+        <button
+          *ngIf="!shouldShowConfig"
+          (click)="shouldShowConfig = true"
+        >
+          show configs
+        </button>
+
+        <button
+          *ngIf="portal"
+          (click)="requestLogs()"
+        >
+          request logs
+        </button>
+      </div>
+
+      <div class="portal-logs" *ngIf="logsFromWebsocketAfterLogsFromRestEndpoint.length">
+        <pre>
+    <!--{{ logsFromRestEndpoint.content }}-->
+    <template ngFor let-log="$implicit" [ngForOf]="logsFromWebsocketAfterLogsFromRestEndpoint">{{ log.line }}
+    </template>
+        </pre>
+      </div>
+    <div class="buttons">
+        <button
+          *ngIf="portal"
+          md-raised-button
+          color="primary"
+          [disabled]="isProcessing"
+          (click)="update()"
+        >Save</button>
+        <button
+          *ngIf="portal"
+          md-raised-button
+          class="delete-button"
+          color="accent"
+          [disabled]="isProcessing"
+          (click)="delete()"
+        >
+          <i class="material-icons">delete</i>
+        </button>
     </div>
-
-    <portal-options
-      [title]="portal && portal.title || pr.title"
-      [description]="portal && portal.description || ''"
-      [autoDeploy]="portal ? portal.autoDeploy : true"
-      [autoRemove]="portal && portal.autoRemove"
-      [configs]="portal && portal.configs"
-      [onChange]="handlePortalOptionsChange"
-      [shouldShowConfig]="shouldShowConfig"
-    ></portal-options>
-
-    <div class="minor-buttons">
-      <button
-        *ngIf="!shouldShowConfig"
-        (click)="shouldShowConfig = true"
-      >
-        show configs
-      </button>
-
-      <button
-        *ngIf="portal"
-        (click)="requestLogs()"
-      >
-        request logs
-      </button>
+    <md-progress-bar
+      *ngIf="isProcessing"
+      mode="indeterminate"
+      aria-label="Indeterminate progress-bar example"></md-progress-bar>
     </div>
-
-    <div class="portal-controls__logs" *ngIf="logsFromWebsocketAfterLogsFromRestEndpoint.length">
-      <pre>
-  <!--{{ logsFromRestEndpoint.content }}-->
-  <template ngFor let-log="$implicit" [ngForOf]="logsFromWebsocketAfterLogsFromRestEndpoint">{{ log.line }}
-  </template>
-      </pre>
-    </div>
-  <div class="buttons">
-      <button
-        *ngIf="portal"
-        md-raised-button
-        color="primary"
-        [disabled]="isProcessing"
-        (click)="update()"
-      >Save</button>
-      <button
-        *ngIf="portal"
-        md-raised-button
-        class="delete-button"
-        color="accent"
-        [disabled]="isProcessing"
-        (click)="delete()"
-      >
-        <i class="material-icons">delete</i>
-      </button>
   </div>
-  <md-progress-bar
-    *ngIf="isProcessing"
-    mode="indeterminate"
-    aria-label="Indeterminate progress-bar example"></md-progress-bar>
-  </div>
-</div>
+</md-card>

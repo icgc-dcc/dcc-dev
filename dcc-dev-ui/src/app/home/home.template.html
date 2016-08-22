@@ -1,8 +1,8 @@
 <div class="card-container home">
   <div class="home-column">
     Candidates:
-    <md-card
-      class=""
+    <div
+      class="home-item"
       *ngFor="let candidate of candidates"
     >
       <portal-controls
@@ -11,12 +11,15 @@
         [pr]="candidate.pr"
         [ticket]="candidate.ticket"
       ></portal-controls>
-    </md-card>
+    </div>
   </div>
 
   <div class="home-column">
     Deployed Portals:
-    <md-card *ngFor="let portal of portals">
+    <div
+      *ngFor="let portal of portals"
+      class="home-item"
+    >
       <portal-controls
         [portal]="portal"
         [artifact]="portal.target.artifact"
@@ -24,6 +27,6 @@
         [pr]="portal.target.pr"
         [ticket]="portal.target.ticket"
       ></portal-controls>
-    </md-card>
+    </div>
   </div>
 </div>
