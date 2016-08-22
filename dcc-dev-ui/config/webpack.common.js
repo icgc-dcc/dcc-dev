@@ -164,6 +164,12 @@ module.exports = {
         loaders: ['to-string-loader', 'css-loader']
       },
 
+      {
+        test: /\.scss$/,
+        exclude: /node_modules/,
+        loaders: ['raw-loader', 'sass-loader']
+      },
+
       /* Raw loader support for *.html
        * Returns file content as string
        *
