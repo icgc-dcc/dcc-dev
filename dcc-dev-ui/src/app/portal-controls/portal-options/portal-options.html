@@ -1,7 +1,13 @@
 <div class="portal-options">
+  <!-- checkbox too big, eyesore
   <md-checkbox [(ngModel)]="autoDeploy" (ngModelChange)="change()">
     Auto Deploy
   </md-checkbox>
+  -->
+  <label>
+    <input type="checkbox" [(ngModel)]="autoDeploy" (ngModelChange)="change()">
+    Auto Deploy
+  </label>
   <br>
   <md-input placeholder="notes" [(ngModel)]="description" (ngModelChange)="change()"></md-input>
   <div *ngIf="shouldShowConfig">
