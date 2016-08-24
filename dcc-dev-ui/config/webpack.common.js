@@ -274,6 +274,8 @@ module.exports = {
       headTags: require('./head-config.common')
     }),
 
+    new webpack.NamedModulesPlugin(),
+
   ],
 
   /*
