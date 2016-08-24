@@ -122,3 +122,8 @@ declare module "stompjs/lib/stomp.js" {
     export default x;
     export var Stomp;
 }
+
+declare module "moment" {
+    var x: any;
+    export = x;
+}

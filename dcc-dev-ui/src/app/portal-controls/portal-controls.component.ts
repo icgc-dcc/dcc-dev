@@ -2,8 +2,7 @@ import { Component, Input, OnChanges, SimpleChange } from '@angular/core';
 import { PortalService } from '../portal-service';
 import { PortalOptions } from './portal-options/portal-options.component';
 import { get, map, zipObject, without } from 'lodash';
-
-const moment = require('moment');
+import * as moment from 'moment';
 
 @Component({
   selector: 'portal-controls',
