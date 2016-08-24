@@ -85,6 +85,8 @@ public class GithubService {
   @SneakyThrows
   public Optional<String> getBuildNumber(@NonNull String sha1) {
     val status = repo.getLastCommitStatus(sha1);
+    if (status == null) return Optional.empty();
+    
 
     return Optional.ofNullable(parseBuildNumber(status.getTargetUrl()));
   }
