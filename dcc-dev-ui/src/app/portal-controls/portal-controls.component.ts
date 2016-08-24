@@ -3,6 +3,8 @@ import { PortalService } from '../portal-service';
 import { PortalOptions } from './portal-options/portal-options.component';
 import { get, map, zipObject, without } from 'lodash';
 
+const moment = require('moment');
+
 @Component({
   selector: 'portal-controls',
   templateUrl: './portal-controls.html',
@@ -72,5 +74,9 @@ export class PortalControls {
 
   get transformedUrl() {
     return 'https://dev.dcc.icgc.org/portals/' + this.portal.id;
+  }
+
+  get formattedLastUpdateTime() {
+    return moment(this.portal.updated, 'x').fromNow();
   }
 }

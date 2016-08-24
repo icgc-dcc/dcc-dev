@@ -30,8 +30,19 @@ a {
   align-items: center;
 }
 
+.primary-column .quick-stats {
+  text-align: center;
+}
+
 .primary-column .buttons button:not(:first-child) {
   margin-top: 5px;
+}
+
+.time-last-update {
+  font-size: 12px;
+  color: #b5b5b5;
+  text-align: center;
+  margin-top: 10px;
 }
 
 .secondary-column {

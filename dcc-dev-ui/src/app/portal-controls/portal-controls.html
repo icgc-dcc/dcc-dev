@@ -8,7 +8,7 @@
     <div class="primary-column">
       <img class="owner-avatar" [src]="'http://github.com/' + pr.user + '.png'">
 
-      <div>
+      <div class="quick-stats">
         <a
           class="artifact"
           [title]="'Artifact: ' + (artifact ? 'ready' : 'not ready')"
@@ -23,7 +23,12 @@
         >
           <i class="fa fa-gears"></i>
         </a>
+        <div class="time-last-update">
+          <i class="fa fa-refresh"></i>
+          {{formattedLastUpdateTime}}
+        </div>
       </div>
+      
 
       <div class="buttons">
         <button
