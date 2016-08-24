@@ -6,7 +6,7 @@ import { get, map, zipObject, without } from 'lodash';
 @Component({
   selector: 'portal-controls',
   templateUrl: './portal-controls.html',
-  styleUrls: [ './portal-controls.style.css' ],
+  styleUrls: [ './portal-controls.style.scss' ],
   directives: [
     PortalOptions
   ]
