@@ -17,6 +17,9 @@ export class PortalOptions {
   autoDeploy: boolean = true;
 
   @Input()
+  ticketKey: string;
+
+  @Input()
   autoRemove: boolean = false;
 
   @Input()
