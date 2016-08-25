@@ -9,7 +9,12 @@
     Auto Deploy
   </label>
   <br>
-  <md-input placeholder="notes" [(ngModel)]="description" (ngModelChange)="change()"></md-input>
+  <textarea
+    placeholder="notes"
+    class="notes"
+    [(ngModel)]="description"
+    (ngModelChange)="change()"
+  ></textarea>
   <div *ngIf="shouldShowConfig">
     <button (click)="addConfigEntry()">
       <i class="fa fa-plus"></i>

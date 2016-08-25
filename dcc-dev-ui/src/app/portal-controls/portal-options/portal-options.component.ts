@@ -4,6 +4,7 @@ import { get, map, zipObject, without, pick } from 'lodash';
 @Component({
   selector: 'portal-options',
   templateUrl: './portal-options.html',
+  styleUrls: [ './portal-options.style.scss' ],
 })
 export class PortalOptions {
   @Input()
