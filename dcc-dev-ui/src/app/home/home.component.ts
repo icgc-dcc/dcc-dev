@@ -9,7 +9,7 @@ import { PortalService } from '../portal-service';
 import { PortalControls } from '../portal-controls';
 
 import { PullRequest, Candidate, Portal }  from '../interfaces';
-import { includes } from 'lodash';
+import { includes, orderBy } from 'lodash';
 
 @Component({
   // The selector is what angular internally uses
@@ -47,6 +47,10 @@ export class Home {
 
   get portals(): Array<Portal> {
     return this.portalService.portals;
+  }
+
+  get sortedPortals() : Array<Portal> {
+    return orderBy(this.portalService.portals, 'updated', 'desc');
   }
 
   // get portalsWithoutPRs(): Array<Portal> {
