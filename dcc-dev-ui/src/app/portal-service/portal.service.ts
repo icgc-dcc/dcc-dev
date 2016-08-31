@@ -5,8 +5,9 @@ import * as SockJS from 'sockjs-client';
 import { Stomp } from 'stompjs/lib/stomp.js';
 import { map } from 'lodash';
 
-const API_ROOT = 'https://dev.dcc.icgc.org/api';
-const socket = new SockJS(`https://dev.dcc.icgc.org/messages`);
+import { REST_ROOT, WEBSOCKET_ROOT } from '../config';
+
+const socket = new SockJS(WEBSOCKET_ROOT);
 const stompClient = Stomp.over(socket);
 
 function encodeFormValues(values) {
@@ -50,23 +51,23 @@ export class PortalService {
 
   createPortal = (prNumber, values = {}) => {
     const payload = encodeFormValues(Object.assign({prNumber}, values));
-    return this.http.post(`${API_ROOT}/portals`, payload, { headers: formHeaders })
+    return this.http.post(`${REST_ROOT}/portals`, payload, { headers: formHeaders })
       .subscribe();
   }
 
   updatePortal = (portalId, values = {}) => {
     const payload = encodeFormValues(values);
-    return this.http.put(`${API_ROOT}/portals/${portalId}`, payload, { headers: formHeaders })
+    return this.http.put(`${REST_ROOT}/portals/${portalId}`, payload, { headers: formHeaders })
       .subscribe();
   }
 
   deletePortal = (portalId) => {
-    return this.http.delete(`${API_ROOT}/portals/${portalId}`)
+    return this.http.delete(`${REST_ROOT}/portals/${portalId}`)
       .subscribe();
   }
 
   fetchPortalLog = (portalId) => {
-    return this.http.get(`${API_ROOT}/portals/${portalId}/log`)
+    return this.http.get(`${REST_ROOT}/portals/${portalId}/log`)
       .map(res => ({
         timestamp: Number(res.headers.get('X-Server-Timestamp')),
         content: res.text(),
@@ -91,12 +92,12 @@ export class PortalService {
   };
 
   private fetchCandidates = () => {
-    return this.http.get(`${API_ROOT}/candidates`)
+    return this.http.get(`${REST_ROOT}/candidates`)
       .map(res => res.json());
   }
 
   private fetchPortals = () => {
-    return this.http.get(`${API_ROOT}/portals`)
+    return this.http.get(`${REST_ROOT}/portals`)
       .map(res => res.json());
   }
 
