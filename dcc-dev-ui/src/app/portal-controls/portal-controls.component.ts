@@ -71,10 +71,6 @@ export class PortalControls {
     this.portalOptions = options;
   }
 
-  get transformedUrl() {
-    return 'https://dev.dcc.icgc.org/portals/' + this.portal.id;
-  }
-
   get formattedLastUpdateTime() {
     return this.portal && moment(this.portal.updated, 'x').fromNow();
   }

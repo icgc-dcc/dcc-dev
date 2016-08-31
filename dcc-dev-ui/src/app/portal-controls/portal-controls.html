@@ -44,7 +44,7 @@
         <a
           *ngIf="portal"
           md-raised-button
-          [href]="transformedUrl"
+          [href]="portal.url"
           target="_blank"
         >View</a>
       </div>
@@ -75,8 +75,8 @@
         <a
           *ngIf="portal"
           target="_blank"
-          [href]="transformedUrl"
-        >{{ transformedUrl }}</a>
+          [href]="portal.url"
+        >{{ portal.url }}</a>
       </div>
 
       <portal-options
