@@ -35,7 +35,7 @@ import lombok.SneakyThrows;
 public final class MapConverter implements Converter<String, Map<String, String>> {
 
   /**
-   * Reified generic "to" type.
+   * Cached reified generic "to" type.
    */
   static final TypeReference<Map<String, String>> TO_TYPE = new TypeReference<Map<String, String>>() {};
 

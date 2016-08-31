@@ -71,13 +71,6 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
       <version>${spring-boot.version}</version>
     </dependency>
     
-    <!-- Servlet -->
-    <dependency>
-      <groupId>org.tuckey</groupId>
-      <artifactId>urlrewritefilter</artifactId>
-      <version>4.0.4</version>
-    </dependency>
-
     <!-- Database -->
     <dependency>
       <groupId>com.h2database</groupId>

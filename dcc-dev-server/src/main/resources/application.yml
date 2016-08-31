@@ -22,10 +22,6 @@
 server:
   publicUrl: http://localhost:8080
 
-# UI
-spring.resources:
-  staticLocations: classpath:/app/
-
 # Workspace
 workspace:
   dir: /tmp/dcc-dev
@@ -87,3 +83,9 @@ spring.jpa:
     
 # Banner
 spring.main.banner-mode: log
+
+# Resources
+spring.mvc.favicon.enabled: false
+
+# UI
+spring.resources.staticLocations: classpath:/app/

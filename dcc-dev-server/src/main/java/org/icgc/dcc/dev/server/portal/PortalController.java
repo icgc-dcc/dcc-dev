@@ -45,8 +45,8 @@ import lombok.val;
 /**
  * HTTP bindings for interaction with portal instances.
  */
-@CrossOrigin(exposedHeaders = "X-Server-Timestamp")
 @RestController
+@CrossOrigin(exposedHeaders = "X-Server-Timestamp")
 @RequiredArgsConstructor
 public class PortalController {
 

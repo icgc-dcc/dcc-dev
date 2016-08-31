@@ -45,6 +45,11 @@ public class PortalCandidateListener {
   @Autowired
   PortalService portals;
 
+  /**
+   * Listens for new build events and determines if a portal update is required.
+   * 
+   * @param message the current list of  builds.
+   */
   @EventListener
   public void handle(@NonNull JenkinsBuildsMessage message) {
     val prBuilds = Multimaps.index(message.getBuilds(), JenkinsBuild::getPrNumber);

@@ -17,33 +17,22 @@
  */
 package org.icgc.dcc.dev.server.web;
 
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import lombok.val;
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Configuration
-public class WebConfig {
+public class WebConfig extends WebMvcConfigurerAdapter {
 
   /**
-   * Add support for URL rewrite.
+   * Add support for URL rewriting.
    * <p>
-   * Primarily used for Angular's HTML5 mode.
+   * Primarily used for Angular's "HTML 5 pushState" style url.
    */
-  @Bean
-  public FilterRegistrationBean urlRewrite() {
-    log.info("Registering URL rewrite...");
-    val urlRewrite = new FilterRegistrationBean();
-    urlRewrite.setOrder(0);
-    urlRewrite.setFilter(new UrlRewriteFilter());
-    urlRewrite.addInitParameter("confPath", "urlrewrite.xml");
-    urlRewrite.addInitParameter("statusEnabled", "false");
-
-    return urlRewrite;
+  @Override
+  public void addViewControllers(ViewControllerRegistry registry) {
+    registry.addViewController("/").setViewName("forward:/index.html");
+    registry.addViewController("/**/{path:[^.]+}").setViewName("forward:/index.html");
   }
 
 }

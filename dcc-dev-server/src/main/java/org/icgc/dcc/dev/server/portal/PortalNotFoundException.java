@@ -34,12 +34,12 @@ public class PortalNotFoundException extends RuntimeException {
   private final Integer portalId;
 
   public PortalNotFoundException(@NonNull Integer portalId) {
-    super("Portal " + portalId + " not found");
+    super("Portal id " + portalId + " not found");
     this.portalId = portalId;
   }
 
   public PortalNotFoundException(@NonNull String slug) {
-    super("Portal '" + slug + "' not found");
+    super("Portal slug '" + slug + "' not found");
     this.portalId = null;
   }
 

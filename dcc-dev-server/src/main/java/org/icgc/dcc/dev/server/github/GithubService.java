@@ -61,8 +61,8 @@ public class GithubService {
   /**
    * Poll at regular intervals for available PRs.
    */
-  @Scheduled(cron = "${github.cron}")
   @Synchronized
+  @Scheduled(cron = "${github.cron}")
   public void poll() {
     log.debug("Polling...");
     messages.sendMessage(new GithubPrsMessage().setPrs(getPrs()));
