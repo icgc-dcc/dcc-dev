@@ -4,10 +4,23 @@
     Auto Deploy
   </md-checkbox>
   -->
-  <label class="block">
-    <input type="checkbox" [(ngModel)]="autoDeploy" (ngModelChange)="change()">
-    Auto Deploy
-  </label>
+  <div>
+    Auto:
+    <label class="auto-checkbox">
+      <input type="checkbox" [(ngModel)]="autoDeploy" (ngModelChange)="change()">
+      Deploy
+    </label>
+
+    <label class="auto-checkbox">
+      <input type="checkbox" [(ngModel)]="autoRefresh" (ngModelChange)="change()">
+      Refresh
+    </label>
+
+    <label class="auto-checkbox">
+      <input type="checkbox" [(ngModel)]="autoRemove" (ngModelChange)="change()">
+      Destroy
+    </label>
+  </div>
 
   <md-input placeholder="JIRA Ticket" [(ngModel)]="ticketKey" (ngModelChange)="change()"></md-input>
   <br>
