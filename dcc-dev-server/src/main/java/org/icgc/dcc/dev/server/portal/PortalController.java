@@ -21,9 +21,11 @@ import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.ResponseEntity.ok;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
@@ -40,6 +42,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.val;
 
 /**
@@ -126,9 +129,13 @@ public class PortalController {
 
       @RequestParam(value = "autoDeploy", required = false, defaultValue = "true") boolean autoDeploy,
       @RequestParam(value = "autoRemove", required = false, defaultValue = "false") boolean autoRemove,
-      
-      @RequestParam(value = "start", required = false, defaultValue = "true") boolean start) {
-    return service.create(prNumber, slug, title, description, ticket, config, autoDeploy, autoRemove, start);
+
+      @RequestParam(value = "start", required = false, defaultValue = "true") boolean start,
+
+      HttpServletRequest request) {
+    val username = getUsername(request);
+
+    return service.create(prNumber, slug, title, description, ticket, config, autoDeploy, autoRemove, username, start);
   }
 
   /**
@@ -144,7 +151,7 @@ public class PortalController {
       @RequestParam(value = "description", required = false) String description,
       @RequestParam(value = "ticket", required = false) String ticket,
       @RequestParam(value = "config", required = false) Map<String, String> config,
-      
+
       @RequestParam(value = "autoDeploy", required = false, defaultValue = "true") boolean autoDeploy,
       @RequestParam(value = "autoRemove", required = false, defaultValue = "false") boolean autoRemove) {
     return service.update(portalId, slug, title, description, ticket, config, autoDeploy, autoRemove);
@@ -201,6 +208,17 @@ public class PortalController {
   @ResponseStatus(ACCEPTED)
   public void remove() {
     service.remove();
+  }
+
+  @SneakyThrows
+  private static String getUsername(HttpServletRequest request) {
+    val ip = request.getRemoteAddr();
+    try {
+      return InetAddress.getByName(ip).getHostName().replaceAll("olm-", "").replaceAll("\\..+", "");
+    } catch (Exception e) {
+      e.printStackTrace();
+      return ip;
+    }
   }
 
 }

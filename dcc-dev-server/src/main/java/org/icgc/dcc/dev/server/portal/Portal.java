@@ -80,6 +80,11 @@ public class Portal {
    * The JIRA ticket (issue) key for the portal instance.
    */
   String ticketKey;
+  
+  /**
+   * The user who deployed the portal.
+   */
+  String username;
 
   /**
    * User supplied configuration.

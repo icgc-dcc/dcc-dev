@@ -114,7 +114,7 @@ public class PortalService {
   }
 
   public Portal create(@NonNull Integer prNumber, String slug, String title, String description, String ticket,
-      Map<String, String> config, boolean autoDeploy, boolean autoRemove, boolean start) {
+      Map<String, String> config, boolean autoDeploy, boolean autoRemove, String username, boolean start) {
     log.info("{}", repeat("-", 80));
     log.info("Creating portal for PR {}...", prNumber);
     log.info("{}", repeat("-", 80));
@@ -134,6 +134,7 @@ public class PortalService {
         .setConfig(resolveConfig(config, null))
         .setAutoDeploy(autoDeploy)
         .setAutoRemove(autoRemove)
+        .setUsername(username)
         .setTarget(candidate);
 
     // Save instance
