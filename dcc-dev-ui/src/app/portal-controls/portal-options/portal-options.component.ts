@@ -17,10 +17,13 @@ export class PortalOptions {
   autoDeploy: boolean = true;
 
   @Input()
-  ticketKey: string;
+  autoRefresh: boolean = true;
 
   @Input()
-  autoRemove: boolean = false;
+  autoRemove: boolean = true;
+
+  @Input()
+  ticketKey: string;
 
   @Input()
   config: any = {};

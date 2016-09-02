@@ -4,6 +4,8 @@
   border: 1px solid #eee;
 }
 
-.block {
-  display: block;
+.auto-checkbox {
+  + .auto-checkbox {
+    margin-left: 12px;
+  }
 }

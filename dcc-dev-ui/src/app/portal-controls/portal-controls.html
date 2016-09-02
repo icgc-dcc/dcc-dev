@@ -44,7 +44,7 @@
         <a
           *ngIf="portal"
           md-raised-button
-          [href]="transformedUrl"
+          [href]="portal.url"
           target="_blank"
         >View</a>
       </div>
@@ -75,15 +75,16 @@
         <a
           *ngIf="portal"
           target="_blank"
-          [href]="transformedUrl"
-        >{{ transformedUrl }}</a>
+          [href]="portal.url"
+        >{{ portal.url }}</a>
       </div>
 
       <portal-options
         [title]="portal && portal.title || pr.title"
         [description]="portal && portal.description || ''"
         [autoDeploy]="portal ? portal.autoDeploy : true"
-        [autoRemove]="portal && portal.autoRemove"
+        [autoRefresh]="portal ? portal.autoRefresh : true"
+        [autoRemove]="portal ? portal.autoRemove : true"
         [ticketKey]="portal && portal.ticketKey"
         [configs]="portal && portal.configs"
         [onChange]="handlePortalOptionsChange"
