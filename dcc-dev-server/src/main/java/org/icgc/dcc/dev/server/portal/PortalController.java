@@ -210,15 +210,8 @@ public class PortalController {
     service.remove();
   }
 
-  @SneakyThrows
   private static String getUsername(HttpServletRequest request) {
-    val ip = request.getRemoteAddr();
-    try {
-      return InetAddress.getByName(ip).getHostName().replaceAll("olm-", "").replaceAll("\\..+", "");
-    } catch (Exception e) {
-      e.printStackTrace();
-      return ip;
-    }
+    return request.getRemoteHost();
   }
 
 }
