@@ -52,15 +52,8 @@ export class PortalOptions {
   }
 
   get optionsValue() {
-    // return {
-    //   title: this.title,
-    //   description: this.description,
-    //   autoDeploy: this.autoDeploy,
-    //   autoRemove: this.autoRemove,
-    //   config: this.serializedConfig,
-    // };
     return Object.assign({},
-      pick(this, 'title', 'description', 'autoDeploy'),
+      pick(this, 'title', 'description', 'autoDeploy', 'autoRefresh', 'autoRemove'),
       { config: this.serializedConfig });
   }
 

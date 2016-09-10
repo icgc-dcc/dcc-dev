@@ -21,7 +21,6 @@ import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.ResponseEntity.ok;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +41,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.val;
 
 /**
@@ -128,14 +126,15 @@ public class PortalController {
       @RequestParam(value = "config", required = false) Map<String, String> config,
 
       @RequestParam(value = "autoDeploy", required = false, defaultValue = "true") boolean autoDeploy,
-      @RequestParam(value = "autoRemove", required = false, defaultValue = "false") boolean autoRemove,
+      @RequestParam(value = "autoRefresh", required = false, defaultValue = "true") boolean autoRefresh,
+      @RequestParam(value = "autoRemove", required = false, defaultValue = "true") boolean autoRemove,
 
       @RequestParam(value = "start", required = false, defaultValue = "true") boolean start,
 
       HttpServletRequest request) {
     val username = getUsername(request);
 
-    return service.create(prNumber, slug, title, description, ticket, config, autoDeploy, autoRemove, username, start);
+    return service.create(prNumber, slug, title, description, ticket, config, autoDeploy, autoRefresh, autoRemove, username, start);
   }
 
   /**
@@ -153,8 +152,9 @@ public class PortalController {
       @RequestParam(value = "config", required = false) Map<String, String> config,
 
       @RequestParam(value = "autoDeploy", required = false, defaultValue = "true") boolean autoDeploy,
-      @RequestParam(value = "autoRemove", required = false, defaultValue = "false") boolean autoRemove) {
-    return service.update(portalId, slug, title, description, ticket, config, autoDeploy, autoRemove);
+      @RequestParam(value = "autoRefresh", required = false, defaultValue = "true") boolean autoRefresh,
+      @RequestParam(value = "autoRemove", required = false, defaultValue = "true") boolean autoRemove) {
+    return service.update(portalId, slug, title, description, ticket, config, autoDeploy, autoRefresh, autoRemove);
   }
 
   /**

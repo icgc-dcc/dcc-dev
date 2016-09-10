@@ -90,6 +90,12 @@ public class GithubService {
 
     return Optional.ofNullable(parseBuildNumber(status.getTargetUrl()));
   }
+  
+  @SneakyThrows
+  public void addComment(@NonNull Integer prNumber, @NonNull String message) {
+    val pr = repo.getPullRequest(prNumber);
+    pr.comment(message);
+  }
 
   private GithubPr convert(GHPullRequest pr) {
     return new GithubPr()

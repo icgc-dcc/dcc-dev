@@ -23,6 +23,7 @@ export interface Candidate {
 
 export interface Portal {
   autoDeploy: Boolean,
+  autoRefresh: Boolean,
   autoRemove: Boolean,
   description: String,
   id: String,

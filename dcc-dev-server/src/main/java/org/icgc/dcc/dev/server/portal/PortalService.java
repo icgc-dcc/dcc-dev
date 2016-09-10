@@ -24,6 +24,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import org.icgc.dcc.dev.server.github.GithubService;
 import org.icgc.dcc.dev.server.jira.JiraService;
 import org.icgc.dcc.dev.server.jira.JiraTicket;
 import org.icgc.dcc.dev.server.message.MessageService;
@@ -85,6 +86,8 @@ public class PortalService {
   MessageService messages;
   @Autowired
   JiraService jira;
+  @Autowired
+  GithubService github;
 
   public List<Portal.Candidate> getCandidates() {
     return candidates.resolve();
@@ -114,7 +117,8 @@ public class PortalService {
   }
 
   public Portal create(@NonNull Integer prNumber, String slug, String title, String description, String ticket,
-      Map<String, String> config, boolean autoDeploy, boolean autoRemove, String username, boolean start) {
+      Map<String, String> config, boolean autoDeploy, boolean autoRefresh, boolean autoRemove, String username,
+      boolean start) {
     log.info("{}", repeat("-", 80));
     log.info("Creating portal for PR {}...", prNumber);
     log.info("{}", repeat("-", 80));
@@ -133,6 +137,7 @@ public class PortalService {
         .setTicketKey(resolveTicketKey(ticket, null, candidate.getTicket()))
         .setConfig(resolveConfig(config, null))
         .setAutoDeploy(autoDeploy)
+        .setAutoRefresh(autoRefresh)
         .setAutoRemove(autoRemove)
         .setUsername(username)
         .setTarget(candidate);
@@ -158,7 +163,8 @@ public class PortalService {
       // Start the portal
       start(portal.getId());
 
-      // Ensure ticket is marked for test with the portal URL
+      // Ensure PR / ticket is marked for test with the portal URL
+      updatePr(portal);
       updateTicket(portal);
     }
 
@@ -173,7 +179,11 @@ public class PortalService {
 
     val status = getStatus(portal.getId());
     if (status.isRunning()) {
-      executor.stop(portal);
+      try {
+        executor.stop(portal);
+      } catch (Exception e) {
+        log.warn("Problem stopping portal: {}", e.getMessage());
+      }
     }
 
     deployer.deploy(portal);
@@ -185,7 +195,7 @@ public class PortalService {
   }
 
   public Portal update(@NonNull Integer portalId, String slug, String title, String description, String ticket,
-      Map<String, String> config, boolean autoDeploy, boolean autoRemove) {
+      Map<String, String> config, boolean autoDeploy, boolean autoRefresh, boolean autoRemove) {
     log.info("Updating portal {}...", portalId);
 
     // Validate
@@ -203,10 +213,11 @@ public class PortalService {
         .setTicketKey(resolveTicketKey(ticket, portal.getTicketKey(), candidate.getTicket()))
         .setConfig(resolveConfig(config, portal.getConfig()))
         .setAutoDeploy(autoDeploy)
+        .setAutoRefresh(autoRefresh)
         .setAutoRemove(autoRemove);
 
     executor.stop(portal);
-    
+
     deployer.deploy(portal);
     portal = repository.save(portal);
 
@@ -232,7 +243,13 @@ public class PortalService {
     val portal = get(portalId);
 
     // Wait for the instance to stop (synchronous)
-    executor.stop(portal);
+    try {
+      executor.stop(portal);
+    } catch (Exception e) {
+      log.warn("Problem stopping portal: {}", e.getMessage());
+    }
+
+    // Remove physical directory
     deployer.undeploy(portalId);
 
     // Remove meatdata
@@ -305,11 +322,27 @@ public class PortalService {
     if (ticketKey == null) return;
 
     try {
-      val iframeUrl = publicUrl + "/portals/" + portal.getId();
-      jira.updateTicket(ticketKey, "Deployed to " + iframeUrl + " for testing");
+      log.info("Updating JIRA {} for portal {}...", ticketKey, portal.getId());
+      jira.updateTicket(ticketKey, formatMessage(portal));
     } catch (Exception e) {
       log.error("Could not update ticket " + ticketKey + ":", e);
     }
+  }
+
+  private void updatePr(Portal portal) {
+    val prNumber = portal.getTarget().getPr().getNumber();
+
+    try {
+      log.info("Updating PR {} for portal {}...", prNumber, portal.getId());
+      github.addComment(prNumber, formatMessage(portal));
+    } catch (Exception e) {
+      log.error("Could not add comment to PR " + prNumber + ":", e);
+    }
+  }
+
+  private String formatMessage(Portal portal) {
+    val iframeUrl = publicUrl + "/portals/" + portal.getId();
+    return "Deployed to " + iframeUrl + " for testing";
   }
 
   private void notifyChange(Portal portal, PortalChangeType type) {

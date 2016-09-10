@@ -18,6 +18,7 @@
 package org.icgc.dcc.dev.server.portal.candidate;
 
 import static com.google.common.collect.Iterables.getLast;
+import static com.google.common.collect.Maps.uniqueIndex;
 
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
@@ -28,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 
 import lombok.NonNull;
@@ -57,21 +57,30 @@ public class PortalCandidateListener {
     for (val portal : portals.list()) {
       val candidate = portal.getTarget();
       val prNumber = candidate.getPr().getNumber();
+      
+      // Resolve the latest build for the current portal
       val portalBuilds = prBuilds.get(prNumber);
       val latestBuild = getLast(portalBuilds);
 
       val deployed = candidate.getBuild() != null;
       if (deployed) {
         val buildNumber = candidate.getBuild().getNumber();
+        
+        // No need to update if we are the latest already
         val staleBuild = latestBuild.getNumber() <= buildNumber;
         if (staleBuild) continue;
 
         log.debug("Build update found for portal {}:  {}", portal.getId(), latestBuild);
-        if (!portal.isAutoDeploy()) continue;
+        
+        // No need to update if we are in manual mode
+        if (!portal.isAutoRefresh()) continue;
 
         log.info("Auto deploying portal {}: {}", portal.getId(), latestBuild);
         candidate.setBuild(latestBuild);
       } else {
+        // No need to create if we are in manual mode
+        if (!portal.isAutoDeploy()) continue;
+        
         log.info("First build found for portal {}:  {}", portal.getId(), latestBuild);
         candidate.setBuild(latestBuild);
       }
@@ -82,7 +91,7 @@ public class PortalCandidateListener {
 
   @EventListener
   public void handle(@NonNull GithubPrsMessage message) {
-    val openPrNumbers = Maps.uniqueIndex(message.getPrs(), GithubPr::getNumber);
+    val openPrNumbers = uniqueIndex(message.getPrs(), GithubPr::getNumber);
 
     for (val portal : portals.list()) {
       val prNumber = portal.getTarget().getPr().getNumber();

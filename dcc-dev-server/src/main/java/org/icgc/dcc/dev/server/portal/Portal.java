@@ -34,6 +34,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Version;
 
+import org.hibernate.annotations.ColumnDefault;
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.server.jira.JiraTicket;
@@ -106,13 +107,21 @@ public class Portal {
   String url;
 
   /**
-   * Whether or not to automatically deploy a new build when available.
+   * Whether or not to automatically deploy the first build when available.
    */
+  @ColumnDefault("true")
   boolean autoDeploy;
+  
+  /**
+   * Whether or not to automatically refresh a new builds when available.
+   */
+  @ColumnDefault("true")
+  boolean autoRefresh;  
 
   /**
    * Whether or not to automatically destroy when a PR is merged.
    */
+  @ColumnDefault("true")
   boolean autoRemove;
 
   /**

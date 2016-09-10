@@ -95,7 +95,11 @@ public class PortalConfig {
 
     log.info("Restarting portals...");
     for (val portal : portals) {
-      service.restart(portal.getId());
+      try {
+        service.restart(portal.getId());
+      } catch (Exception e) {
+        log.error("Could not restart portal {}: {}",portal.getId(), e.getMessage());
+      }
     }
   }
 
