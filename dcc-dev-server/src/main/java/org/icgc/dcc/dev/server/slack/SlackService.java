@@ -17,6 +17,7 @@
  */
 package org.icgc.dcc.dev.server.slack;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import in.ashwanthkumar.slack.webhook.Slack;
@@ -24,10 +25,12 @@ import in.ashwanthkumar.slack.webhook.SlackMessage;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Slack façade service.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SlackService {
@@ -36,6 +39,12 @@ public class SlackService {
    * Dependencies.
    */
   final Slack slack;
+  
+  /**
+   * Configuration.
+   */
+  @Value("${slack.enabled}")
+  boolean enabled;
 
   /**
    * Post a slack message for users to see.
@@ -44,6 +53,11 @@ public class SlackService {
    */
   @SneakyThrows
   public void notify(@NonNull SlackMessage message) {
+    if (!enabled) {
+      log.debug("Slack integration disabled. Skipping notification");
+      return;
+    }
+    
     slack.push(message);
   }
 

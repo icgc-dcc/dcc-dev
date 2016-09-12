@@ -29,21 +29,21 @@ workspace:
 # Template
 template:
   dir: ${workspace.dir}/template
-  # url: ${artifact.url}/dcc-release/org/icgc/dcc/${artifact.artifactId}/[RELEASE]/${artifact.artifactId}-[RELEASE]-dist.tar.gz
-  url: ${artifact.url}/dcc-snapshot/org/icgc/dcc/${artifact.artifactId}/4.3.5-SNAPSHOT/${artifact.artifactId}-4.3.5-SNAPSHOT-dist.tar.gz
+  url: ${artifact.url}/dcc-release/org/icgc/dcc/${artifact.artifactId}/[RELEASE]/${artifact.artifactId}-[RELEASE]-dist.tar.gz
 
 # Slack
 slack:
   url: https://hooks.slack.com/services/B0FC7K2GJ/${slack.token}
+  enabled: false
   # token:
   
 # GitHub
 github:
   repoName: icgc-dcc/dcc-portal
-  # cron: 0 */5 * * * *
-  cron: 0/10 * * * * ?  
+  cron: 0 * * * * *
   cache.dir: ${workspace.dir}/github
   user: dcc-jenkins
+  update: true
   # token:
   
 # Artifacts
@@ -65,6 +65,7 @@ jenkins:
 jira:
   url: https://jira.oicr.on.ca
   project: DCC
+  update: true
 
 # Messages
 message:

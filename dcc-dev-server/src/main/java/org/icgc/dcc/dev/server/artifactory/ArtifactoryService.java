@@ -43,7 +43,7 @@ public class ArtifactoryService {
   /**
    * Constants.
    */
-  private static final String BUILD_NUMBER_PROPERTY_NAME = "build.number";
+  static final String BUILD_NUMBER_PROPERTY_NAME = "build.number";
 
   /**
    * Configuration.
@@ -77,7 +77,7 @@ public class ArtifactoryService {
         .map(RepoPath::getItemPath)
         .map(this::resolveAbsolutePath);
   }
-  
+
   @Synchronized
   @SneakyThrows
   public List<Item> getArtifactFolder() {

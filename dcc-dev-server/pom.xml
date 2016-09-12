@@ -170,6 +170,11 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.javaslang</groupId>
+      <artifactId>javaslang</artifactId>
+      <version>${javaslang.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>annotations</artifactId>
       <scope>provided</scope>
@@ -239,6 +244,9 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF S
     <h2.version>1.4.192</h2.version>
     <!-- Spring Boot - Jackson -->
     <jackson.version>2.7.5</jackson.version>
+    
+    <!-- Javaslang -->
+    <javaslang.version>2.0.3</javaslang.version>
   </properties>
 
 </project>

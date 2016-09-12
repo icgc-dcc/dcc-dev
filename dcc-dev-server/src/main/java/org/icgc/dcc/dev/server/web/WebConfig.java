@@ -21,18 +21,22 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import javaslang.collection.List;
+import lombok.val;
+
 @Configuration
 public class WebConfig extends WebMvcConfigurerAdapter {
 
   /**
    * Add support for URL rewriting.
    * <p>
-   * Primarily used for Angular's "HTML 5 pushState" style url.
+   * Primarily used for Angular's "HTML 5 pushState" style URLs.
    */
   @Override
   public void addViewControllers(ViewControllerRegistry registry) {
-    registry.addViewController("/").setViewName("forward:/index.html");
-    registry.addViewController("/**/{path:[^.]+}").setViewName("forward:/index.html");
+    val index = "forward:/index.html";
+    for (val url : List.of("/", "/**/{path:[^.]+}"))
+      registry.addViewController(url).setViewName(index);
   }
 
 }

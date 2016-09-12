@@ -20,6 +20,7 @@ package org.icgc.dcc.dev.server.jira;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import lombok.NonNull;
@@ -40,9 +41,15 @@ public class JiraService {
   /**
    * Constants.
    */
-  private static final String STATUS_FIELD_NAME = "status";
-  private static final String STATUS_READY_FOR_TESTING = "Ready for testing";
+  static final String STATUS_FIELD_NAME = "status";
+  static final String STATUS_READY_FOR_TESTING = "Ready for testing";
 
+  /**
+   * Configuration.
+   */
+  @Value("${jira.update}")
+  boolean update;
+  
   /**
    * Dependencies.
    */
@@ -64,6 +71,11 @@ public class JiraService {
   @Synchronized
   @SneakyThrows
   public void updateTicket(@NonNull String key, String comment) {
+    if (!update) {
+      log.debug("Updates disabled. Skipping update of ticket {}", key);
+      return;
+    }
+    
     val issue = getIssue(key);
     if (issue == null) {
       log.warn("Cannot find ticket {}", key);

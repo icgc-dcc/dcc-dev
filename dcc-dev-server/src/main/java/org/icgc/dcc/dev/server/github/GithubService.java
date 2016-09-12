@@ -29,6 +29,7 @@ import org.icgc.dcc.dev.server.message.MessageService;
 import org.icgc.dcc.dev.server.message.Messages.GithubPrsMessage;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +53,12 @@ public class GithubService {
    */
   static final Pattern BUILD_NUMBER_PATTERN = Pattern.compile("/([^/]+)/?$");
 
+  /**
+   * Configuration.
+   */
+  @Value("${github.update}")
+  boolean update;
+  
   /**
    * Dependencies.
    */
@@ -93,6 +100,11 @@ public class GithubService {
   
   @SneakyThrows
   public void addComment(@NonNull Integer prNumber, @NonNull String message) {
+    if (!update) {
+      log.debug("Updates disabled. Skipping update of PR {}", prNumber);
+      return;
+    }
+    
     val pr = repo.getPullRequest(prNumber);
     pr.comment(message);
   }
