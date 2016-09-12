@@ -34,9 +34,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
    */
   @Override
   public void addViewControllers(ViewControllerRegistry registry) {
-    val index = "forward:/index.html";
-    for (val url : List.of("/", "/**/{path:[^.]+}"))
-      registry.addViewController(url).setViewName(index);
+    for (val path : List.of("/", "/**/{path:[^.]+}"))
+      registry.addViewController(path).setViewName("forward:/index.html");
   }
 
 }

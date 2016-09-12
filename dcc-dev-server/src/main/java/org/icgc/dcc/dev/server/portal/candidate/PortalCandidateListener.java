@@ -17,8 +17,10 @@
  */
 package org.icgc.dcc.dev.server.portal.candidate;
 
-import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Maps.uniqueIndex;
+import static com.google.common.primitives.Ints.compare;
+
+import java.util.List;
 
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
@@ -48,7 +50,7 @@ public class PortalCandidateListener {
   /**
    * Listens for new build events and determines if a portal update is required.
    * 
-   * @param message the current list of  builds.
+   * @param message the current list of builds.
    */
   @EventListener
   public void handle(@NonNull JenkinsBuildsMessage message) {
@@ -57,21 +59,20 @@ public class PortalCandidateListener {
     for (val portal : portals.list()) {
       val candidate = portal.getTarget();
       val prNumber = candidate.getPr().getNumber();
-      
+
       // Resolve the latest build for the current portal
       val portalBuilds = prBuilds.get(prNumber);
-      val latestBuild = getLast(portalBuilds);
+      val latestBuild = findLatestBuild(portalBuilds);
 
-      val deployed = candidate.getBuild() != null;
+      val currentBuild = candidate.getBuild();
+      val deployed = currentBuild != null;
       if (deployed) {
-        val buildNumber = candidate.getBuild().getNumber();
-        
         // No need to update if we are the latest already
-        val staleBuild = latestBuild.getNumber() <= buildNumber;
-        if (staleBuild) continue;
+        val buildLatest = latestBuild.getNumber() <= currentBuild.getNumber();
+        if (buildLatest) continue;
 
         log.debug("Build update found for portal {}:  {}", portal.getId(), latestBuild);
-        
+
         // No need to update if we are in manual mode
         if (!portal.isAutoRefresh()) continue;
 
@@ -80,13 +81,20 @@ public class PortalCandidateListener {
       } else {
         // No need to create if we are in manual mode
         if (!portal.isAutoDeploy()) continue;
-        
+
         log.info("First build found for portal {}:  {}", portal.getId(), latestBuild);
         candidate.setBuild(latestBuild);
       }
 
       portals.update(portal);
     }
+  }
+
+  private JenkinsBuild findLatestBuild(List<JenkinsBuild> portalBuilds) {
+    // Sort decending by build number
+    return portalBuilds.stream()
+        .sorted((b1, b2) -> -compare(b1.getNumber(), b2.getNumber()))
+        .findFirst().orElse(null);
   }
 
   @EventListener

@@ -61,8 +61,8 @@ public class PortalExecutor {
   /**
    * Constants.
    */
-  private static final String STATUS_RUNNING_VALUE = "running";
-  private static final Pattern STATUS_PATTERN =
+  static final String STATUS_RUNNING_VALUE = "running";
+  static final Pattern STATUS_PATTERN =
       Pattern.compile("DCC Portal Server is ([^:.]+)[:.](?: PID:(\\d+), Wrapper:(\\w+), Java:(\\w+))?\n");
 
   /**
