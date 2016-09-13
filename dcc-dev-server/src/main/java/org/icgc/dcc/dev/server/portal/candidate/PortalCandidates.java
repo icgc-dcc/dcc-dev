@@ -41,7 +41,7 @@ import lombok.val;
  * Responsible for finding potential portal instances.
  */
 @Component
-public class PortalCandidateResolver {
+public class PortalCandidates {
 
   /**
    * Constants.
@@ -60,20 +60,20 @@ public class PortalCandidateResolver {
   @Autowired
   ArtifactoryService artifactory;
 
-  public List<Portal.Candidate> resolve() {
+  public List<Portal.Candidate> getCandidates() {
     return github.getPrs().stream()
-        .map(this::resolve)
+        .map(this::getCandidate)
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(toList());
   }
 
-  public Optional<Candidate> resolve(@NonNull Integer prNumber) {
+  public Optional<Candidate> getCandidate(@NonNull Integer prNumber) {
     return github.getPr(prNumber)
-        .flatMap(this::resolve);
+        .flatMap(this::getCandidate);
   }
 
-  public Optional<Portal.Candidate> resolve(@NonNull GithubPr pr) {
+  public Optional<Portal.Candidate> getCandidate(@NonNull GithubPr pr) {
     val buildNumber = github.getBuildNumber(pr.getHead()).orElse(null);
 
     return Optional.ofNullable(createCandidate(pr, buildNumber));

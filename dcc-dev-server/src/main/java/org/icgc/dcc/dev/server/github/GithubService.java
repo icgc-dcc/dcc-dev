@@ -58,7 +58,7 @@ public class GithubService {
    */
   @Value("${github.update}")
   boolean update;
-  
+
   /**
    * Dependencies.
    */
@@ -93,18 +93,17 @@ public class GithubService {
   public Optional<String> getBuildNumber(@NonNull String sha1) {
     val status = repo.getLastCommitStatus(sha1);
     if (status == null) return Optional.empty();
-    
 
     return Optional.ofNullable(parseBuildNumber(status.getTargetUrl()));
   }
-  
+
   @SneakyThrows
   public void addComment(@NonNull Integer prNumber, @NonNull String message) {
     if (!update) {
       log.debug("Updates disabled. Skipping update of PR {}", prNumber);
       return;
     }
-    
+
     val pr = repo.getPullRequest(prNumber);
     pr.comment(message);
   }

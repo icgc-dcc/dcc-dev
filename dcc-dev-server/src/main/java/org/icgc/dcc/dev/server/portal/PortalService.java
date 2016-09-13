@@ -18,19 +18,24 @@
 package org.icgc.dcc.dev.server.portal;
 
 import static com.google.api.client.repackaged.com.google.common.base.Strings.repeat;
+import static org.icgc.dcc.dev.server.portal.PortalUpdates.newConfig;
+import static org.icgc.dcc.dev.server.portal.PortalUpdates.newDescription;
+import static org.icgc.dcc.dev.server.portal.PortalUpdates.newSlug;
+import static org.icgc.dcc.dev.server.portal.PortalUpdates.newTicketKey;
+import static org.icgc.dcc.dev.server.portal.PortalUpdates.newTitle;
 import static org.icgc.dcc.dev.server.portal.util.Portals.getServerPort;
 
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.icgc.dcc.dev.server.github.GithubService;
 import org.icgc.dcc.dev.server.jira.JiraService;
-import org.icgc.dcc.dev.server.jira.JiraTicket;
 import org.icgc.dcc.dev.server.message.MessageService;
 import org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage;
 import org.icgc.dcc.dev.server.message.Messages.PortalChangeType;
-import org.icgc.dcc.dev.server.portal.candidate.PortalCandidateResolver;
+import org.icgc.dcc.dev.server.portal.candidate.PortalCandidates;
 import org.icgc.dcc.dev.server.portal.io.PortalDeployer;
 import org.icgc.dcc.dev.server.portal.io.PortalExecutor;
 import org.icgc.dcc.dev.server.portal.io.PortalFileSystem;
@@ -69,7 +74,7 @@ public class PortalService {
    * Dependencies.
    */
   @Autowired
-  PortalCandidateResolver candidates;
+  PortalCandidates candidates;
   @Autowired
   PortalRepository repository;
   @Autowired
@@ -84,13 +89,14 @@ public class PortalService {
   PortalLocks locks;
   @Autowired
   MessageService messages;
+  
   @Autowired
   JiraService jira;
   @Autowired
   GithubService github;
 
   public List<Portal.Candidate> getCandidates() {
-    return candidates.resolve();
+    return candidates.getCandidates();
   }
 
   public Portal get(@NonNull Integer portalId) {
@@ -127,15 +133,15 @@ public class PortalService {
     validateSlug(slug, null);
 
     // Resolve portal candidate by PR
-    val candidate = candidates.resolve(prNumber).orElseThrow(() -> new PortalPrNotFoundException(prNumber));
+    val candidate = candidates.getCandidate(prNumber).orElseThrow(() -> new PortalPrNotFoundException(prNumber));
 
     // Collect metadata in a single object
     Portal portal = new Portal()
-        .setTitle(resolveTitle(title, null, candidate.getPr().getTitle()))
-        .setSlug(resolveSlug(slug, null, title, null, candidate.getPr().getTitle()))
-        .setDescription(resolveDescription(description, null, candidate.getPr().getDescription()))
-        .setTicketKey(resolveTicketKey(ticket, null, candidate.getTicket()))
-        .setConfig(resolveConfig(config, null))
+        .setTitle(newTitle(title, null, candidate.getPr().getTitle()))
+        .setSlug(newSlug(slug, null, title, null, candidate.getPr().getTitle()))
+        .setDescription(newDescription(description, null, candidate.getPr().getDescription()))
+        .setTicketKey(newTicketKey(ticket, null, candidate.getTicket()))
+        .setConfig(newConfig(config, null))
         .setAutoDeploy(autoDeploy)
         .setAutoRefresh(autoRefresh)
         .setAutoRemove(autoRemove)
@@ -157,7 +163,7 @@ public class PortalService {
 
     // Assign URL
     portal.setUrl(resolveUrl(publicUrl, portal));
-    repository.save(portal);
+    portal = repository.save(portal);
 
     if (start) {
       // Start the portal
@@ -187,7 +193,7 @@ public class PortalService {
     }
 
     deployer.deploy(portal);
-    repository.save(portal);
+    portal = repository.save(portal);
 
     executor.startAsync(portal);
 
@@ -207,11 +213,11 @@ public class PortalService {
 
     val candidate = portal.getTarget();
     portal
-        .setTitle(resolveTitle(title, portal.getTitle(), candidate.getPr().getTitle()))
-        .setSlug(resolveSlug(slug, portal.getSlug(), title, portal.getTitle(), candidate.getPr().getTitle()))
-        .setDescription(resolveDescription(description, portal.getDescription(), candidate.getPr().getDescription()))
-        .setTicketKey(resolveTicketKey(ticket, portal.getTicketKey(), candidate.getTicket()))
-        .setConfig(resolveConfig(config, portal.getConfig()))
+        .setTitle(newTitle(title, portal.getTitle(), candidate.getPr().getTitle()))
+        .setSlug(newSlug(slug, portal.getSlug(), title, portal.getTitle(), candidate.getPr().getTitle()))
+        .setDescription(newDescription(description, portal.getDescription(), candidate.getPr().getDescription()))
+        .setTicketKey(newTicketKey(ticket, portal.getTicketKey(), candidate.getTicket()))
+        .setConfig(newConfig(config, portal.getConfig()))
         .setAutoDeploy(autoDeploy)
         .setAutoRefresh(autoRefresh)
         .setAutoRemove(autoRemove);
@@ -252,51 +258,42 @@ public class PortalService {
     // Remove physical directory
     deployer.undeploy(portalId);
 
-    // Remove meatdata
+    // Remove metadata
     repository.delete(portalId);
 
     notifyChange(portal, PortalChangeType.REMOVED);
   }
 
   public void start(@NonNull Integer portalId) {
-    log.info("Starting portal {}...", portalId);
-
-    @Cleanup
-    val lock = locks.lockWriting(portalId);
-    val portal = get(portalId);
-
-    executor.startAsync(portal);
+    execute("Starting", portalId, executor::startAsync);
   }
-
+  
   public void restart(@NonNull Integer portalId) {
-    log.info("Restarting portal {}...", portalId);
-
-    @Cleanup
-    val lock = locks.lockWriting(portalId);
-    val portal = get(portalId);
-
-    executor.restartAsync(portal);
+    execute("Restarting", portalId, executor::restartAsync);
   }
 
   public void stop(@NonNull Integer portalId) {
-    log.info("Stopping portal {}...", portalId);
-
-    @Cleanup
-    val lock = locks.lockWriting(portalId);
-    val portal = get(portalId);
-
-    executor.stopAsync(portal);
+    execute("Stopping", portalId, executor::stopAsync);
   }
 
   public String getLog(Integer portalId) {
     log.info("Getting log of portal {}...", portalId);
-    // TODO: Do existence check instead
-    get(portalId);
+    if (!repository.exists(portalId)) throw new PortalNotFoundException(portalId);
 
     @Cleanup
     val lock = locks.lockReading(portalId);
 
     return logs.cat(portalId);
+  }
+
+  private void execute(String message, @NonNull Integer portalId, Consumer<Portal> action) {
+    log.info("{} portal {}...", message, portalId);
+  
+    @Cleanup
+    val lock = locks.lockWriting(portalId);
+    val portal = get(portalId);
+  
+    action.accept(portal);
   }
 
   @SneakyThrows
@@ -351,42 +348,12 @@ public class PortalService {
         .setPortalId(portal.getId()));
   }
 
-  @SneakyThrows
-  private static String resolveSlug(String newSlug, String currentSlug, String newTitle, String currentTitle,
-      String prTitle) {
-    return new Slugify().slugify(resolveValue(newSlug, currentSlug, prTitle));
-  }
-
-  private static String resolveTitle(String newTitle, String currentTitle, String prTitle) {
-    return resolveValue(newTitle, currentTitle, prTitle);
-  }
-
-  private static String resolveDescription(String newDescription, String currentDescription, String prDescription) {
-    return resolveValue(newDescription, currentDescription, prDescription);
-  }
-
-  private static String resolveTicketKey(String newTicketKey, String currentTicketKey, JiraTicket currentTicket) {
-    return resolveValue(newTicketKey, currentTicketKey, currentTicket != null ? currentTicket.getKey() : null);
-  }
-
-  private static Map<String, String> resolveConfig(Map<String, String> newConfig, Map<String, String> currentConfig) {
-    return resolveValue(newConfig, currentConfig);
-  }
-
   private static String resolveUrl(URL publicUrl, Portal portal) {
     // Replace this port and add portal port
     return UriComponentsBuilder
         .fromHttpUrl(publicUrl.toString())
         .port(getServerPort(portal))
         .toUriString();
-  }
-
-  @SafeVarargs
-  private static <T> T resolveValue(T... values) {
-    for (T value : values)
-      if (value != null) return value;
-
-    return null;
   }
 
 }

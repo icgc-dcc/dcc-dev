@@ -120,9 +120,10 @@ public class JenkinsService {
   }
 
   private Optional<Matcher> matchCause(List<BuildCause> causes) {
-    // Heuristic to get commit and pr
+    // Heuristic to get commit and PR
     return causes.stream()
-        .map(cause -> CAUSE_SHORT_DESCRIPTION_PATTERN.matcher(cause.getShortDescription()))
+        .map(BuildCause::getShortDescription)
+        .map(CAUSE_SHORT_DESCRIPTION_PATTERN::matcher)
         .filter(Matcher::find)
         .findFirst();
   }

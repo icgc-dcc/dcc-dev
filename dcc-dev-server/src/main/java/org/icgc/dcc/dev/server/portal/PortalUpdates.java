@@ -15,79 +15,53 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.message;
+package org.icgc.dcc.dev.server.portal;
 
-import java.util.List;
+import static lombok.AccessLevel.PRIVATE;
 
-import org.icgc.dcc.dev.server.github.GithubPr;
-import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
-import org.icgc.dcc.dev.server.portal.io.PortalExecutor.State;
+import java.util.Map;
 
-import lombok.Data;
-import lombok.experimental.Accessors;
+import org.icgc.dcc.dev.server.jira.JiraTicket;
+
+import com.github.slugify.Slugify;
+
+import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 
 /**
- * Catalog of messages to be sent from publishers to subscribers.
+ * Encapsulates how portal fields should be updated.
  */
-public class Messages {
+@NoArgsConstructor(access = PRIVATE)
+final class PortalUpdates {
 
-  public enum PortalChangeType {
-    CREATED,
-    UPDATED,
-    REMOVED,
-    EXECUTION;
+  @SneakyThrows
+  public static String newSlug(String newSlug, String currentSlug, String newTitle, String currentTitle,
+      String prTitle) {
+    return new Slugify().slugify(newValue(newSlug, currentSlug, prTitle));
   }
 
-  @Data
-  @Accessors(chain = true)
-  public static class PortalChangeMessage {
-
-    Integer portalId;
-    PortalChangeType type;
-    State state;
-
+  public static String newTitle(String newTitle, String currentTitle, String prTitle) {
+    return newValue(newTitle, currentTitle, prTitle);
   }
 
-  @Data
-  @Accessors(chain = true)
-  public static class JenkinsBuildsMessage {
-
-    List<JenkinsBuild> builds;
-
+  public static String newDescription(String newDescription, String currentDescription, String prDescription) {
+    return newValue(newDescription, currentDescription, prDescription);
   }
 
-  @Data
-  @Accessors(chain = true)
-  public static class GithubPrsMessage {
-
-    List<GithubPr> prs;
-
+  public static String newTicketKey(String newTicketKey, String currentTicketKey, JiraTicket currentTicket) {
+    return newValue(newTicketKey, currentTicketKey, currentTicket != null ? currentTicket.getKey() : null);
   }
 
-  @Data
-  @Accessors(chain = true)
-  public static class LogLineMessage {
-
-    Integer portalId;
-    Long timestamp;
-    String line;
-
+  public static Map<String, String> newConfig(Map<String, String> newConfig, Map<String, String> currentConfig) {
+    return newValue(newConfig, currentConfig);
   }
-
-  @Data
-  @Accessors(chain = true)
-  public static class FirstSubscriberMessage {
-
-    String topic;
-
-  }
-
-  @Data
-  @Accessors(chain = true)
-  public static class LastSubscriberMessage {
-
-    String topic;
-
+  
+  @SafeVarargs
+  private static <T> T newValue(T... values) {
+    for (T value : values)
+      if (value != null) return value;
+    
+    return null;
   }
 
 }

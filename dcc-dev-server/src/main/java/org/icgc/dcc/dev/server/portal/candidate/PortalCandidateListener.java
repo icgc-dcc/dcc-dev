@@ -18,19 +18,21 @@
 package org.icgc.dcc.dev.server.portal.candidate;
 
 import static com.google.common.collect.Maps.uniqueIndex;
-import static com.google.common.primitives.Ints.compare;
+import static java.util.Comparator.comparingInt;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.server.message.Messages.GithubPrsMessage;
 import org.icgc.dcc.dev.server.message.Messages.JenkinsBuildsMessage;
+import org.icgc.dcc.dev.server.portal.Portal;
 import org.icgc.dcc.dev.server.portal.PortalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
 import lombok.NonNull;
@@ -39,6 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Listener that handles upstream portal candidate events.
+ * <p>
+ * Responsible for ensuring that builds / PRs are synchronized with portal instances based on deployer preferences.
  */
 @Slf4j
 @Component
@@ -46,6 +50,32 @@ public class PortalCandidateListener {
 
   @Autowired
   PortalService portals;
+
+  /**
+   * Listens for PR events and determines if a portal removal is required.
+   * 
+   * @param message the current list of builds.
+   */
+  @EventListener
+  public void handle(@NonNull GithubPrsMessage message) {
+    val openPrNumbers = uniqueIndex(message.getPrs(), GithubPr::getNumber);
+
+    for (val portal : portals.list()) {
+      val prNumber = portal.getTarget().getPr().getNumber();
+      val prOpen = openPrNumbers.containsKey(prNumber);
+
+      // If still open we let it live
+      if (prOpen) continue;
+
+      // Closed so consider a removal
+      log.debug("Closed PR found for portal {}", portal.getId());
+      if (!portal.isAutoRemove()) continue;
+
+      // We know it needs to die
+      log.info("Auto removing portal {}", portal.getId());
+      portals.remove(portal.getId());
+    }
+  }
 
   /**
    * Listens for new build events and determines if a portal update is required.
@@ -57,61 +87,53 @@ public class PortalCandidateListener {
     val prBuilds = Multimaps.index(message.getBuilds(), JenkinsBuild::getPrNumber);
 
     for (val portal : portals.list()) {
-      val candidate = portal.getTarget();
-      val prNumber = candidate.getPr().getNumber();
-
-      // Resolve the latest build for the current portal
-      val portalBuilds = prBuilds.get(prNumber);
-      val latestBuild = findLatestBuild(portalBuilds);
-
-      val currentBuild = candidate.getBuild();
-      val deployed = currentBuild != null;
-      if (deployed) {
-        // No need to update if we are the latest already
-        val buildLatest = latestBuild.getNumber() <= currentBuild.getNumber();
-        if (buildLatest) continue;
-
-        log.debug("Build update found for portal {}:  {}", portal.getId(), latestBuild);
-
-        // No need to update if we are in manual mode
-        if (!portal.isAutoRefresh()) continue;
-
-        log.info("Auto deploying portal {}: {}", portal.getId(), latestBuild);
-        candidate.setBuild(latestBuild);
-      } else {
-        // No need to create if we are in manual mode
-        if (!portal.isAutoDeploy()) continue;
-
-        log.info("First build found for portal {}:  {}", portal.getId(), latestBuild);
-        candidate.setBuild(latestBuild);
-      }
-
-      portals.update(portal);
+      handle(prBuilds, portal);
     }
   }
 
-  private JenkinsBuild findLatestBuild(List<JenkinsBuild> portalBuilds) {
-    // Sort decending by build number
+  private void handle(Multimap<Integer, JenkinsBuild> prBuilds, Portal portal) {
+    val candidate = portal.getTarget();
+    val prNumber = candidate.getPr().getNumber();
+    val currentBuild = candidate.getBuild();
+
+    // Resolve the latest build for the current portal
+    val portalBuilds = prBuilds.get(prNumber);
+    val latestBuild = findLatestBuild(portalBuilds);
+
+    val deployed = currentBuild != null;
+    if (deployed) {
+      // No need to update if we are the latest already
+      if (isCurrentBuild(currentBuild, latestBuild)) return;
+      log.debug("Build update found for portal {}:  {}", portal.getId(), latestBuild);
+
+      // Are in manual mode?
+      if (!portal.isAutoRefresh()) return;
+
+      // Auto refresh the instance
+      log.info("Auto refreshing portal {}: {}", portal.getId(), latestBuild);
+    } else {
+      // Are we are in manual mode?
+      if (!portal.isAutoDeploy()) return;
+
+      // Auto create the instance
+      log.info("First build found for portal {}:  {}", portal.getId(), latestBuild);
+    }
+
+    // Update portal to reflect the newly associated build
+    candidate.setBuild(latestBuild);
+    portals.update(portal);
+  }
+
+  private static boolean isCurrentBuild(JenkinsBuild currentBuild, JenkinsBuild latestBuild) {
+    return latestBuild.getNumber() <= currentBuild.getNumber();
+  }
+
+  private static JenkinsBuild findLatestBuild(Collection<JenkinsBuild> portalBuilds) {
+    // Sort descending by build number
     return portalBuilds.stream()
-        .sorted((b1, b2) -> -compare(b1.getNumber(), b2.getNumber()))
-        .findFirst().orElse(null);
-  }
-
-  @EventListener
-  public void handle(@NonNull GithubPrsMessage message) {
-    val openPrNumbers = uniqueIndex(message.getPrs(), GithubPr::getNumber);
-
-    for (val portal : portals.list()) {
-      val prNumber = portal.getTarget().getPr().getNumber();
-      val prOpen = openPrNumbers.containsKey(prNumber);
-      if (prOpen) continue;
-
-      log.debug("Closed PR found for portal {}", portal.getId());
-      if (!portal.isAutoRemove()) continue;
-
-      log.info("Auto removing portal {}", portal.getId());
-      portals.remove(portal.getId());
-    }
+        .sorted(comparingInt(JenkinsBuild::getNumber).reversed())
+        .findFirst()
+        .get();
   }
 
 }
