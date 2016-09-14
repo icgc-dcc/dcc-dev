@@ -32,6 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import com.offbytwo.jenkins.model.BuildResult;
+
 import lombok.NonNull;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -97,11 +99,15 @@ public class PortalCandidateListener {
 
     // Resolve the latest build for the current portal
     val latestBuild = prBuilds.get(prNumber);
+    
+    // Skip builds that failed or in progress
+    if (!isBuildReady(latestBuild)) return;
 
     val deployed = currentBuild != null;
     if (deployed) {
       // No need to update if we are the latest already
-      if (isCurrentBuild(currentBuild, latestBuild)) return;
+      if (isBuildCurrent(currentBuild, latestBuild)) return;
+      
       log.debug("Build update found for portal {}:  {}", portal.getId(), latestBuild);
 
       // Are in manual mode?
@@ -129,7 +135,11 @@ public class PortalCandidateListener {
     portals.update(portal);
   }
 
-  private static boolean isCurrentBuild(JenkinsBuild currentBuild, JenkinsBuild latestBuild) {
+  private static boolean isBuildReady(JenkinsBuild latestBuild) {
+    return latestBuild.getResult() == BuildResult.SUCCESS;
+  }
+
+  private static boolean isBuildCurrent(JenkinsBuild currentBuild, JenkinsBuild latestBuild) {
     return latestBuild.getNumber() <= currentBuild.getNumber();
   }
 
