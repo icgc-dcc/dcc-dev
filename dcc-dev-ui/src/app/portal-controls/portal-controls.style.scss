@@ -12,6 +12,12 @@ a {
   display: block;
 }
 
+.portal-id {
+  position: absolute;
+  right: 24px;
+  color: #3c3c3c;
+}
+
 .primary-column {
   display: flex;
   flex-direction: column;
@@ -60,7 +66,22 @@ a {
 
 .secondary-column .buttons .delete-button {
   margin-left: auto;
-  background-color: #b02754;
+  color: #b02754;
+  &:not(:hover) {
+    box-shadow: none;
+    background-color: transparent;
+  }
+  &:hover {
+    background-color: #b02754;
+    color: #fff;
+  }
+}
+
+.create-btn {
+  &:hover {
+    background-color: #009688;
+    color: #fff;
+  }
 }
 
 .portal-logs {
@@ -73,6 +94,18 @@ a {
   width: 80px;
   height: 80px;
   border-radius: 50%;
+}
+
+.candidate {
+  .container {
+    opacity: 0.4;
+    transition: opacity 0.3s; 
+  }
+  &:hover {
+    .container {
+      opacity: 1;
+    }
+  }
 }
 
 .ready, .success {

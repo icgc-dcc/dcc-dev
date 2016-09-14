@@ -5,6 +5,9 @@
   }"
 >
   <div class="container">
+    <div *ngIf="portal" class="portal-id">
+      #{{ portal.id }}
+    </div>
     <div class="primary-column">
       <img class="owner-avatar" [src]="'http://github.com/' + pr.user + '.png'">
 
@@ -35,18 +38,22 @@
 
       <div class="buttons">
         <button
+          class="create-btn"
           *ngIf="!portal"
           md-raised-button
-          color="primary"
           [disabled]="isProcessing"
           (click)="start()"
         >Create</button>
         <a
           *ngIf="portal"
           md-raised-button
+          color="primary"
           [href]="portal.url"
           target="_blank"
-        >View</a>
+        >
+          <i class="fa fa-external-link"></i>
+          View
+        </a>
       </div>
     </div>
     <div class="secondary-column">
@@ -118,7 +125,6 @@
         <button
           *ngIf="portal"
           md-raised-button
-          color="primary"
           [disabled]="isProcessing"
           (click)="update()"
         >Save</button>
@@ -126,7 +132,6 @@
           *ngIf="portal"
           md-raised-button
           class="delete-button"
-          color="accent"
           [disabled]="isProcessing"
           (click)="delete()"
         >
