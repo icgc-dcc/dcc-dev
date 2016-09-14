@@ -33,6 +33,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.google.common.primitives.Ints;
+
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -90,7 +92,7 @@ public class GithubService {
   }
 
   @SneakyThrows
-  public Optional<String> getBuildNumber(@NonNull String sha1) {
+  public Optional<Integer> getBuildNumber(@NonNull String sha1) {
     val status = repo.getLastCommitStatus(sha1);
     if (status == null) return Optional.empty();
 
@@ -120,10 +122,10 @@ public class GithubService {
         .setUrl(pr.getHtmlUrl().toString());
   }
 
-  private static String parseBuildNumber(String jobUrl) {
+  private static Integer parseBuildNumber(String jobUrl) {
     val matcher = BUILD_NUMBER_PATTERN.matcher(jobUrl);
 
-    return matcher.find() ? matcher.group(1) : null;
+    return matcher.find() ? Ints.tryParse(matcher.group(1)) : null;
   }
 
 }

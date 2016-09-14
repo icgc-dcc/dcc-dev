@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.google.common.primitives.Ints;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.BuildCause;
 import com.offbytwo.jenkins.model.MavenBuild;
@@ -92,11 +91,10 @@ public class JenkinsService {
   }
 
   @SneakyThrows
-  public JenkinsBuild getBuild(@NonNull String buildNumber) {
-    val value = Ints.tryParse(buildNumber);
-    val defaultValue = new JenkinsBuild().setNumber(value);
+  public JenkinsBuild getBuild(@NonNull Integer buildNumber) {
+    val defaultValue = new JenkinsBuild().setNumber(buildNumber);
 
-    return builds().filter(b -> b.getNumber() == value).findFirst().map(this::convert).orElse(defaultValue);
+    return builds().filter(b -> b.getNumber() == buildNumber).findFirst().map(this::convert).orElse(defaultValue);
   }
 
   @SneakyThrows

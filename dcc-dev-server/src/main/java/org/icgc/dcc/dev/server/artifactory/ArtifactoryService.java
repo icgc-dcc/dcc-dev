@@ -69,7 +69,7 @@ public class ArtifactoryService {
 
   @Synchronized
   @SneakyThrows
-  public Optional<String> getArtifact(@NonNull String buildNumber) {
+  public Optional<String> getArtifact(@NonNull Integer buildNumber) {
     val paths = prepareSearch().itemsByProperty().property(BUILD_NUMBER_PROPERTY_NAME, buildNumber).doSearch();
     return paths.stream()
         .filter(this::isPrimaryArifact)

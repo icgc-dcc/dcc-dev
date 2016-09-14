@@ -21,6 +21,7 @@ import static com.google.common.collect.Maps.uniqueIndex;
 
 import java.util.Map;
 
+import org.icgc.dcc.dev.server.artifactory.ArtifactoryService;
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
 import org.icgc.dcc.dev.server.message.Messages.GithubPrsMessage;
@@ -46,6 +47,8 @@ public class PortalCandidateListener {
 
   @Autowired
   PortalService portals;
+  @Autowired
+  ArtifactoryService artifactory;  
 
   /**
    * Listens for PR events and determines if a portal removal is required.
@@ -116,6 +119,8 @@ public class PortalCandidateListener {
 
     // Update portal to reflect the newly associated build
     candidate.setBuild(latestBuild);
+    candidate.setArtifact(artifactory.getArtifact(latestBuild.getNumber()).orElse(null));
+    
     portals.update(portal);
   }
 

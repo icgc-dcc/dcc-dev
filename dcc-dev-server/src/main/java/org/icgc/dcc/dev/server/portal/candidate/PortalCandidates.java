@@ -79,7 +79,7 @@ public class PortalCandidates {
     return Optional.ofNullable(createCandidate(pr, buildNumber));
   }
 
-  private Candidate createCandidate(GithubPr pr, String buildNumber) {
+  private Candidate createCandidate(GithubPr pr, Integer buildNumber) {
     val build = buildNumber == null ? null : jenkins.getBuild(buildNumber);
     val artifact = buildNumber == null ? null : artifactory.getArtifact(buildNumber).orElse(null);
     val ticketKey = parseTicketKey(pr.getBranch());
