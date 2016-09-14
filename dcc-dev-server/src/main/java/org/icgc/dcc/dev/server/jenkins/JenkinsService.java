@@ -18,12 +18,16 @@
 package org.icgc.dcc.dev.server.jenkins;
 
 import static com.google.common.primitives.Ints.tryParse;
-import static java.util.stream.Collectors.toList;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.maxBy;
+import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import org.icgc.dcc.dev.server.message.MessageService;
@@ -79,12 +83,12 @@ public class JenkinsService {
   @Synchronized
   public void poll() {
     log.debug("Polling...");
-    messages.sendMessage(new JenkinsBuildsMessage().setBuilds(getBuilds()));
+    messages.sendMessage(new JenkinsBuildsMessage().setBuilds(getLatestBuildsByPR()));
   }
 
   @SneakyThrows
   public List<JenkinsBuild> getBuilds() {
-    return builds().map(this::convert).collect(toList());
+    return builds().map(this::convert).collect(toImmutableList());
   }
 
   @SneakyThrows
@@ -93,6 +97,26 @@ public class JenkinsService {
     val defaultValue = new JenkinsBuild().setNumber(value);
 
     return builds().filter(b -> b.getNumber() == value).findFirst().map(this::convert).orElse(defaultValue);
+  }
+
+  @SneakyThrows
+  public List<JenkinsBuild> getBuildsByPR(@NonNull Integer prNumber) {
+    return builds().map(this::convert).filter(b -> b.getPrNumber() == prNumber).collect(toImmutableList());
+  }
+
+  @SneakyThrows
+  public Optional<JenkinsBuild> getLatestBuildByPR(@NonNull Integer prNumber) {
+    return getBuildsByPR(prNumber).stream().collect(latestBuild());
+  }
+
+  @SneakyThrows
+  public List<JenkinsBuild> getLatestBuildsByPR() {
+    return builds()
+        .map(this::convert)
+        .collect(groupingBy(JenkinsBuild::getPrNumber, latestBuild()))
+        .values().stream()
+        .map(Optional::get)
+        .collect(toImmutableList());
   }
 
   @SneakyThrows
@@ -119,13 +143,17 @@ public class JenkinsService {
         .setTimestamp(build.details().getTimestamp());
   }
 
-  private Optional<Matcher> matchCause(List<BuildCause> causes) {
+  private static Optional<Matcher> matchCause(List<BuildCause> causes) {
     // Heuristic to get commit and PR
     return causes.stream()
         .map(BuildCause::getShortDescription)
         .map(CAUSE_SHORT_DESCRIPTION_PATTERN::matcher)
         .filter(Matcher::find)
         .findFirst();
+  }
+
+  private static Collector<JenkinsBuild, ?, Optional<JenkinsBuild>> latestBuild() {
+    return maxBy(comparing(JenkinsBuild::getNumber));
   }
 
 }

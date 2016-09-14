@@ -18,9 +18,8 @@
 package org.icgc.dcc.dev.server.portal.candidate;
 
 import static com.google.common.collect.Maps.uniqueIndex;
-import static java.util.Comparator.comparingInt;
 
-import java.util.Collection;
+import java.util.Map;
 
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.jenkins.JenkinsBuild;
@@ -31,9 +30,6 @@ import org.icgc.dcc.dev.server.portal.PortalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 
 import lombok.NonNull;
 import lombok.val;
@@ -84,21 +80,20 @@ public class PortalCandidateListener {
    */
   @EventListener
   public void handle(@NonNull JenkinsBuildsMessage message) {
-    val prBuilds = Multimaps.index(message.getBuilds(), JenkinsBuild::getPrNumber);
+    val prBuilds = uniqueIndex(message.getBuilds(), JenkinsBuild::getPrNumber);
 
     for (val portal : portals.list()) {
       handle(prBuilds, portal);
     }
   }
 
-  private void handle(Multimap<Integer, JenkinsBuild> prBuilds, Portal portal) {
+  private void handle(Map<Integer, JenkinsBuild> prBuilds, Portal portal) {
     val candidate = portal.getTarget();
     val prNumber = candidate.getPr().getNumber();
     val currentBuild = candidate.getBuild();
 
     // Resolve the latest build for the current portal
-    val portalBuilds = prBuilds.get(prNumber);
-    val latestBuild = findLatestBuild(portalBuilds);
+    val latestBuild = prBuilds.get(prNumber);
 
     val deployed = currentBuild != null;
     if (deployed) {
@@ -126,14 +121,6 @@ public class PortalCandidateListener {
 
   private static boolean isCurrentBuild(JenkinsBuild currentBuild, JenkinsBuild latestBuild) {
     return latestBuild.getNumber() <= currentBuild.getNumber();
-  }
-
-  private static JenkinsBuild findLatestBuild(Collection<JenkinsBuild> portalBuilds) {
-    // Sort descending by build number
-    return portalBuilds.stream()
-        .sorted(comparingInt(JenkinsBuild::getNumber).reversed())
-        .findFirst()
-        .get();
   }
 
 }
