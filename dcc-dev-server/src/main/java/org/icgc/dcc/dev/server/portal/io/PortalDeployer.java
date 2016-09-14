@@ -116,7 +116,7 @@ public class PortalDeployer {
   private void downloadJar(Portal portal) throws MalformedURLException, IOException {
     val artifact = portal.getTarget().getArtifact();
     if (artifact == null) {
-      log.info("Artifact portal {} not availabled. Skipping jar downlodad...", portal.getId());
+      log.info("Artifact for portal {} not available (null). Skipping jar download...", portal.getId());
       return;
     }
 

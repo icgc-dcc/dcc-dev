@@ -23,6 +23,7 @@ import static org.icgc.dcc.dev.server.portal.PortalUpdates.newDescription;
 import static org.icgc.dcc.dev.server.portal.PortalUpdates.newSlug;
 import static org.icgc.dcc.dev.server.portal.PortalUpdates.newTicketKey;
 import static org.icgc.dcc.dev.server.portal.PortalUpdates.newTitle;
+import static org.icgc.dcc.dev.server.portal.util.Portals.WEB_BASE_URL_PROPERTY;
 import static org.icgc.dcc.dev.server.portal.util.Portals.getServerPort;
 
 import java.net.URL;
@@ -89,7 +90,7 @@ public class PortalService {
   PortalLocks locks;
   @Autowired
   MessageService messages;
-  
+
   @Autowired
   JiraService jira;
   @Autowired
@@ -162,7 +163,9 @@ public class PortalService {
     deployer.deploy(portal);
 
     // Assign URL
-    portal.setUrl(resolveUrl(publicUrl, portal));
+    val url = resolveUrl(publicUrl, portal);
+    portal.setUrl(url);
+    portal.getSystemConfig().put(WEB_BASE_URL_PROPERTY, url);
     portal = repository.save(portal);
 
     if (start) {
@@ -193,6 +196,10 @@ public class PortalService {
     }
 
     deployer.deploy(portal);
+
+    val url = resolveUrl(publicUrl, portal);
+    portal.setUrl(url);
+    portal.getSystemConfig().put(WEB_BASE_URL_PROPERTY, url);
     portal = repository.save(portal);
 
     executor.startAsync(portal);
@@ -225,6 +232,10 @@ public class PortalService {
     executor.stop(portal);
 
     deployer.deploy(portal);
+
+    val url = resolveUrl(publicUrl, portal);
+    portal.setUrl(url);
+    portal.getSystemConfig().put(WEB_BASE_URL_PROPERTY, url);
     portal = repository.save(portal);
 
     executor.startAsync(portal);
@@ -267,7 +278,7 @@ public class PortalService {
   public void start(@NonNull Integer portalId) {
     execute("Starting", portalId, executor::startAsync);
   }
-  
+
   public void restart(@NonNull Integer portalId) {
     execute("Restarting", portalId, executor::restartAsync);
   }
@@ -288,11 +299,11 @@ public class PortalService {
 
   private void execute(String message, @NonNull Integer portalId, Consumer<Portal> action) {
     log.info("{} portal {}...", message, portalId);
-  
+
     @Cleanup
     val lock = locks.lockWriting(portalId);
     val portal = get(portalId);
-  
+
     action.accept(portal);
   }
 

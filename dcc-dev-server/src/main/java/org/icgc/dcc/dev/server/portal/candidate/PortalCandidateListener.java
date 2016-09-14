@@ -48,7 +48,7 @@ public class PortalCandidateListener {
   @Autowired
   PortalService portals;
   @Autowired
-  ArtifactoryService artifactory;  
+  ArtifactoryService artifactory;
 
   /**
    * Listens for PR events and determines if a portal removal is required.
@@ -117,10 +117,15 @@ public class PortalCandidateListener {
       log.info("First build found for portal {}:  {}", portal.getId(), latestBuild);
     }
 
+    val artifact = artifactory.getArtifact(latestBuild.getNumber()).orElse(null);
+    if (artifact == null) {
+      log.warn("Could not find artifact for portal {} and build {} ", portal.getId(), latestBuild.getNumber());
+    }
+
     // Update portal to reflect the newly associated build
     candidate.setBuild(latestBuild);
-    candidate.setArtifact(artifactory.getArtifact(latestBuild.getNumber()).orElse(null));
-    
+    candidate.setArtifact(artifact);
+
     portals.update(portal);
   }
 

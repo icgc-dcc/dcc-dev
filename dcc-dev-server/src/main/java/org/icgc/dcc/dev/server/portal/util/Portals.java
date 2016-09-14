@@ -31,6 +31,12 @@ import lombok.NonNull;
 public final class Portals {
 
   /**
+   * Defines an external URL when the portal is behind a reverse proxy / load balancer. E.g. shortUrl resource uses it
+   * for generation of valid URLs.
+   */
+  public static final String WEB_BASE_URL_PROPERTY = "web.baseUrl";
+
+  /**
    * Main web port property name of a running instance.
    */
   public static final String SERVER_PORT_PROPERTY = "server.port";
