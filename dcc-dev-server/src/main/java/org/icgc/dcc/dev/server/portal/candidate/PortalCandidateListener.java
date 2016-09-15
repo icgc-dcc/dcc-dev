@@ -100,8 +100,12 @@ public class PortalCandidateListener {
     // Resolve the latest build for the current portal
     val latestBuild = prBuilds.get(prNumber);
     
+    //
+    // Preconditions
+    //
+    
     // Skip builds that failed or in progress
-    if (!isBuildReady(latestBuild)) return;
+    if (!isBuildSuccess(latestBuild)) return;
 
     val deployed = currentBuild != null;
     if (deployed) {
@@ -122,20 +126,25 @@ public class PortalCandidateListener {
       // Auto create the instance
       log.info("First build found for portal {}:  {}", portal.getId(), latestBuild);
     }
+    
+    //
+    // Update target
+    //
 
     val artifact = artifactory.getArtifact(latestBuild.getNumber()).orElse(null);
     if (artifact == null) {
-      log.warn("Could not find artifact for portal {} and build {} ", portal.getId(), latestBuild.getNumber());
+      log.warn("Could not find artifact for portal {} and build {} ", portal.getId(), latestBuild);
+      return;
     }
 
     // Update portal to reflect the newly associated build
-    candidate.setBuild(latestBuild);
-    candidate.setArtifact(artifact);
+    portal.getTarget().setBuild(latestBuild);
+    portal.getTarget().setArtifact(artifact);
 
     portals.update(portal);
   }
 
-  private static boolean isBuildReady(JenkinsBuild latestBuild) {
+  private static boolean isBuildSuccess(JenkinsBuild latestBuild) {
     return latestBuild.getResult() == BuildResult.SUCCESS;
   }
 
