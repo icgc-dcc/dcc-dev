@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { get, map, zipObject, without, pick } from 'lodash';
+import { PortalService } from '../../portal-service';
 
 @Component({
   selector: 'portal-options',
@@ -35,9 +36,9 @@ export class PortalOptions {
   onChange: Function;
 
   @Input()
-  shouldShowConfig: boolean = false;
+  shouldShowAdvanced: boolean = false;
 
-  constructor () {}
+  constructor (public portalService: PortalService) {}
 
   change = () => {
     this.onChange && this.onChange(this.optionsValue);
@@ -64,4 +65,5 @@ export class PortalOptions {
   removeConfigEntry = (entry) => {
     this.configEntries = without(this.configEntries, entry);
   };
+
 }

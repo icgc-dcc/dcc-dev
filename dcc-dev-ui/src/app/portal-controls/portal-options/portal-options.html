@@ -30,7 +30,7 @@
     [(ngModel)]="description"
     (ngModelChange)="change()"
   ></textarea>
-  <div *ngIf="shouldShowConfig">
+  <div *ngIf="shouldShowAdvanced">
     <button (click)="addConfigEntry()">
       <i class="fa fa-plus"></i>
     </button>
@@ -46,5 +46,11 @@
         </button>
       </md-list-item>
     </md-list>
+
+    <div>
+      <button (click)="portalService.startPortal()">start</button>
+      <button (click)="portalService.stopPortal()">stop</button>
+      <button (click)="portalService.restartPortal()">restart</button>
+    </div>
   </div>
 </div>

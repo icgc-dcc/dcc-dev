@@ -30,7 +30,7 @@ export class PortalControls {
 
   isProcessing: Boolean;
   portalOptions: any = {};
-  shouldShowConfig = false;
+  shouldShowAdvanced = false;
 
   // TODO: rename..
   logsFromRestEndpoint: any = {};

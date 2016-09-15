@@ -95,15 +95,15 @@
         [ticketKey]="portal && portal.ticketKey"
         [configs]="portal && portal.configs"
         [onChange]="handlePortalOptionsChange"
-        [shouldShowConfig]="shouldShowConfig"
+        [shouldShowAdvanced]="shouldShowAdvanced"
       ></portal-options>
 
       <div class="minor-buttons">
         <button
-          *ngIf="!shouldShowConfig"
-          (click)="shouldShowConfig = true"
+          *ngIf="!shouldShowAdvanced"
+          (click)="shouldShowAdvanced = true"
         >
-          show configs
+          show advanced
         </button>
 
         <button

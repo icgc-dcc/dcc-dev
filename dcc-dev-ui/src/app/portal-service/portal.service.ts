@@ -66,6 +66,21 @@ export class PortalService {
       .subscribe();
   }
 
+  startPortal = () => {
+    return this.http.post(`${REST_ROOT}/portals/start`, { headers: formHeaders })
+      .subscribe();
+  }
+
+  stopPortal = () => {
+    return this.http.post(`${REST_ROOT}/portals/stop`, { headers: formHeaders })
+      .subscribe();
+  }
+
+  restartPortal = () => {
+    return this.http.post(`${REST_ROOT}/portals/restart`, { headers: formHeaders })
+      .subscribe();
+  }
+
   fetchPortalLog = (portalId) => {
     return this.http.get(`${REST_ROOT}/portals/${portalId}/log`)
       .map(res => ({
