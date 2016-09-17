@@ -1,5 +1,6 @@
 import { Component, Input, OnChanges, SimpleChange } from '@angular/core';
 import { PortalService } from '../portal-service';
+import { TimeService } from './time-service';
 import { PortalOptions } from './portal-options/portal-options.component';
 import { get, map, zipObject, without } from 'lodash';
 import * as moment from 'moment';
@@ -10,7 +11,8 @@ import * as moment from 'moment';
   styleUrls: [ './portal-controls.style.scss' ],
   directives: [
     PortalOptions
-  ]
+  ],
+  providers: [TimeService]
 })
 export class PortalControls {
   @Input()
@@ -41,7 +43,7 @@ export class PortalControls {
     return this.logsFromWebsocket.filter(log => log.timestamp > demarcation);
   }
 
-  constructor (public portalService: PortalService) {}
+  constructor (public portalService: PortalService, public timeService: TimeService) {}
 
   start = () => {
     this.isProcessing = true;
@@ -72,6 +74,6 @@ export class PortalControls {
   }
 
   get formattedLastUpdateTime() {
-    return this.portal && moment(this.portal.updated, 'x').fromNow();
+    return this.portal && moment(this.timeService.now).from(moment(this.portal.updated, 'x'));
   }
 }
