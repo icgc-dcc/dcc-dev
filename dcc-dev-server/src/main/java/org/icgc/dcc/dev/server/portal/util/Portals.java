@@ -49,5 +49,9 @@ public final class Portals {
   public static String getServerPort(@NonNull Portal portal) {
     return portal.getSystemConfig().get(Portals.SERVER_PORT_PROPERTY);
   }
+  
+  public static String getWebBaseUrl(@NonNull Portal portal) {
+    return portal.getSystemConfig().get(Portals.WEB_BASE_URL_PROPERTY);
+  }
 
 }

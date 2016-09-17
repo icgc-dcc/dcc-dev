@@ -70,7 +70,7 @@ public class JiraService {
 
   @Synchronized
   @SneakyThrows
-  public void updateTicket(@NonNull String key, String comment) {
+  public void updateTicket(@NonNull String key, String comment, boolean status) {
     if (!update) {
       log.debug("Updates disabled. Skipping update of ticket {}", key);
       return;
@@ -84,7 +84,7 @@ public class JiraService {
 
     val testing = STATUS_READY_FOR_TESTING;
     val notTesting = !issue.getStatus().getName().equals(testing);
-    if (notTesting) {
+    if (status && notTesting) {
       log.info("Setting status to '{}'", testing);
       issue.update().field(STATUS_FIELD_NAME, testing);
     }

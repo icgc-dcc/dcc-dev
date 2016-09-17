@@ -17,6 +17,7 @@
  */
 package org.icgc.dcc.dev.server.portal;
 
+import static org.icgc.dcc.dev.server.portal.util.Portals.getWebBaseUrl;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -63,7 +64,7 @@ public class PortalController {
   @GetMapping("/portals/{slug:\\D.*}")
   public void redirect(@PathVariable("slug") String slug, HttpServletResponse response) throws IOException {
     val portal = service.getBySlug(slug);
-    response.sendRedirect(portal.getUrl());
+    response.sendRedirect(getWebBaseUrl(portal));
   }
 
   /**
@@ -73,7 +74,7 @@ public class PortalController {
   @GetMapping("/portals/{portalId:\\d+}")
   public void redirect(@PathVariable("portalId") Integer portalId, HttpServletResponse response) throws IOException {
     val portal = service.get(portalId);
-    response.sendRedirect(portal.getUrl());
+    response.sendRedirect(getWebBaseUrl(portal));
   }
 
   /**
@@ -134,7 +135,8 @@ public class PortalController {
       HttpServletRequest request) {
     val username = getUsername(request);
 
-    return service.create(prNumber, slug, title, description, ticket, config, autoDeploy, autoRefresh, autoRemove, username, start);
+    return service.create(prNumber, slug, title, description, ticket, config, autoDeploy, autoRefresh, autoRemove,
+        username, start);
   }
 
   /**

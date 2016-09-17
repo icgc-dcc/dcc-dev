@@ -56,7 +56,6 @@
         </executions>
       </plugin>      
     
-    
       <!-- Disable Java plugins -->
       <plugin>
         <artifactId>maven-enforcer-plugin</artifactId>

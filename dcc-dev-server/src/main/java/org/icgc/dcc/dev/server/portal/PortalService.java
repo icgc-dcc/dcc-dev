@@ -159,14 +159,7 @@ public class PortalService {
     // Create directory
     deployer.init(portal);
 
-    // Install jar
-    deployer.deploy(portal);
-
-    // Assign URL
-    val url = resolveUrl(publicUrl, portal);
-    portal.setUrl(url);
-    portal.getSystemConfig().put(WEB_BASE_URL_PROPERTY, url);
-    portal = repository.save(portal);
+    portal = deploy(portal);
 
     if (start) {
       // Start the portal
@@ -195,12 +188,7 @@ public class PortalService {
       }
     }
 
-    deployer.deploy(portal);
-
-    val url = resolveUrl(publicUrl, portal);
-    portal.setUrl(url);
-    portal.getSystemConfig().put(WEB_BASE_URL_PROPERTY, url);
-    portal = repository.save(portal);
+    portal = deploy(portal);
 
     executor.startAsync(portal);
 
@@ -231,12 +219,7 @@ public class PortalService {
 
     executor.stop(portal);
 
-    deployer.deploy(portal);
-
-    val url = resolveUrl(publicUrl, portal);
-    portal.setUrl(url);
-    portal.getSystemConfig().put(WEB_BASE_URL_PROPERTY, url);
-    portal = repository.save(portal);
+    portal = deploy(portal);
 
     executor.startAsync(portal);
 
@@ -297,6 +280,18 @@ public class PortalService {
     return logs.cat(portalId);
   }
 
+  private Portal deploy(Portal portal) {
+    // Install jar
+    deployer.deploy(portal);
+
+    // Assign URL
+    portal.setUrl(resolvePublicUrl(portal));
+    portal.getSystemConfig().put(WEB_BASE_URL_PROPERTY, resolveInternalUrl(publicUrl, portal));
+
+    // Update
+    return repository.save(portal);
+  }
+
   private void execute(String message, @NonNull Integer portalId, Consumer<Portal> action) {
     log.info("{} portal {}...", message, portalId);
 
@@ -331,7 +326,7 @@ public class PortalService {
 
     try {
       log.info("Updating JIRA {} for portal {}...", ticketKey, portal.getId());
-      jira.updateTicket(ticketKey, formatMessage(portal));
+      jira.updateTicket(ticketKey, formatMessage(portal), false);
     } catch (Exception e) {
       log.error("Could not update ticket " + ticketKey + ":", e);
     }
@@ -349,7 +344,7 @@ public class PortalService {
   }
 
   private String formatMessage(Portal portal) {
-    val iframeUrl = publicUrl + "/portals/" + portal.getId();
+    val iframeUrl = resolvePublicUrl(portal);
     return "Deployed to " + iframeUrl + " for testing";
   }
 
@@ -359,7 +354,11 @@ public class PortalService {
         .setPortalId(portal.getId()));
   }
 
-  private static String resolveUrl(URL publicUrl, Portal portal) {
+  private String resolvePublicUrl(Portal portal) {
+    return publicUrl + "/portals/" + portal.getId();
+  }
+
+  private static String resolveInternalUrl(URL publicUrl, Portal portal) {
     // Replace this port and add portal port
     return UriComponentsBuilder
         .fromHttpUrl(publicUrl.toString())
