@@ -21,6 +21,7 @@
         </a>
 
         <a
+          *ngIf="build"
           [title]="'Build: ' + build.result"
           class="build {{ build.result && build.result.toLowerCase() }}"
         >
