@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { get, map, zipObject, without, pick } from 'lodash';
 import { PortalService } from '../../portal-service';
 
@@ -7,7 +7,7 @@ import { PortalService } from '../../portal-service';
   templateUrl: './portal-options.html',
   styleUrls: [ './portal-options.style.scss' ],
 })
-export class PortalOptions {
+export class PortalOptions implements OnInit {
   @Input()
   title: string;
 
@@ -39,6 +39,10 @@ export class PortalOptions {
   shouldShowAdvanced: boolean = false;
 
   constructor (public portalService: PortalService) {}
+
+  ngOnInit() {
+    this.configEntries = map(this.config, (value, name) => ({name, value}));
+  }
 
   change = () => {
     this.onChange && this.onChange(this.optionsValue);
