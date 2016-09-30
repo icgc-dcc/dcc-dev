@@ -74,6 +74,6 @@ export class PortalControls {
   }
 
   get formattedLastUpdateTime() {
-    return this.portal && moment(this.timeService.now).from(moment(this.portal.updated, 'x'));
+    return this.portal && moment(moment(this.portal.updated, 'x')).from(this.timeService.now);
   }
 }
