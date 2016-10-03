@@ -4,24 +4,6 @@
     Auto Deploy
   </md-checkbox>
   -->
-  <div>
-    Auto:
-    <label class="auto-checkbox">
-      <input type="checkbox" [(ngModel)]="autoDeploy" (ngModelChange)="change()">
-      Deploy
-    </label>
-
-    <label class="auto-checkbox">
-      <input type="checkbox" [(ngModel)]="autoRefresh" (ngModelChange)="change()">
-      Refresh
-    </label>
-
-    <label class="auto-checkbox">
-      <input type="checkbox" [(ngModel)]="autoRemove" (ngModelChange)="change()">
-      Destroy
-    </label>
-  </div>
-
   <md-input placeholder="JIRA Ticket" [(ngModel)]="ticketKey" (ngModelChange)="change()"></md-input>
   <br>
   <textarea
@@ -31,6 +13,23 @@
     (ngModelChange)="change()"
   ></textarea>
   <div *ngIf="shouldShowAdvanced">
+    <div>
+      Auto:
+      <label class="auto-checkbox">
+        <input type="checkbox" [(ngModel)]="autoDeploy" (ngModelChange)="change()">
+        Deploy
+      </label>
+
+      <label class="auto-checkbox">
+        <input type="checkbox" [(ngModel)]="autoRefresh" (ngModelChange)="change()">
+        Refresh
+      </label>
+
+      <label class="auto-checkbox">
+        <input type="checkbox" [(ngModel)]="autoRemove" (ngModelChange)="change()">
+        Destroy
+      </label>
+    </div>
     <button (click)="addConfigEntry()">
       <i class="fa fa-plus"></i>
     </button>

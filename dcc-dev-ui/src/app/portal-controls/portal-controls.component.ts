@@ -1,4 +1,5 @@
-import { Component, Input, OnChanges, SimpleChange } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChange, OnInit } from '@angular/core';
+import { Http } from '@angular/http';
 import { PortalService } from '../portal-service';
 import { TimeService } from './time-service';
 import { PortalOptions } from './portal-options/portal-options.component';
@@ -14,7 +15,7 @@ import * as moment from 'moment';
   ],
   providers: [TimeService]
 })
-export class PortalControls {
+export class PortalControls implements OnInit {
   @Input()
   portal: any;
 
@@ -37,13 +38,24 @@ export class PortalControls {
   // TODO: rename..
   logsFromRestEndpoint: any = {};
   logsFromWebsocket = [];
+  buildCommitData = {};
+  prHeadData = {};
 
   get logsFromWebsocketAfterLogsFromRestEndpoint() {
     const demarcation = this.logsFromRestEndpoint.timestamp || 0;
     return this.logsFromWebsocket.filter(log => log.timestamp > demarcation);
   }
 
-  constructor (public portalService: PortalService, public timeService: TimeService) {}
+  constructor (
+    public portalService: PortalService,
+    public timeService: TimeService,
+    public http: Http
+    ) {}
+
+  ngOnInit () {
+    this.build && this.updateBuildCommitData();
+    this.pr && this.updatePRHeadData();
+  }
 
   start = () => {
     this.isProcessing = true;
@@ -71,6 +83,29 @@ export class PortalControls {
 
   handlePortalOptionsChange = (options) => {
     this.portalOptions = options;
+  }
+
+  fetchCommitData = (commitId) => {
+    return this.http.get(`https://api.github.com/repos/icgc-dcc/dcc-portal/git/commits/${commitId}`)
+      .map(res => res.json());
+  }
+
+  fetchPRData = (prNumber) => {
+    return this.http.get(`https://api.github.com/repos/icgc-dcc/dcc-portal/pulls/${prNumber}`)
+      .map(res => res.json());
+  }
+
+  updateBuildCommitData = () => {
+    this.fetchCommitData(this.build.commitId)
+      .subscribe( data => this.buildCommitData = data );
+  }
+
+  updatePRHeadData = () => {
+    this.fetchPRData(this.pr.number)
+      .subscribe(data => {
+        this.fetchCommitData(data.head.sha)
+        .subscribe(commitData => this.prHeadData = commitData );
+      });
   }
 
   get formattedLastUpdateTime() {

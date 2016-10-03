@@ -64,12 +64,18 @@
         {{ pr.number }} -
         {{ pr.title }}
         </a>
+        <small *ngIf="prHeadData">
+          <a [href]="prHeadData.html_url" target="_blank">({{prHeadData.message}})</a>
+        </small>
       </div>
       <div *ngIf="build">
         <i class="fa fa-cogs"></i>
         <a [href]="build.url" target="_blank">
           Build #{{ build.number }} : {{build.result}}
         </a>
+        <small *ngIf="buildCommitData">
+          <a [href]="buildCommitData.html_url" target="_blank">({{buildCommitData.message}})</a>
+        </small>
       </div>
       <div class="jira" *ngIf="ticket">
           <i class="fa fa-tasks"></i>
