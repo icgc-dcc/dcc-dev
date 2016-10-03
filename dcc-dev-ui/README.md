@@ -2,6 +2,11 @@
 
 UI module that packages static resources/
 
+## Requirements
+
+- node >= v4
+- npm >= v3
+
 ## Build
 
 To compile, test and package the module, execute the following from the root of the repository:
