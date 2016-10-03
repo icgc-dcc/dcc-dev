@@ -32,7 +32,7 @@
           class="time-last-update"
         >
           <i class="fa fa-refresh"></i>
-          {{formattedLastUpdateTime}}
+          {{formattedLastUpdateTime | async}}
         </div>
       </div>
       
@@ -64,7 +64,7 @@
         {{ pr.number }} -
         {{ pr.title }}
         </a>
-        <small *ngIf="prHeadData">
+        <small *ngIf="!portal && prHeadData">
           <a [href]="prHeadData.html_url" target="_blank">({{prHeadData.message}})</a>
         </small>
       </div>
@@ -73,7 +73,7 @@
         <a [href]="build.url" target="_blank">
           Build #{{ build.number }} : {{build.result}}
         </a>
-        <small *ngIf="buildCommitData">
+        <small *ngIf="portal && buildCommitData">
           <a [href]="buildCommitData.html_url" target="_blank">({{buildCommitData.message}})</a>
         </small>
       </div>

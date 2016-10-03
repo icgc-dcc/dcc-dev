@@ -1,4 +1,5 @@
 import { Component, Input, OnChanges, SimpleChange, OnInit } from '@angular/core';
+import { Observable } from 'rxjs/Rx';
 import { Http } from '@angular/http';
 import { PortalService } from '../portal-service';
 import { TimeService } from './time-service';
@@ -40,6 +41,7 @@ export class PortalControls implements OnInit {
   logsFromWebsocket = [];
   buildCommitData = {};
   prHeadData = {};
+  formattedLastUpdateTime: Observable<String>;
 
   get logsFromWebsocketAfterLogsFromRestEndpoint() {
     const demarcation = this.logsFromRestEndpoint.timestamp || 0;
@@ -55,6 +57,12 @@ export class PortalControls implements OnInit {
   ngOnInit () {
     this.build && this.updateBuildCommitData();
     this.pr && this.updatePRHeadData();
+
+    if (this.portal) {
+      var lastUpdatedMoment = moment(this.portal.updated, 'x');
+      this.formattedLastUpdateTime = this.timeService.now
+        .map(date => moment(lastUpdatedMoment).from(date)).share();
+    }
   }
 
   start = () => {
@@ -106,9 +114,5 @@ export class PortalControls implements OnInit {
         this.fetchCommitData(data.head.sha)
         .subscribe(commitData => this.prHeadData = commitData );
       });
-  }
-
-  get formattedLastUpdateTime() {
-    return this.portal && moment(this.timeService.now).from(moment(this.portal.updated, 'x'));
   }
 }
