@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.icgc.dcc.dev.server.github.GitHubCommitNotFoundException;
 import org.icgc.dcc.dev.server.github.GitHubPrNotFoundException;
+import org.icgc.dcc.dev.server.github.GithubCommit;
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.github.GithubService;
 import org.icgc.dcc.dev.server.jira.JiraService;
@@ -101,6 +103,10 @@ public class PortalService {
   
   public GithubPr getPr(int prNumber) {
     return github.getPr(prNumber).orElseThrow(() -> new GitHubPrNotFoundException(prNumber));
+  }
+  
+  public GithubCommit getCommit(String commitId) {
+    return github.getCommit(commitId).orElseThrow(() -> new GitHubCommitNotFoundException(commitId));
   }
   
   public List<Portal.Candidate> getCandidates() {

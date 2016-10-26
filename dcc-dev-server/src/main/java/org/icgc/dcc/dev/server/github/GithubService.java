@@ -21,6 +21,7 @@ import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 import static org.icgc.dcc.common.core.util.stream.Streams.stream;
 import static org.kohsuke.github.GHIssueState.OPEN;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -75,6 +76,21 @@ public class GithubService {
   public void poll() {
     log.debug("Polling...");
     messages.sendMessage(new GithubPrsMessage().setPrs(getPrs()));
+  }
+
+  @SneakyThrows
+  public Optional<GithubCommit> getCommit(@NonNull String commitId) {
+    try {
+      val commit = repo.getCommit(commitId);
+
+      val info = commit.getCommitShortInfo();
+      return Optional.of(new GithubCommit()
+          .setUser(info.getAuthor().getName())
+          .setCreated(commit.getLastStatus().getCreatedAt().getTime())
+          .setMessage(info.getMessage()));
+    } catch (FileNotFoundException e) {
+      return Optional.empty();
+    }
   }
 
   public Optional<GithubPr> getPr(@NonNull Integer prNumber) {

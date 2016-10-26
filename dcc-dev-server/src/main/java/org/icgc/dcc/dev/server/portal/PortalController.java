@@ -28,6 +28,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.icgc.dcc.dev.server.github.GithubCommit;
 import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.icgc.dcc.dev.server.portal.Portal.Status;
@@ -84,6 +85,14 @@ public class PortalController {
   @GetMapping("/api/prs/{prNumber}")
   public GithubPr getPr(@PathVariable("prNumber") Integer prNumber) {
     return service.getPr(prNumber);
+  }
+  
+  /**
+   * Gets a PR by id.
+   */
+  @GetMapping("/api/commits/{commitId}")
+  public GithubCommit getCommit(@PathVariable("commitId") String commitId) {
+    return service.getCommit(commitId);
   }
 
   /**
