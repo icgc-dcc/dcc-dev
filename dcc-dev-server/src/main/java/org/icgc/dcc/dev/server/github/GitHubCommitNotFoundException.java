@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 
 /**
- * Exception for representing when a commit id is not available.
+ * Exception for representing when a commit id is not found.
  */
 @ResponseStatus(NOT_FOUND)
 public class GitHubCommitNotFoundException extends RuntimeException {

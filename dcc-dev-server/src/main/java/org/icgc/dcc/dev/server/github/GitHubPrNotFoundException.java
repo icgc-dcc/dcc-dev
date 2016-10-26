@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.NonNull;
 
 /**
- * Exception for representing when a PR number is not available.
+ * Exception for representing when a PR number is not found or available.
  */
 @ResponseStatus(NOT_FOUND)
 public class GitHubPrNotFoundException extends RuntimeException {

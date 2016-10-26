@@ -21,7 +21,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
- * A digest of a GitHub "pull request" (PR).
+ * A digest of a GitHub commit.
  */
 @Data
 @Accessors(chain = true)
