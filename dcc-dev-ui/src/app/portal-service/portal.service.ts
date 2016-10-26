@@ -96,6 +96,17 @@ export class PortalService {
     });
   };
 
+  fetchCommitData = (commitId) => {
+    return this.http.get(`${REST_ROOT}/commits/${commitId}`)
+      .map(res => res.json());
+  }
+
+  fetchPRData = (prNumber) => {
+    return this.http.get(`${REST_ROOT}/prs/${prNumber}`)
+      .map(res => res.json());
+  }
+
+
   private handlePortalStateMessage = (message) => {
     const {portalId, type} = JSON.parse(message.body);
     if (type !== 'EXECUTION') {

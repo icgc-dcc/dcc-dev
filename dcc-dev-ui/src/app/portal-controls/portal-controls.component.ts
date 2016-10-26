@@ -93,25 +93,15 @@ export class PortalControls implements OnInit {
     this.portalOptions = options;
   }
 
-  fetchCommitData = (commitId) => {
-    return this.http.get(`https://api.github.com/repos/icgc-dcc/dcc-portal/git/commits/${commitId}`)
-      .map(res => res.json());
-  }
-
-  fetchPRData = (prNumber) => {
-    return this.http.get(`https://api.github.com/repos/icgc-dcc/dcc-portal/pulls/${prNumber}`)
-      .map(res => res.json());
-  }
-
   updateBuildCommitData = () => {
-    this.fetchCommitData(this.build.commitId)
+    this.portalService.fetchCommitData(this.build.commitId)
       .subscribe( data => this.buildCommitData = data );
   }
 
   updatePRHeadData = () => {
-    this.fetchPRData(this.pr.number)
+    this.portalService.fetchPRData(this.pr.number)
       .subscribe(data => {
-        this.fetchCommitData(data.head.sha)
+        this.portalService.fetchCommitData(data.head)
         .subscribe(commitData => this.prHeadData = commitData );
       });
   }
