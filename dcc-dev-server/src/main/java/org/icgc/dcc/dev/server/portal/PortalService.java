@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.icgc.dcc.dev.server.github.GitHubPrNotFoundException;
+import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.github.GithubService;
 import org.icgc.dcc.dev.server.jira.JiraService;
 import org.icgc.dcc.dev.server.message.MessageService;
@@ -96,6 +98,11 @@ public class PortalService {
   @Autowired
   GithubService github;
 
+  
+  public GithubPr getPr(int prNumber) {
+    return github.getPr(prNumber).orElseThrow(() -> new GitHubPrNotFoundException(prNumber));
+  }
+  
   public List<Portal.Candidate> getCandidates() {
     return candidates.getCandidates();
   }

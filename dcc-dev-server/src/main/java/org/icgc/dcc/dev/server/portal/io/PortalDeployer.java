@@ -63,6 +63,8 @@ public class PortalDeployer {
   URL templateUrl;
   @Value("${template.dir}")
   File templateDir;
+  @Value("${artifact.artifactId}")
+  String artifactId;
 
   /**
    * Dependencies.
@@ -75,7 +77,7 @@ public class PortalDeployer {
     log.info("Creating template...");
     templateDir.mkdirs();
 
-    val archive = new PortalArchive(templateUrl);
+    val archive = new PortalArchive(templateUrl, artifactId);
     archive.extract(templateDir);
   }
 

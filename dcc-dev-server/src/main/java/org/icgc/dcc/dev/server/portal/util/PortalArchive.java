@@ -49,6 +49,8 @@ public class PortalArchive {
    */
   @NonNull
   final URL archiveUrl;
+  @NonNull
+  final String artifactId;
 
   @SneakyThrows
   public void extract(File outputDir) {
@@ -57,9 +59,14 @@ public class PortalArchive {
 
     ArchiveEntry tarEntry;
     while ((tarEntry = tar.getNextEntry()) != null) {
+      if (tarEntry.isDirectory()) {
+        continue;
+      }
+
       val fileName = normalizeFileName(tarEntry);
       val file = new File(outputDir, fileName);
-      if (tarEntry.isDirectory()) {
+      if (file.getName().equals(artifactId + ".jar")) {
+        // Prevent deploying stale jar
         continue;
       }
 
@@ -68,6 +75,7 @@ public class PortalArchive {
         checkState(dir.mkdirs(), "Could not make dir %s", dir);
       }
 
+      
       log.info("Extracting {}...", file);
       extractFile(tar, file);
     }

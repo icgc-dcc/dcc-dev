@@ -28,6 +28,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.icgc.dcc.dev.server.portal.Portal.Status;
 import org.springframework.http.ResponseEntity;
@@ -75,6 +76,14 @@ public class PortalController {
   public void redirect(@PathVariable("portalId") Integer portalId, HttpServletResponse response) throws IOException {
     val portal = service.get(portalId);
     response.sendRedirect(getWebBaseUrl(portal));
+  }
+
+  /**
+   * Gets a PR by id.
+   */
+  @GetMapping("/api/prs/{prNumber}")
+  public GithubPr getPr(@PathVariable("prNumber") Integer prNumber) {
+    return service.getPr(prNumber);
   }
 
   /**

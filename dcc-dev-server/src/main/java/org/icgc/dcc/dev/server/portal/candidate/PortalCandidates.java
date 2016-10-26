@@ -46,7 +46,7 @@ public class PortalCandidates {
   /**
    * Constants.
    */
-  static final Pattern PR_TICKET_PATTERN = Pattern.compile("(DCC-\\d+)", CASE_INSENSITIVE);
+  static final Pattern PR_TICKET_PATTERN = Pattern.compile("(DCC-\\d+|DCCPRTL-\\d+)", CASE_INSENSITIVE);
 
   /**
    * Dependencies.
