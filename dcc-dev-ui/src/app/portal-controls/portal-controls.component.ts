@@ -55,7 +55,7 @@ export class PortalControls implements OnInit {
     ) {}
 
   ngOnInit () {
-    this.build && this.updateBuildCommitData();
+    this.build && this.build.commitId && this.updateBuildCommitData();
     this.pr && this.updatePRHeadData();
 
     if (this.portal) {
