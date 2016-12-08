@@ -23,6 +23,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.maxBy;
 import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -111,6 +112,7 @@ public class JenkinsService {
   public List<JenkinsBuild> getLatestBuildsByPR() {
     return builds()
         .map(this::convert)
+        .filter(b -> b.getPrNumber() != null) // Filter manual as we can't detect PR
         .collect(groupingBy(JenkinsBuild::getPrNumber, latestBuild()))
         .values().stream()
         .map(Optional::get)
@@ -132,6 +134,10 @@ public class JenkinsService {
     val prNumber = matcher.isPresent() ? tryParse(matcher.get().group(1)) : null;
     val commitId = matcher.isPresent() ? matcher.get().group(2) : null;
 
+    if (prNumber == null) {
+      log.warn("PR number missing for build: {} - {}", build.getUrl(), resolveCause(build));
+    }
+
     return new JenkinsBuild()
         .setNumber(build.getNumber())
         .setPrNumber(prNumber)
@@ -148,6 +154,15 @@ public class JenkinsService {
         .map(CAUSE_SHORT_DESCRIPTION_PATTERN::matcher)
         .filter(Matcher::find)
         .findFirst();
+  }
+
+  private static String resolveCause(MavenBuild build) throws IOException {
+    if (build == null ||
+        build.details() == null ||
+        build.details().getCauses() == null ||
+        build.details().getCauses().isEmpty()) return null;
+
+    return build.details().getCauses().get(0).getShortDescription();
   }
 
   private static Collector<JenkinsBuild, ?, Optional<JenkinsBuild>> latestBuild() {
