@@ -37,7 +37,7 @@ public class JenkinsBuild {
    * <p>
    * Primary key.
    */
-  int number;
+  Integer number;
 
   Integer prNumber;
   String commitId;
