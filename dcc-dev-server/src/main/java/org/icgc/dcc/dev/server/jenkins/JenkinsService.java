@@ -18,6 +18,7 @@
 package org.icgc.dcc.dev.server.jenkins;
 
 import static com.google.common.primitives.Ints.tryParse;
+import static com.offbytwo.jenkins.model.BuildResult.BUILDING;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.maxBy;
@@ -25,9 +26,8 @@ import static org.icgc.dcc.common.core.util.stream.Collectors.toImmutableList;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -38,8 +38,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.google.api.client.util.Maps;
 import com.offbytwo.jenkins.JenkinsServer;
-import com.offbytwo.jenkins.model.BuildCause;
+import com.offbytwo.jenkins.model.BuildResult;
 import com.offbytwo.jenkins.model.MavenBuild;
 import com.offbytwo.jenkins.model.MavenJobWithDetails;
 
@@ -55,12 +56,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class JenkinsService {
-
-  /**
-   * Constants.
-   */
-  static final Pattern CAUSE_SHORT_DESCRIPTION_PATTERN =
-      Pattern.compile("GitHub pull request #(\\d+) of commit ([a-f0-9]+)");
 
   /**
    * Configuration.
@@ -130,39 +125,56 @@ public class JenkinsService {
 
   @SneakyThrows
   private JenkinsBuild convert(MavenBuild build) {
-    val matcher = matchCause(build.details().getCauses());
-    val prNumber = matcher.isPresent() ? tryParse(matcher.get().group(1)) : null;
-    val commitId = matcher.isPresent() ? matcher.get().group(2) : null;
-
-    if (prNumber == null) {
-      log.warn("PR number missing for build: {} - {}", build.getUrl(), resolveCause(build));
-    }
+    val prNumber = resolvePrNumber(build);
+    val commitId = resolveCommitId(build);
 
     return new JenkinsBuild()
         .setNumber(build.getNumber())
         .setPrNumber(prNumber)
         .setCommitId(commitId)
         .setUrl(build.getUrl())
-        .setResult(build.details().getResult())
+        .setResult(resolveResult(build))
         .setTimestamp(build.details().getTimestamp());
   }
 
-  private static Optional<Matcher> matchCause(List<BuildCause> causes) {
-    // Heuristic to get commit and PR
-    return causes.stream()
-        .map(BuildCause::getShortDescription)
-        .map(CAUSE_SHORT_DESCRIPTION_PATTERN::matcher)
-        .filter(Matcher::find)
-        .findFirst();
+  private static String resolveCommitId(MavenBuild build) {
+    val parameters = resolveParameters(build);
+    return parameters.get("ghprbActualCommit");
   }
 
-  private static String resolveCause(MavenBuild build) throws IOException {
-    if (build == null ||
-        build.details() == null ||
-        build.details().getCauses() == null ||
-        build.details().getCauses().isEmpty()) return null;
+  private static Integer resolvePrNumber(MavenBuild build) {
+    val parameters = resolveParameters(build);
+    val text = parameters.get("ghprbPullId");
+    if (text == null) return null;
 
-    return build.details().getCauses().get(0).getShortDescription();
+    return tryParse(text);
+  }
+
+  @SneakyThrows
+  @SuppressWarnings("unchecked")
+  private static Map<String, String> resolveParameters(MavenBuild build) {
+    val parameters = Maps.<String, String> newLinkedHashMap();
+    val actions = (List<Map<String, ?>>) build.details().getActions();
+    for (val action : actions) {
+      if (action.containsKey("parameters")) {
+        val list = (List<Map<String, String>>) action.get("parameters");
+        for (val item : list) {
+          parameters.put(item.get("name"), item.get("value"));
+        }
+
+        return parameters;
+      }
+    }
+
+    return parameters;
+  }
+
+  private static BuildResult resolveResult(MavenBuild build) throws IOException {
+    val details = build.details();
+
+    // If details.isBuilding() is true details.getResult() reports success for some reason. Thus we check to see if it
+    // is building with the boolean instead
+    return details.isBuilding() ? BUILDING : details.getResult();
   }
 
   private static Collector<JenkinsBuild, ?, Optional<JenkinsBuild>> latestBuild() {
