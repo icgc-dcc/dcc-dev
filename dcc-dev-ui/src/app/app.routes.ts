@@ -1,6 +1,7 @@
 import { WebpackAsyncRoute } from '@angularclass/webpack-toolkit';
 import { RouterConfig } from '@angular/router';
 import { Home } from './home';
+import { PortalPage } from './portal-page';
 import { NoContent } from './no-content';
 
 import { DataResolver } from './app.resolver';
@@ -19,6 +20,7 @@ export const routes: RouterConfig = [
     children: [
       { path: '', component: 'Index' }  // must be included
     ]},
+  { path: 'portals/:portalId', component: PortalPage },
   { path: '**',    component: NoContent },
 ];
 

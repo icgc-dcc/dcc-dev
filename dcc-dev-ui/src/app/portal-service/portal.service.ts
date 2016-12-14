@@ -127,6 +127,11 @@ export class PortalService {
       .map(res => res.json());
   }
 
+  public fetchPortal = (portalId) => {
+    return this.http.get(`${REST_ROOT}/portals/${portalId}`)
+      .map(res => res.json());
+  }
+
   private updatePortals = () => {
     return this.fetchPortals().subscribe( data => this.portals = data );
   }

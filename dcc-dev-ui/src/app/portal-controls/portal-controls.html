@@ -6,7 +6,9 @@
 >
   <div class="container">
     <div *ngIf="portal" class="portal-id">
-      #{{ portal.id }}
+      <a [routerLink]="'/portals/' + [portal.id]">
+        #{{ portal.id }}
+      </a>
     </div>
     <div class="primary-column">
       <img class="owner-avatar" [src]="'http://github.com/' + pr.user + '.png'">
