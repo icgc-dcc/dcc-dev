@@ -145,7 +145,7 @@ public class PortalCandidateListener {
   }
 
   private static boolean isBuildSuccess(JenkinsBuild latestBuild) {
-    return latestBuild.getResult() == BuildResult.SUCCESS;
+    return latestBuild != null & latestBuild.getResult() == BuildResult.SUCCESS;
   }
 
   private static boolean isBuildCurrent(JenkinsBuild currentBuild, JenkinsBuild latestBuild) {
