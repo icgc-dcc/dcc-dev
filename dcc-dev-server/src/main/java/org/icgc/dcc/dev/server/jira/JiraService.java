@@ -49,7 +49,7 @@ public class JiraService {
    */
   @Value("${jira.update}")
   boolean update;
-  
+
   /**
    * Dependencies.
    */
@@ -59,6 +59,7 @@ public class JiraService {
   @Synchronized
   public JiraTicket getTicket(@NonNull String key) {
     val issue = getIssue(key);
+    if (issue == null) return null;
 
     return new JiraTicket()
         .setKey(key)
@@ -75,7 +76,7 @@ public class JiraService {
       log.debug("Updates disabled. Skipping update of ticket {}", key);
       return;
     }
-    
+
     val issue = getIssue(key);
     if (issue == null) {
       log.warn("Cannot find ticket {}", key);
@@ -96,7 +97,12 @@ public class JiraService {
 
   @SneakyThrows
   private Issue getIssue(String key) {
-    return jira.getIssue(key);
+    try {
+      return jira.getIssue(key);
+    } catch (Exception e) {
+      log.error("Could not get issue for key: '{}': {}", key, e.getMessage());
+      return null;
+    }
   }
 
 }

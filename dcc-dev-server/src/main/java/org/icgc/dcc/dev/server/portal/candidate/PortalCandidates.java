@@ -95,7 +95,7 @@ public class PortalCandidates {
   private static String parseTicketKey(String branch) {
     val matcher = PR_TICKET_PATTERN.matcher(branch);
 
-    return matcher.find() ? matcher.group(1) : null;
+    return matcher.find() ? matcher.group(1).toUpperCase() : null;
   }
 
 }
