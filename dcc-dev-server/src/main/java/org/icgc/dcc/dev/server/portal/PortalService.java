@@ -31,12 +31,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import org.icgc.dcc.dev.server.github.GitHubCommitNotFoundException;
-import org.icgc.dcc.dev.server.github.GitHubPrNotFoundException;
 import org.icgc.dcc.dev.server.github.GithubCommit;
+import org.icgc.dcc.dev.server.github.GithubCommitNotFoundException;
 import org.icgc.dcc.dev.server.github.GithubPr;
+import org.icgc.dcc.dev.server.github.GithubPrNotFoundException;
 import org.icgc.dcc.dev.server.github.GithubService;
 import org.icgc.dcc.dev.server.jira.JiraService;
+import org.icgc.dcc.dev.server.jira.JiraTicket;
+import org.icgc.dcc.dev.server.jira.JiraTicketNotFoundException;
 import org.icgc.dcc.dev.server.message.MessageService;
 import org.icgc.dcc.dev.server.message.Messages.PortalChangeMessage;
 import org.icgc.dcc.dev.server.message.Messages.PortalChangeType;
@@ -59,6 +61,7 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
+import net.rcarz.jiraclient.Comment;
 
 /**
  * Main service responsible for coordinating the life cycle management of portal instances.
@@ -100,15 +103,22 @@ public class PortalService {
   @Autowired
   GithubService github;
 
-  
   public GithubPr getPr(int prNumber) {
-    return github.getPr(prNumber).orElseThrow(() -> new GitHubPrNotFoundException(prNumber));
+    return github.getPr(prNumber).orElseThrow(() -> new GithubPrNotFoundException(prNumber));
   }
-  
+
   public GithubCommit getCommit(String commitId) {
-    return github.getCommit(commitId).orElseThrow(() -> new GitHubCommitNotFoundException(commitId));
+    return github.getCommit(commitId).orElseThrow(() -> new GithubCommitNotFoundException(commitId));
   }
-  
+
+  public JiraTicket getTicket(String ticketKey) {
+    return jira.getTicket(ticketKey).orElseThrow(() -> new JiraTicketNotFoundException(ticketKey));
+  }
+
+  public List<Comment> getTicketComments(String ticketKey) {
+    return jira.getTicketComments(ticketKey).orElseThrow(() -> new JiraTicketNotFoundException(ticketKey));
+  }
+
   public List<Portal.Candidate> getCandidates() {
     return candidates.getCandidates();
   }

@@ -15,7 +15,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN                         
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.icgc.dcc.dev.server.github;
+package org.icgc.dcc.dev.server.jira;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -25,17 +25,17 @@ import lombok.Getter;
 import lombok.NonNull;
 
 /**
- * Exception for representing when a PR number is not found or available.
+ * Exception for representing when a ticket key is not found or available.
  */
 @ResponseStatus(NOT_FOUND)
-public class GitHubPrNotFoundException extends RuntimeException {
+public class JiraTicketNotFoundException extends RuntimeException {
 
   @Getter
-  private final Integer prNumber;
+  private final String ticketKey;
 
-  public GitHubPrNotFoundException(@NonNull Integer prNumber) {
-    super("PR number " + prNumber + " not found");
-    this.prNumber = prNumber;
+  public JiraTicketNotFoundException(@NonNull String ticketKey) {
+    super("Ticket key " + ticketKey + " not found");
+    this.ticketKey = ticketKey;
   }
 
 }

@@ -89,7 +89,7 @@ public class PortalCandidates {
         .setPr(pr)
         .setBuild(build)
         .setArtifact(artifact)
-        .setTicket(ticket);
+        .setTicket(ticket.orElse(null));
   }
 
   private static String parseTicketKey(String branch) {

@@ -28,12 +28,12 @@ import lombok.NonNull;
  * Exception for representing when a commit id is not found.
  */
 @ResponseStatus(NOT_FOUND)
-public class GitHubCommitNotFoundException extends RuntimeException {
+public class GithubCommitNotFoundException extends RuntimeException {
 
   @Getter
   private final String commitId;
 
-  public GitHubCommitNotFoundException(@NonNull String commitId) {
+  public GithubCommitNotFoundException(@NonNull String commitId) {
     super("Commit id " + commitId + " not found");
     this.commitId = commitId;
   }

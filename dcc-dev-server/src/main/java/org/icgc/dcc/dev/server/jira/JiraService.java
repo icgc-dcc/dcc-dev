@@ -19,6 +19,9 @@ package org.icgc.dcc.dev.server.jira;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,7 @@ import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
+import net.rcarz.jiraclient.Comment;
 import net.rcarz.jiraclient.Issue;
 import net.rcarz.jiraclient.JiraClient;
 
@@ -57,16 +61,23 @@ public class JiraService {
   JiraClient jira;
 
   @Synchronized
-  public JiraTicket getTicket(@NonNull String key) {
+  public Optional<JiraTicket> getTicket(@NonNull String key) {
     val issue = getIssue(key);
-    if (issue == null) return null;
+    if (issue == null) return Optional.empty();
 
-    return new JiraTicket()
+    return Optional.of(new JiraTicket()
         .setKey(key)
         .setTitle(issue.getSummary())
         .setStatus(issue.getStatus().getName())
         .setAssignee(issue.getAssignee().getName())
-        .setUrl(issue.getUrl());
+        .setUrl(issue.getUrl()));
+  }
+  
+  public Optional<List<Comment>> getTicketComments(@NonNull String key) {
+    val issue = getIssue(key);
+    if (issue == null) return Optional.empty();
+    
+    return Optional.of(issue.getComments());
   }
 
   @Synchronized

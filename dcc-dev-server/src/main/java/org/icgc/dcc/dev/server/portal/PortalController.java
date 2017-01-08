@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.icgc.dcc.dev.server.github.GithubCommit;
 import org.icgc.dcc.dev.server.github.GithubPr;
+import org.icgc.dcc.dev.server.jira.JiraTicket;
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.icgc.dcc.dev.server.portal.Portal.Status;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import net.rcarz.jiraclient.Comment;
 
 /**
  * HTTP bindings for interaction with portal instances.
@@ -80,7 +82,7 @@ public class PortalController {
   }
 
   /**
-   * Gets a PR by id.
+   * Gets a PR by {@code prNumber}.
    */
   @GetMapping("/api/prs/{prNumber}")
   public GithubPr getPr(@PathVariable("prNumber") Integer prNumber) {
@@ -88,11 +90,27 @@ public class PortalController {
   }
   
   /**
-   * Gets a PR by id.
+   * Gets a commit by {@code commitId}.
    */
   @GetMapping("/api/commits/{commitId}")
   public GithubCommit getCommit(@PathVariable("commitId") String commitId) {
     return service.getCommit(commitId);
+  }
+  
+  /**
+   * Gets a JIRA ticket by {@code ticketKey}.
+   */
+  @GetMapping("/api/tickets/{ticketKey}")
+  public JiraTicket getTicket(@PathVariable("ticketKey") String ticketKey) {
+    return service.getTicket(ticketKey);
+  }
+  
+  /**
+   * Gets a JIRA ticket by {@code ticketKey}.
+   */
+  @GetMapping("/api/tickets/{ticketKey}/comments")
+  public List<Comment> getTicketComments(@PathVariable("ticketKey") String ticketKey) {
+    return service.getTicketComments(ticketKey);
   }
 
   /**
