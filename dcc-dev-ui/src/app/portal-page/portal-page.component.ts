@@ -49,7 +49,14 @@ import { PullRequest, Candidate, Portal, JiraComment }  from '../interfaces';
 
           <div class="comment__info">
             <div class="comment__info__item">{{ comment.author.displayName }}</div>
-            <div class="comment__info__item">{{ moment(comment.createdDate).fromNow() }}</div>
+            <div class="comment__info__item">
+              <a
+                target="blank"
+                [href]="'https://jira.oicr.on.ca/browse/' + portal.target.ticket.key +'?focusedCommentId=' + comment.id"
+              >
+                {{ moment(comment.createdDate).fromNow() }}
+              </a>
+            </div>
           </div>
         </div>
       </div>
