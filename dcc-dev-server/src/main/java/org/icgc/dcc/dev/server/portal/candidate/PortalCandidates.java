@@ -74,7 +74,7 @@ public class PortalCandidates {
   }
 
   public Optional<Portal.Candidate> getCandidate(@NonNull GithubPr pr) {
-    val buildNumber = github.getBuildNumber(pr.getHead()).orElse(null);
+    val buildNumber = github.getLatestBuildNumber(pr.getHead()).orElse(null);
 
     return Optional.ofNullable(createCandidate(pr, buildNumber));
   }

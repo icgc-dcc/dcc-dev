@@ -28,6 +28,8 @@ import java.util.regex.Pattern;
 
 import org.icgc.dcc.dev.server.message.MessageService;
 import org.icgc.dcc.dev.server.message.Messages.GithubPrsMessage;
+import org.kohsuke.github.GHCommitState;
+import org.kohsuke.github.GHCommitStatus;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -108,11 +110,24 @@ public class GithubService {
   }
 
   @SneakyThrows
-  public Optional<Integer> getBuildNumber(@NonNull String sha1) {
-    val status = repo.getLastCommitStatus(sha1);
-    if (status == null) return Optional.empty();
+  public Optional<Integer> getLatestBuildNumber(@NonNull String sha1) {
+    // TODO: Search backwards through parent commits of sha1
+    val statuses = repo.listCommitStatuses(sha1);
+    for (val status : statuses) {
+      if (isBuildSuccess(status)) {
+        return Optional.ofNullable(parseBuildNumber(status.getTargetUrl()));
+      }
+    }
 
-    return Optional.ofNullable(parseBuildNumber(status.getTargetUrl()));
+    return Optional.empty();
+  }
+
+  public boolean isBuildSuccess(GHCommitStatus status) {
+    if (status.getDescription() == null) return false;
+
+    val success = status.getState() == GHCommitState.SUCCESS;
+    val finished = status.getDescription().contains("Build finished");
+    return success && finished;
   }
 
   @SneakyThrows
