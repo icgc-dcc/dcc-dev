@@ -4,11 +4,11 @@ import { Http } from '@angular/http';
 import { ActivatedRoute, Params } from '@angular/router';
 import { get, map, zipObject, without } from 'lodash';
 import * as moment from 'moment';
+import * as _ from 'lodash';
 
 import { PortalService } from '../portal-service';
 import { PortalControls } from '../portal-controls';
-import { PullRequest, Candidate, Portal }  from '../interfaces';
-
+import { PullRequest, Candidate, Portal, JiraComment }  from '../interfaces';
 
 @Component({
   selector: 'portal-page',
@@ -21,21 +21,55 @@ import { PullRequest, Candidate, Portal }  from '../interfaces';
       [pr]="portal.target.pr"
       [ticket]="portal.target.ticket"
     ></portal-controls>
+    <div class="jira-comments" *ngIf="jiraComments && jiraComments.length">
+      <div
+        class="comment"
+        *ngFor="let comment of _.orderBy(jiraComments, 'createdDate', 'desc')"
+      >
+        <span class="comment__avatar">
+          <img src="{{comment.author.avatarUrls['24x24']}}"/>
+        </span>
+
+        <div class="comment__right-column">
+          <div class="comment__body"> {{ comment.body }} </div>
+
+          <div class="comment__info">
+            <div class="comment__info__item">{{ comment.author.displayName }}</div>
+            <div class="comment__info__item">{{ moment(comment.createdDate).fromNow() }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
   `,
+  styleUrls: [ './portal-page.style.scss' ],
   providers: [ PortalService ],
   directives: [ PortalControls ],
 })
 export class PortalPage implements OnInit {
   portal: Portal;
+  jiraComments: [JiraComment];
+  moment = moment;
+  _ = _;
 
   constructor (
     private portalService: PortalService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    public http: Http
     ) {}
   
   ngOnInit() {
     this.route.params
       .switchMap((params: Params) => this.portalService.fetchPortal(params['portalId']))
-      .subscribe((portal: Portal) => this.portal = portal);
+      .subscribe((portal: Portal) => {
+        this.portal = portal;
+        this.fetchJiraComments();
+      });
+  }
+  fetchJiraComments = () => {
+    this.portalService.fetchJiraComments(this.portal)
+      .subscribe(
+        (data) => this.jiraComments = data,
+        (err) => err.status === 404 && setTimeout(this.fetchJiraComments, 3000)
+        )
   }
 }

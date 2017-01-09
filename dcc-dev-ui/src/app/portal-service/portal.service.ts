@@ -31,7 +31,6 @@ export class PortalService {
     private ref: ApplicationRef,
     private _ngZone: NgZone
   ) {
-
     this.updateCandidates();
     this.updatePortals();
 
@@ -90,6 +89,11 @@ export class PortalService {
         content: res.text(),
       }));
   };
+
+  fetchJiraComments = (portal) => {
+    return this.http.get(`${REST_ROOT}/tickets/${portal.target.ticket.key}/comments`)
+      .map(res => res.json());
+  }
 
   // TODO: make this an observable
   subscribePortalLog = (portalId, cb) => {
