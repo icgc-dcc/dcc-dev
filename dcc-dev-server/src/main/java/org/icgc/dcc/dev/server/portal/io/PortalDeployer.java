@@ -137,9 +137,10 @@ public class PortalDeployer {
   }
 
   private static void assignPort(Map<String, String> systemConfig, String portProperty) {
+    // TODO: Wrap back around the range if hitting top.
     // Give preference to the current value, if any
     val portStart = Integer.valueOf(systemConfig.getOrDefault(portProperty, "8000"));
-    val portEnd = 9000;
+    val portEnd = 20000;
     val port = findAvailableTcpPort(portStart, portEnd);
 
     systemConfig.put(portProperty, String.valueOf(port));

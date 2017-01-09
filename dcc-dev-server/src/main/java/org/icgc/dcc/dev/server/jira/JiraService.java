@@ -73,6 +73,7 @@ public class JiraService {
         .setUrl(issue.getUrl()));
   }
   
+  @Synchronized
   public Optional<List<Comment>> getTicketComments(@NonNull String key) {
     val issue = getIssue(key);
     if (issue == null) return Optional.empty();

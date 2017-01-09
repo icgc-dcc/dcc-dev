@@ -114,15 +114,15 @@ public class GithubService {
     // TODO: Search backwards through parent commits of sha1
     val statuses = repo.listCommitStatuses(sha1);
     for (val status : statuses) {
-      if (isBuildSuccess(status)) {
+      if (isBuildStatus(status)) {
         return Optional.ofNullable(parseBuildNumber(status.getTargetUrl()));
       }
     }
 
     return Optional.empty();
   }
-
-  public boolean isBuildSuccess(GHCommitStatus status) {
+  
+  public boolean isBuildStatus(GHCommitStatus status) {
     if (status.getDescription() == null) return false;
 
     val success = status.getState() == GHCommitState.SUCCESS;
