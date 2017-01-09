@@ -3,6 +3,14 @@
   flex-direction: column;
   align-items: flex-end;
   margin: 0.5 auto;
+  .comment-controls {
+    margin: 1em;
+    font-size: 11px;
+    user-select: none;
+    label {
+      cursor: pointer;
+    }
+  }
   .comment {
     border-radius: 3px;
     background-color: #fff;

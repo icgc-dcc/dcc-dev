@@ -22,6 +22,12 @@ import { PullRequest, Candidate, Portal, JiraComment }  from '../interfaces';
       [ticket]="portal.target.ticket"
     ></portal-controls>
     <div class="jira-comments">
+      <div class="comment-controls">
+        <label>
+          <input type="checkbox" [(ngModel)]="shouldHideAutomatedComments">
+          hide automated comments
+        </label>
+      </div>
       <div
         class="comment"
         *ngIf="isFetchingComments"
@@ -38,7 +44,7 @@ import { PullRequest, Candidate, Portal, JiraComment }  from '../interfaces';
 
       <div
         class="comment"
-        *ngFor="let comment of _.orderBy(jiraComments, 'createdDate', 'desc')"
+        *ngFor="let comment of _.orderBy(_.filter(jiraComments, commentFilter), 'createdDate', 'desc')"
       >
         <span class="comment__avatar">
           <img src="{{comment.author.avatarUrls['24x24']}}"/>
@@ -73,6 +79,8 @@ export class PortalPage implements OnInit {
   moment = moment;
   _ = _;
 
+  shouldHideAutomatedComments = true;
+
   constructor (
     private portalService: PortalService,
     private route: ActivatedRoute,
@@ -87,6 +95,14 @@ export class PortalPage implements OnInit {
         this.fetchJiraComments();
       });
   }
+
+  commentFilter = (comment) => {
+    const isAutomatedComment = (comment) => ['DCC Jira Automation'].includes(comment.author.displayName);
+    return _.every([
+      this.shouldHideAutomatedComments ? !isAutomatedComment(comment) : true,
+    ]);
+  };
+
   fetchJiraComments = () => {
     this.isFetchingComments = true;
     this.portalService.fetchJiraComments(this.portal)
