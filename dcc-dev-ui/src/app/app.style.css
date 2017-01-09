@@ -12,6 +12,10 @@ button.active{
 button.active:hover{
   color: #fff;
 }
+.home-link {
+  color: #fff;
+  text-decoration: none;
+}
 .fill{
   flex: 1 1 auto;
 }
