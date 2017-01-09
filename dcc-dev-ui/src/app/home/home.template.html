@@ -1,6 +1,12 @@
 <div class="card-container home">
   <div class="home-column candidates-column">
-    <h2 class="column-title">Candidates</h2>
+    <h2 class="column-title">
+      Candidates
+      <i
+        *ngIf="portalService.isFetchingCandidates"
+        class="fa fa-spinner fa-spin"
+      ></i>
+    </h2>
     <div
       class="home-item"
       *ngFor="let candidate of candidates"
@@ -15,7 +21,13 @@
   </div>
 
   <div class="home-column portals-column">
-    <h2 class="column-title">Deployed Portals</h2>
+    <h2 class="column-title">
+      Deployed Portals
+      <i
+        *ngIf="portalService.isFetchingPortals"
+        class="fa fa-spinner fa-spin"
+      ></i>
+    </h2>
     <div
       *ngFor="let portal of sortedPortals"
       class="home-item"
