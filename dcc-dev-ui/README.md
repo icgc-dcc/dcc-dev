@@ -2,10 +2,17 @@
 
 UI module that packages static resources/
 
-## Requirements
+## Setup
 
-- node >= v4
-- npm >= v3
+Install the following:
+- [nvm](http://docs.icgc.org/software/development/setup/#nvm)
+
+Then execute:
+
+```shell
+nvm install 5
+nvm use 5
+```
 
 ## Build
 
