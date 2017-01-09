@@ -21,7 +21,21 @@ import { PullRequest, Candidate, Portal, JiraComment }  from '../interfaces';
       [pr]="portal.target.pr"
       [ticket]="portal.target.ticket"
     ></portal-controls>
-    <div class="jira-comments" *ngIf="jiraComments && jiraComments.length">
+    <div class="jira-comments">
+      <div
+        class="comment"
+        *ngIf="isFetchingComments"
+      >
+        <i class="comment__avatar fa fa-spinner fa-spin"></i>
+      </div>
+
+      <div
+        class="comment"
+        *ngIf="!isFetchingComments && (!jiraComments || !jiraComments.length)"
+      >
+        No comments
+      </div>
+
       <div
         class="comment"
         *ngFor="let comment of _.orderBy(jiraComments, 'createdDate', 'desc')"
@@ -46,6 +60,7 @@ import { PullRequest, Candidate, Portal, JiraComment }  from '../interfaces';
   directives: [ PortalControls ],
 })
 export class PortalPage implements OnInit {
+  isFetchingComments: Boolean = false;
   portal: Portal;
   jiraComments: [JiraComment];
   moment = moment;
@@ -66,9 +81,13 @@ export class PortalPage implements OnInit {
       });
   }
   fetchJiraComments = () => {
+    this.isFetchingComments = true;
     this.portalService.fetchJiraComments(this.portal)
       .subscribe(
-        (data) => this.jiraComments = data,
+        (data) => {
+          this.jiraComments = data;
+          this.isFetchingComments = false;
+        },
         (err) => err.status === 404 && setTimeout(this.fetchJiraComments, 3000)
         )
   }
