@@ -19,6 +19,13 @@ export interface Candidate {
     url: String
   };
   pr: PullRequest;
+  ticket: {
+    assignee: String,
+    key: String,
+    status: String,
+    title: String,
+    url: String,
+  }
 };
 
 export interface Portal {
