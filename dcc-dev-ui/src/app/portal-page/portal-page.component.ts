@@ -21,7 +21,10 @@ import { PullRequest, Candidate, Portal, JiraComment }  from '../interfaces';
       [pr]="portal.target.pr"
       [ticket]="portal.target.ticket"
     ></portal-controls>
-    <div class="jira-comments">
+    <div
+      *ngIf="_.get(portal, 'target.ticket')"
+      class="jira-comments"
+    >
       <div class="comment-controls">
         <label>
           <input type="checkbox" [(ngModel)]="shouldHideAutomatedComments">
@@ -92,6 +95,7 @@ export class PortalPage implements OnInit {
       .switchMap((params: Params) => this.portalService.fetchPortal(params['portalId']))
       .subscribe((portal: Portal) => {
         this.portal = portal;
+        if (portal.target.ticket)
         this.fetchJiraComments();
       });
   }
