@@ -22,6 +22,8 @@ const formHeaders = new Headers({ 'Content-Type': 'application/x-www-form-urlenc
 export class PortalService {
   candidates: Array<Candidate> = [];
   portals: Array<Portal> = [];
+  isFetchingCandidates: Boolean = false;
+  isFetchingPortals: Boolean = false;
   logsMap: any = {};
 
   constructor(
@@ -29,7 +31,6 @@ export class PortalService {
     private ref: ApplicationRef,
     private _ngZone: NgZone
   ) {
-
     this.updateCandidates();
     this.updatePortals();
 
@@ -89,6 +90,11 @@ export class PortalService {
       }));
   };
 
+  fetchJiraComments = (portal) => {
+    return this.http.get(`${REST_ROOT}/tickets/${portal.target.ticket.key}/comments`)
+      .map(res => res.json());
+  }
+
   // TODO: make this an observable
   subscribePortalLog = (portalId, cb) => {
     stompClient.subscribe(`/topic/logs/${portalId}`, (message) => {
@@ -133,11 +139,19 @@ export class PortalService {
   }
 
   private updatePortals = () => {
-    return this.fetchPortals().subscribe( data => this.portals = data );
+    this.isFetchingPortals = true;
+    return this.fetchPortals().subscribe( data => {
+      this.isFetchingPortals = false;
+      this.portals = data;
+    });
   }
 
   private updateCandidates = () => {
-    return this.fetchCandidates().subscribe( data => this.candidates = data);
+    this.isFetchingCandidates = true;
+    return this.fetchCandidates().subscribe( data => {
+      this.isFetchingCandidates = false;
+      this.candidates = data;
+    });
   }
 
 }

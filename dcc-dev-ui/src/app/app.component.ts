@@ -18,7 +18,9 @@ import { AppState } from './app.service';
   template: `
     <md-content>
       <md-toolbar color="primary">
-          <span>DCC Deployment Server</span>
+          <a class="home-link" [routerLink]="'/'">
+            DCC Deployment Server
+          </a>
           <span class="fill"></span>
           
       </md-toolbar>

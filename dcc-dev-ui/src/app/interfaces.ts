@@ -37,3 +37,42 @@ export interface Portal {
   ticket: any,
   url: String
 };
+
+interface JiraAvatarUrls {
+  '16x16': string;
+  '24x24': string;
+  '32x32': string;
+  '48x48': string;
+}
+
+interface JiraAuthor {
+  active: boolean;
+  JiraavatarUrls: JiraAvatarUrls;
+  displayName: string;
+  emailAddress: string;
+  key: string;
+  name: string;
+  self: string;
+  timeZone: string;
+}
+
+interface JiraUpdateAuthor {
+  active: boolean;
+  JiraavatarUrls: JiraAvatarUrls;
+  displayName: string;
+  emailAddress: string;
+  key: string;
+  name: string;
+  self: string;
+  timeZone: string;
+}
+
+export interface JiraComment {
+  author: JiraAuthor;
+  body: string;
+  created: Date;
+  id: string;
+  self: string;
+  JiraupdateAuthor: JiraUpdateAuthor;
+  updated: Date;
+}
