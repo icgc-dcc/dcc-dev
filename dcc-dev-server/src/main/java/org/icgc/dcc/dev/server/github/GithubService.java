@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
 import lombok.NonNull;
@@ -56,7 +57,7 @@ public class GithubService {
   /**
    * Constants.
    */
-  static final Pattern BUILD_NUMBER_PATTERN = Pattern.compile("/([^/]+)/?$");
+  static final Pattern BUILD_NUMBER_PATTERN = Pattern.compile("/([^/]+)/?$"); // [url]/[buildNumber]
 
   /**
    * Configuration.
@@ -114,7 +115,7 @@ public class GithubService {
     // TODO: Search backwards through parent commits of sha1
     val statuses = repo.listCommitStatuses(sha1);
     for (val status : statuses) {
-      if (isBuildStatus(status)) {
+      if (isSuccessBuildStatus(status)) {
         return Optional.ofNullable(parseBuildNumber(status.getTargetUrl()));
       }
     }
@@ -122,7 +123,7 @@ public class GithubService {
     return Optional.empty();
   }
   
-  public boolean isBuildStatus(GHCommitStatus status) {
+  public boolean isSuccessBuildStatus(GHCommitStatus status) {
     if (status.getDescription() == null) return false;
 
     val success = status.getState() == GHCommitState.SUCCESS;
@@ -142,6 +143,8 @@ public class GithubService {
   }
 
   private GithubPr convert(GHPullRequest pr) {
+    // val builds = getBuilds(pr);
+    
     return new GithubPr()
         .setNumber(pr.getNumber())
         .setTitle(pr.getTitle())
@@ -151,6 +154,21 @@ public class GithubService {
         .setHead(pr.getHead().getSha())
         .setAvatarUrl(pr.getUser().getAvatarUrl())
         .setUrl(pr.getHtmlUrl().toString());
+  }
+  
+  @SneakyThrows
+  private  List<Integer> getBuilds(GHPullRequest pr) {
+    val builds = ImmutableList.<Integer>builder();
+    for( val commit : pr.listCommits()) {
+      for (val status : repo.listCommitStatuses(commit.getSha())) {
+        if (isSuccessBuildStatus(status)) {
+          val buildNumber = parseBuildNumber(status.getTargetUrl());
+          builds.add(buildNumber);
+        }
+      }
+    }
+    
+    return builds.build();
   }
 
   private static Integer parseBuildNumber(String jobUrl) {

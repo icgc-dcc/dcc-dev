@@ -29,6 +29,7 @@ import org.icgc.dcc.dev.server.github.GithubPr;
 import org.icgc.dcc.dev.server.github.GithubService;
 import org.icgc.dcc.dev.server.jenkins.JenkinsService;
 import org.icgc.dcc.dev.server.jira.JiraService;
+import org.icgc.dcc.dev.server.jira.JiraTicket;
 import org.icgc.dcc.dev.server.portal.Portal;
 import org.icgc.dcc.dev.server.portal.Portal.Candidate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,7 @@ public class PortalCandidates {
     val build = buildNumber == null ? null : jenkins.getBuild(buildNumber);
     val artifact = buildNumber == null ? null : artifactory.getArtifact(buildNumber).orElse(null);
     val ticketKey = parseTicketKey(pr.getBranch());
-    val ticket = ticketKey == null ? null : jira.getTicket(ticketKey);
+    val ticket = ticketKey == null ? Optional.<JiraTicket>empty() : jira.getTicket(ticketKey);
 
     return new Portal.Candidate()
         .setPr(pr)
