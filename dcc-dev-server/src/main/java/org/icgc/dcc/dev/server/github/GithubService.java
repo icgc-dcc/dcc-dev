@@ -142,6 +142,7 @@ public class GithubService {
     pr.comment(message);
   }
 
+  @SneakyThrows
   private GithubPr convert(GHPullRequest pr) {
     // val builds = getBuilds(pr);
     
